@@ -26,16 +26,21 @@ function generateUniqueCode(uuidSeed: string): string {
 /**
  * Creates a new game session.
  * @param {string} managerId - The ID of the manager joining the session.
+ * @param {string} managerName - The name of the game manager for the game session.
  * @returns {GameSession} The newly created game session.
  */
-export function createNewSession(managerId: string): GameSession {
-  const sessionId = uuidv4();
+export function createNewSession(
+  managerId: string,
+  managerName: string
+): GameSession {
+  const sessionId = uuidv4(); // Generate a UUID for the session ID
   const teamCode1 = generateUniqueCode(sessionId + 'team1');
   const teamCode2 = generateUniqueCode(sessionId + 'team2');
   const newSession: GameSession = {
     sessionId,
     teamCodes: [teamCode1, teamCode2],
-    players: [{ id: managerId, teamCode: '' }], // Manager joins without a team code initially
+    players: [],
+    manager: { id: managerId, teamCode: teamCode1, name: managerName },
     hakem: null
   };
   return newSession;
