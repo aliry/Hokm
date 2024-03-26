@@ -13,7 +13,6 @@ export interface GameSession {
   hakem: Player | null;
   manager: Player;
   deck: Card[]; // Represents the deck of cards for the game
-  discardPile: Card[]; // Represents the pile of discarded cards, if applicable
   currentRound: number; // The current round number
   maxRounds: number; // The maximum number of rounds in the game
   scores: { [teamCode: string]: number }; // Object to keep track of scores for each team

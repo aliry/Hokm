@@ -41,7 +41,19 @@ export function createNewSession(
     teamCodes: [teamCode1, teamCode2],
     players: [],
     manager: { id: managerId, teamCode: teamCode1, name: managerName },
-    hakem: null
+    hakem: null,
+    deck: [],
+    currentRound: 0,
+    maxRounds: 0,
+    scores: {
+      [teamCode1]: 0,
+      [teamCode2]: 0
+    },
+    currentPlayerIndex: 0,
+    trumpSuit: null,
+    gameStarted: false,
+    gameEnded: false,
+    roundHistory: []
   };
   return newSession;
 }
