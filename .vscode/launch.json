@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Service Lunch",
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "program": "${workspaceFolder}/service/src/server.ts",
+      "outFiles": ["${workspaceFolder}/service/dist/**/*.js"],
+      "cwd": "${workspaceFolder}/service",
+      "sourceMaps": true,
+      "protocol": "inspector",
+      "console": "integratedTerminal"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+I'm building a server to Hokm card game.
+The game should work like this:
+It will have a website client connect to our server.
+On the website a user can create a new game. We call this user the game manager.
+when game manager starts a game, the server need to generate a session id for the game as well as two unique (5 digit code) for each team.
+Then the game manager can give one of the team codes to their partner and the other one to the two player in the opponent team to also join the game. 
+the server should not allow more than two users to join each team.
+Other users can then open the website and click on join the game using their code.
+Once all users join the game then manager can click on start to start the game.
+
+Once game started:
+1- the server should randomly pick a player to be hakem.
+2- generate cards for hakem and wait for hakem to choose the trump suit. 
+3- after that server need to distribute the reset of the card to all players.
+4- after than server should implement functionalities need to play the game based on the rules of Hokm
+5- server should track the score and notify players when a team wins 
+
+Write the code for the server in typescript
