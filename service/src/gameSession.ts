@@ -10,13 +10,13 @@ export class GameSession {
   private teamCodes: string[];
   private players: Player[];
   private manager: Player;
-  private hakem: Player | null;
-  private deck: Card[];
+  private hakem?: Player;
+  private deck?: Card[];
   private currentRound: number;
   private maxRounds: number;
   private scores: { [teamCode: string]: number };
   private currentPlayerIndex: number;
-  private trumpSuit: string | null;
+  private trumpSuit?: string;
   private gameStarted: boolean;
   private gameEnded: boolean;
   private roundHistory: Round[];
@@ -31,8 +31,6 @@ export class GameSession {
     this.teamCodes = [this.generateUniqueCode(this.sessionId + 'team1'), this.generateUniqueCode(this.sessionId + 'team2')];
     this.players = [];
     this.manager = { id: "", teamCode: this.teamCodes[0], name: managerName };
-    this.hakem = null;
-    this.deck = [];
     this.currentRound = 0;
     this.maxRounds = 0;
     this.scores = {
@@ -40,7 +38,6 @@ export class GameSession {
       [this.teamCodes[1]]: 0
     };
     this.currentPlayerIndex = 0;
-    this.trumpSuit = null;
     this.gameStarted = false;
     this.gameEnded = false;
     this.roundHistory = [];
@@ -118,7 +115,7 @@ export class GameSession {
   * Get the hakem of the game session.
   * @returns {Player | null} The hakem.
   */
-  public get Hakem(): Player | null {
+  public get Hakem(): Player | undefined {
     return this.hakem;
   }
 
@@ -126,7 +123,7 @@ export class GameSession {
   * Get the deck of cards in the game session.
   * @returns {Card[]} The deck of cards.
   */
-  public get Deck(): Card[] {
+  public get Deck(): Card[] | undefined {
     return this.deck;
   }
 
@@ -166,7 +163,7 @@ export class GameSession {
   * Get the trump suit in the game session.
   * @returns {string | null} The trump suit.
   */
-  public get TrumpSuit(): string | null {
+  public get TrumpSuit(): string | undefined {
     return this.trumpSuit;
   }
 
@@ -200,21 +197,14 @@ export class GameSession {
    */
   public set Hakem(hakem: Player) {
     this.hakem = hakem;
-  }
-
-  /**
-   * Sets the value of the Deck property.
-   * @param {Card[]} deck - The new value for the Deck property.
-   */
-  public set Deck(deck: Card[]) {
-    this.deck = deck;
+    this.deck = this.generateShuffledDeck();
   }
 
   /**
    * Sets the value of the TrumpSuit property.
    * @param {string | null} trumpSuit - The new value for the TrumpSuit property.
    */
-  public set TrumpSuit(trumpSuit: string | null) {
+  public set TrumpSuit(trumpSuit: string) {
     this.trumpSuit = trumpSuit;
   }
 

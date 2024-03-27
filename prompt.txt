@@ -534,6 +534,5 @@ export class SocketHandler {
 
 I want you to implement a new class called "GameRuntime" to handle all the game events such as join-game and select-trump-suit and disconnect, ....
 and refactor the SocketHandler to use those event handlers instead of having the actual game logic inside the SocketHandler
-also if possible do a factory pattern so that we dont need to update both SocketHandler and GameRuntime everytime we want to add a new game event.
 Make sure write the complete code for any class need to change or added.
 
