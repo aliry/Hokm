@@ -1,7 +1,7 @@
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { GameSession } from './gameSession';
-import { GameEvent } from './constants';
+import { GameEvent, Suits } from './constants';
 
 export class GameRuntime {
   private gameSessionManager: GameSessionManager;
@@ -40,8 +40,13 @@ export class GameRuntime {
 
   selectTrumpSuit(socket: Socket, suit: string) {
     const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
-    if (!session || session.Hakem?.id !== socket.id) {
+    if (!session || session.Hakem?.id !== socket.id || session.TrumpSuit) {
       socket.emit(GameEvent.Error, 'Invalid operation');
+      return;
+    }
+
+    if (!Suits.includes(suit)) {
+      socket.emit(GameEvent.Error, 'Invalid suit');
       return;
     }
 

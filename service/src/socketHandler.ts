@@ -17,7 +17,7 @@ export class SocketHandler {
       this.gameRuntime.joinGame(socket, teamCode, playerName);
     });
 
-    socket.on(GameEvent.TrumpSuitSelected, ({ suit }) => {
+    socket.on(GameEvent.SetTrumpSuit, ({ suit }) => {
       this.gameRuntime.selectTrumpSuit(socket, suit);
     });
 

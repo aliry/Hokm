@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import { Card, Player, Round } from './types';
+import { CardValues, Suits } from './constants';
 
 /**
  * Class representing a game session.
@@ -270,26 +271,9 @@ export class GameSession {
    * @returns {Array<{ suit: string, value: string }>} The generated deck of cards.
    */
   private generateShuffledDeck(): Card[] {
-    const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
-    const values = [
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '10',
-      'J',
-      'Q',
-      'K',
-      'A'
-    ];
-
     const deck: Card[] = [];
-    for (const suit of suits) {
-      for (const value of values) {
+    for (const suit of Suits) {
+      for (const value of CardValues) {
         deck.push({ suit, value });
       }
     }
