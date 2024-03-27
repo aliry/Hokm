@@ -1,6 +1,7 @@
 import { Socket, Server as SocketIOServer } from 'socket.io';
-import { GameSessionManager } from "./gameSessionManager";
-import { GameRuntime } from "./gameRuntime";
+import { GameSessionManager } from './gameSessionManager';
+import { GameRuntime } from './gameRuntime';
+import { GameEvent } from './constants';
 
 export class SocketHandler {
   private io: SocketIOServer;
@@ -12,15 +13,15 @@ export class SocketHandler {
   }
 
   public handleConnection(socket: Socket): void {
-    socket.on('join-game', ({ teamCode, playerName }) => {
+    socket.on(GameEvent.JoinGame, ({ teamCode, playerName }) => {
       this.gameRuntime.joinGame(socket, teamCode, playerName);
     });
 
-    socket.on('select-trump-suit', ({ suit }) => {
+    socket.on(GameEvent.TrumpSuitSelected, ({ suit }) => {
       this.gameRuntime.selectTrumpSuit(socket, suit);
     });
 
-    socket.on('disconnect', () => {
+    socket.on(GameEvent.Disconnect, () => {
       this.gameRuntime.disconnect(socket);
     });
   }
