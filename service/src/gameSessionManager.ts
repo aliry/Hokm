@@ -2,9 +2,6 @@ import { GameSession } from "./gameSession";
 
 const MAX_CONCURRENT_GAMES = 100;
 
-/**
- * Manages game sessions.
- */
 export class GameSessionManager {
   private gameSessions: { [sessionId: string]: GameSession };
 

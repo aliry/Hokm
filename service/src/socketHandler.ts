@@ -1,4 +1,3 @@
-import { Player } from "./types";
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from "./gameSessionManager";
 import { GameRuntime } from "./gameRuntime";
