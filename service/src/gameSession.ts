@@ -11,12 +11,12 @@ export class GameSession {
   private teamCodes: string[];
   private players: Player[];
   private manager: Player;
-  private hakem?: Player;
+  private hakemIndex?: number;
   private deck?: Card[];
   private currentRound: number;
   private maxRounds: number;
   private scores: { [teamCode: string]: number };
-  private currentPlayerIndex: number;
+  private currentPlayerIndex?: number;
   private trumpSuit?: string;
   private gameStarted: boolean;
   private gameEnded: boolean;
@@ -34,14 +34,18 @@ export class GameSession {
       this.generateUniqueCode(this.sessionId + 'team2')
     ];
     this.players = [];
-    this.manager = { id: '', teamCode: this.teamCodes[0], name: managerName };
+    this.manager = {
+      id: '',
+      teamCode: this.teamCodes[0],
+      name: managerName,
+      connected: true
+    };
     this.currentRound = 0;
     this.maxRounds = 0;
     this.scores = {
       [this.teamCodes[0]]: 0,
       [this.teamCodes[1]]: 0
     };
-    this.currentPlayerIndex = 0;
     this.gameStarted = false;
     this.gameEnded = false;
     this.roundHistory = [];
@@ -53,17 +57,22 @@ export class GameSession {
   public get stateForBroadcast() {
     return {
       sessionId: this.sessionId,
-      team1Players: this.players.filter(
-        (player) => player.teamCode === this.teamCodes[0]
-      ),
-      team2Players: this.players.filter(
-        (player) => player.teamCode === this.teamCodes[1]
-      ),
-      hakem: this.hakem,
+      team1Players: this.players
+        .filter((player) => player.teamCode === this.teamCodes[0])
+        .map((player) => ({ id: player.id, name: player.name })),
+      team2Players: this.players
+        .filter((player) => player.teamCode === this.teamCodes[1])
+        .map((player) => ({ id: player.id, name: player.name })),
+      hakem: this.Hakem
+        ? { id: this.Hakem.id, name: this.Hakem.name }
+        : undefined,
       currentRound: this.currentRound,
       team1Score: this.scores[this.teamCodes[0]],
       team2Score: this.scores[this.teamCodes[1]],
-      currentPlayer: this.players[this.currentPlayerIndex],
+      currentPlayer:
+        this.currentPlayerIndex !== undefined
+          ? this.players[this.currentPlayerIndex]
+          : undefined,
       trumpSuit: this.trumpSuit,
       gameStarted: this.gameStarted,
       gameEnded: this.gameEnded,
@@ -109,7 +118,12 @@ export class GameSession {
       throw new Error('Team has reached its capacity.');
     }
 
-    const player: Player = { id: socketId, teamCode, name: playerName };
+    const player: Player = {
+      id: socketId,
+      teamCode,
+      name: playerName,
+      connected: true
+    };
     this.players.push(player);
 
     return player;
@@ -152,7 +166,10 @@ export class GameSession {
    * @returns {Player | null} The hakem.
    */
   public get Hakem(): Player | undefined {
-    return this.hakem;
+    if (this.hakemIndex === undefined) {
+      return undefined;
+    }
+    return this.players[this.hakemIndex];
   }
 
   /**
@@ -191,7 +208,7 @@ export class GameSession {
    * Get the index of the current player in the game session.
    * @returns {number} The index of the current player.
    */
-  public get CurrentPlayerIndex(): number {
+  public get CurrentPlayerIndex(): number | undefined {
     return this.currentPlayerIndex;
   }
 
@@ -229,10 +246,13 @@ export class GameSession {
 
   /**
    * Sets the value of the Hakem property.
-   * @param {Player} hakem - The new value for the Hakem property.
+   * @param {number} playerIndex - The index of the player to set as the Hakem.
    */
-  public set Hakem(hakem: Player) {
-    this.hakem = hakem;
+  public setHakemPlayerIndex(playerIndex: number) {
+    if (playerIndex < 0 || playerIndex >= this.players.length) {
+      throw new Error('Invalid player');
+    }
+    this.hakemIndex = playerIndex;
     this.deck = this.generateShuffledDeck();
   }
 

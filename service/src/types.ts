@@ -2,6 +2,8 @@ export interface Player {
   id: string;
   teamCode: string;
   name: string;
+  cards?: Card[];
+  connected: boolean;
 }
 
 export interface Card {
