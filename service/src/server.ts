@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { createServer } from 'http';
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
@@ -6,6 +7,7 @@ import { SocketHandler } from './socketHandler';
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 const httpServer = createServer(app);
 const io = new SocketIOServer(httpServer);
@@ -38,6 +40,6 @@ io.on('connection', (socket: Socket) => {
   socketHandler.handleConnection(socket);
 });
 
-httpServer.listen(3000, () => {
-  console.log('Server is running on port 3000');
+httpServer.listen(3001, () => {
+  console.log('Server is running on port 3001');
 });
