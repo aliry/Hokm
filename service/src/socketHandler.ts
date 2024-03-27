@@ -4,11 +4,9 @@ import { GameRuntime } from './gameRuntime';
 import { GameEvent } from './constants';
 
 export class SocketHandler {
-  private io: SocketIOServer;
   private gameRuntime: GameRuntime;
 
   constructor(io: SocketIOServer, gameSessionManager: GameSessionManager) {
-    this.io = io;
     this.gameRuntime = new GameRuntime(gameSessionManager, io);
   }
 

@@ -10,7 +10,12 @@ app.use(express.json());
 app.use(cors());
 
 const httpServer = createServer(app);
-const io = new SocketIOServer(httpServer);
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
 
 const gameSessions = new GameSessionManager();
 const socketHandler = new SocketHandler(io, gameSessions);
@@ -24,6 +29,7 @@ app.post('/create-game', (req, res) => {
   }
 
   try {
+    // TODO: we need to remove inactive game sessions. Also the manager should create web socket connection in less than 3 seconds
     const session = gameSessions.createGameSession(managerName);
     res.json({
       sessionId: session.SessionId,
