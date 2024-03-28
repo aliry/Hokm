@@ -12,15 +12,27 @@ export class SocketHandler {
 
   public handleConnection(socket: Socket): void {
     socket.on(GameEvent.JoinGame, ({ teamCode, playerName }) => {
-      this.gameRuntime.joinGame(socket, teamCode, playerName);
+      try {
+        this.gameRuntime.joinGame(socket, teamCode, playerName);
+      } catch (error: any) {
+        socket.emit(GameEvent.Error, { message: error.message });
+      }
     });
 
     socket.on(GameEvent.SetTrumpSuit, ({ suit }) => {
-      this.gameRuntime.selectTrumpSuit(socket, suit);
+      try {
+        this.gameRuntime.selectTrumpSuit(socket, suit);
+      } catch (error: any) {
+        socket.emit(GameEvent.Error, { message: error.message });
+      }
     });
 
     socket.on(GameEvent.Disconnect, () => {
-      this.gameRuntime.disconnect(socket);
+      try {
+        this.gameRuntime.disconnect(socket);
+      } catch (error: any) {
+        socket.emit(GameEvent.Error, { message: error.message });
+      }
     });
   }
 }

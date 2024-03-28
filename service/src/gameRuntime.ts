@@ -19,9 +19,8 @@ export class GameRuntime {
       return;
     }
 
-    let newPlayer;
     try {
-      newPlayer = session.addPlayer(playerName, teamCode, socket.id);
+      session.addPlayer(playerName, teamCode, socket.id);
     } catch (error: any) {
       socket.emit(GameEvent.Error, error.message);
       return;
@@ -62,7 +61,7 @@ export class GameRuntime {
       .to(session.SessionId)
       .emit(GameEvent.TrumpSuitSelected, { trumpSuit });
 
-    this.startRound(session);
+    this.distributeCards(session);
   }
 
   public disconnect(socket: Socket) {
@@ -89,7 +88,7 @@ export class GameRuntime {
       );
   }
 
-  private startRound(session: GameSession) {
+  private distributeCards(session: GameSession) {
     if (
       !session.Deck ||
       !session.Hakem ||
@@ -126,7 +125,9 @@ export class GameRuntime {
         2
     );
 
+    // Once all teams are full, start a new round and select a hakem.
     if (allTeamsFull) {
+      session.startGame();
       this.selectHakem(session);
     }
   }

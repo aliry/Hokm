@@ -5,11 +5,48 @@ export interface Card {
   value: string;
 }
 
+/**
+ * Represents a round in the game.
+ */
 export interface Round {
+  /**
+   * The round number.
+   */
   roundNumber: number;
-  actions: Action[]; // Actions taken by players during the round
-  winner: Player | null; // The player who won the round, if applicable
-  score: { [teamCode: string]: number }; // Score for the round for each team
+  /**
+   * The index of the hakem in the players array.
+   */
+  hakemIndex?: number;
+  /**
+   * The trump suit for the round, if applicable.
+   */
+  trumpSuit?: string;
+  /**
+   * Score for the round for each team.
+   */
+  score?: { [teamCode: string]: number };
+  /**
+   * The team that won the round.
+   */
+  winnerTeam?: string;
+  /**
+   * The tricks played in the round.
+   */
+  tricks?: Trick[];
+}
+
+/**
+ * Represents a trick in the game.
+ */
+export interface Trick {
+  /**
+   * Cards played by each player in the trick.
+   */
+  cards: { [playerId: string]: Card };
+  /**
+   * The player who won the trick.
+   */
+  winner: Player;
 }
 
 export interface Action {

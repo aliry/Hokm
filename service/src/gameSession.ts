@@ -15,13 +15,11 @@ export class GameSession {
   private teamCodes: string[];
   private players: Player[];
   private manager: Player;
-  private hakemIndex?: number;
   private deck?: Card[];
-  private currentRound: number;
-  private maxRounds: number;
+  private currentRound?: Round;
+  private currentRoundNumber: number;
   private scores: { [teamCode: string]: number };
   private currentPlayerIndex?: number;
-  private trumpSuit?: string;
   private gameStarted: boolean;
   private gameEnded: boolean;
   private roundHistory: Round[];
@@ -42,14 +40,13 @@ export class GameSession {
     ];
     this.players = [];
     this.manager = new Player('', managerName, this.teamCodes[0], true);
-    this.currentRound = 0;
-    this.maxRounds = 0;
     this.scores = {
       [this.teamCodes[0]]: 0,
       [this.teamCodes[1]]: 0
     };
     this.gameStarted = false;
     this.gameEnded = false;
+    this.currentRoundNumber = 0;
     this.roundHistory = [];
     this.createdDateTime = new Date();
 
@@ -78,7 +75,6 @@ export class GameSession {
         this.currentPlayerIndex !== undefined
           ? this.players[this.currentPlayerIndex].toJSON()
           : undefined,
-      trumpSuit: this.trumpSuit,
       gameStarted: this.gameStarted,
       gameEnded: this.gameEnded,
       roundHistory: this.roundHistory
@@ -181,10 +177,10 @@ export class GameSession {
    * @returns {Player | null} The hakem.
    */
   public get Hakem(): Player | undefined {
-    if (this.hakemIndex === undefined) {
+    if (this.currentRound?.hakemIndex === undefined) {
       return undefined;
     }
-    return this.players[this.hakemIndex];
+    return this.players[this.currentRound.hakemIndex];
   }
 
   /**
@@ -199,16 +195,8 @@ export class GameSession {
    * Get the current round number in the game session.
    * @returns {number} The current round number.
    */
-  public get CurrentRound(): number {
+  public get CurrentRound(): Round | undefined {
     return this.currentRound;
-  }
-
-  /**
-   * Get the maximum number of rounds in the game session.
-   * @returns {number} The maximum number of rounds.
-   */
-  public get MaxRounds(): number {
-    return this.maxRounds;
   }
 
   /**
@@ -225,14 +213,6 @@ export class GameSession {
    */
   public get CurrentPlayerIndex(): number | undefined {
     return this.currentPlayerIndex;
-  }
-
-  /**
-   * Get the trump suit in the game session.
-   * @returns {string | null} The trump suit.
-   */
-  public get TrumpSuit(): string | undefined {
-    return this.trumpSuit;
   }
 
   /**
@@ -278,14 +258,37 @@ export class GameSession {
   }
 
   /**
+   * Starts the game session.
+   */
+  public startGame() {
+    if (this.gameStarted) {
+      throw new Error('Game has already started.');
+    }
+    this.gameStarted = true;
+    this.startNewRound();
+  }
+
+  /**
    * Sets the value of the Hakem property.
    * @param {number} playerIndex - The index of the player to set as the Hakem.
    */
   public setHakemPlayerIndex(playerIndex: number) {
+    if (!this.gameStarted) {
+      throw new Error('Game has not started yet.');
+    }
+    if (this.gameEnded) {
+      throw new Error('Game has already ended.');
+    }
+    if (!this.currentRound) {
+      throw new Error('Round has not started yet.');
+    }
+    if (this.currentRound?.hakemIndex !== undefined) {
+      throw new Error('Hakem has already been set for the round.');
+    }
     if (playerIndex < 0 || playerIndex >= this.players.length) {
       throw new Error('Invalid player');
     }
-    this.hakemIndex = playerIndex;
+    this.currentRound.hakemIndex = playerIndex;
     this.deck = this.generateShuffledDeck();
   }
 
@@ -294,7 +297,26 @@ export class GameSession {
    * @param {string | null} trumpSuit - The new value for the TrumpSuit property.
    */
   public set TrumpSuit(trumpSuit: string) {
-    this.trumpSuit = trumpSuit;
+    if (this.currentRound?.hakemIndex === undefined) {
+      throw new Error('Hakem has not been set for the round.');
+    }
+    if (this.currentRound?.trumpSuit) {
+      throw new Error('Trump suit has already been set for the round.');
+    }
+    this.currentRound.trumpSuit = trumpSuit;
+  }
+
+  /**
+   * Starts a new round in the game session.
+   */
+  public startNewRound() {
+    if (this.currentRound && this.currentRoundNumber > 0) {
+      this.roundHistory.push(this.currentRound);
+    }
+    this.currentRoundNumber++;
+    this.currentRound = {
+      roundNumber: this.currentRoundNumber,
+    };
   }
 
   // implement an event registration system
