@@ -42,7 +42,6 @@ export class GameRuntime {
     if (
       !session ||
       session.Hakem?.Id !== socket.id ||
-      session.TrumpSuit ||
       typeof trumpSuit !== 'string'
     ) {
       socket.emit(GameEvent.Error, 'Invalid operation');

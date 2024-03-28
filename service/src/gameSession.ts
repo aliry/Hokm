@@ -307,6 +307,14 @@ export class GameSession {
   }
 
   /**
+   * Gets the trump suit of the current round.
+   * @returns The trump suit as a string, or undefined if there is no current round.
+   */
+  public get TrumpSuit(): string | undefined {
+    return this.currentRound?.trumpSuit;
+  }
+
+  /**
    * Starts a new round in the game session.
    */
   public startNewRound() {
