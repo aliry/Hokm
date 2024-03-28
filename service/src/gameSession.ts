@@ -3,6 +3,8 @@ import crypto from 'crypto';
 import { Card, Player, Round } from './types';
 import { CardValues, Suits } from './constants';
 
+export type CustomEvents = 'sessionDestroyed';
+
 /**
  * Class representing a game session.
  */
@@ -21,6 +23,10 @@ export class GameSession {
   private gameStarted: boolean;
   private gameEnded: boolean;
   private roundHistory: Round[];
+  private createdDateTime: Date;
+  private lastEventDateTime: Date;
+  private selfDestructTimeout: NodeJS.Timeout;
+  private eventListeners: { [event: string]: Function[] } = {};
 
   /**
    * Creates a new game session.
@@ -49,6 +55,15 @@ export class GameSession {
     this.gameStarted = false;
     this.gameEnded = false;
     this.roundHistory = [];
+    this.createdDateTime = new Date();
+    this.lastEventDateTime = new Date();
+
+    // Automatically destroy the game session after 3s if the manager does not join
+    this.selfDestructTimeout = setTimeout(() => {
+      if (this.players.length === 0) {
+        this.emit('sessionDestroyed', { sessionId: this.sessionId });
+      }
+    }, 3000);
   }
 
   /**
@@ -245,6 +260,22 @@ export class GameSession {
   }
 
   /**
+   * Get the date and time when the game session was created.
+   * @returns {Date} The date and time when the game session was created.
+   */
+  public get CreatedDateTime(): Date {
+    return this.createdDateTime;
+  }
+
+  /**
+   * Get the date and time of the last event in the game session.
+   * @returns {Date} The date and time of the last event in the game session.
+   */
+  public get LastEventDateTime(): Date {
+    return this.lastEventDateTime;
+  }
+
+  /**
    * Sets the value of the Hakem property.
    * @param {number} playerIndex - The index of the player to set as the Hakem.
    */
@@ -262,6 +293,50 @@ export class GameSession {
    */
   public set TrumpSuit(trumpSuit: string) {
     this.trumpSuit = trumpSuit;
+  }
+
+  // implement an event registration system
+  /**
+   * Registers a new event listener for the game session.
+   * @param {string} event - The event to listen for.
+   * @param {Function} listener - The event listener function.
+   */
+  public on(event: CustomEvents, listener: Function) {
+    if (!this.eventListeners[event]) {
+      this.eventListeners[event] = [];
+    }
+    this.eventListeners[event].push(listener);
+  }
+
+  /**
+   * Removes an event listener from the game session.
+   * @param {string} event - The event to remove the listener from.
+   * @param {Function} listener - The event listener function to remove.
+   */
+  public off(event: CustomEvents, listener: Function) {
+    if (this.eventListeners[event]) {
+      this.eventListeners[event] = this.eventListeners[event].filter(
+        (l) => l !== listener
+      );
+    }
+  }
+
+  /**
+   * Removes all event listeners from the game session.
+   */
+  public removeAllListeners() {
+    this.eventListeners = {};
+  }
+
+  /**
+   * Emits an event to all registered event listeners.
+   * @param {string} event - The event to emit.
+   * @param {any} data - The data to pass to the event listeners.
+   */
+  private emit(event: CustomEvents, data: any) {
+    if (this.eventListeners[event]) {
+      this.eventListeners[event].forEach((listener) => listener(data));
+    }
   }
 
   /**

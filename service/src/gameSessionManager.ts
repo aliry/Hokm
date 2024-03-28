@@ -1,4 +1,4 @@
-import { GameSession } from "./gameSession";
+import { GameSession } from './gameSession';
 
 const MAX_CONCURRENT_GAMES = 100;
 
@@ -16,11 +16,17 @@ export class GameSessionManager {
    */
   public createGameSession(managerName: string): GameSession {
     if (Object.keys(this.gameSessions).length >= MAX_CONCURRENT_GAMES) {
-      throw new Error("Game server reached maximum capacity. Please try again later.");
+      throw new Error(
+        'Game server reached maximum capacity. Please try again later.'
+      );
     }
 
     const session = new GameSession(managerName);
     this.gameSessions[session.SessionId] = session;
+    session.on('sessionDestroyed', () => {
+      this.removeGameSession(session.SessionId);
+    });
+
     return session;
   }
 
@@ -34,22 +40,26 @@ export class GameSessionManager {
   }
 
   /**
-    * Retrieves a game session by its team code.
-    * @param teamCode - The team code of the game session.
-    * @returns The game session with the specified team code, or undefined if not found.
-    */
+   * Retrieves a game session by its team code.
+   * @param teamCode - The team code of the game session.
+   * @returns The game session with the specified team code, or undefined if not found.
+   */
   public getGameSessionByTeamCode(teamCode: string): GameSession | undefined {
-    const session = Object.values(this.gameSessions).find(session => session.TeamCodes.includes(teamCode));
+    const session = Object.values(this.gameSessions).find((session) =>
+      session.TeamCodes.includes(teamCode)
+    );
     return session;
   }
 
   /**
-    * Retrieves a game session by player ID.
-    * @param playerId - The ID of the player.
-    * @returns The game session containing the player, or undefined if not found.
-    */
+   * Retrieves a game session by player ID.
+   * @param playerId - The ID of the player.
+   * @returns The game session containing the player, or undefined if not found.
+   */
   public getGameSessionByPlayerId(playerId: string): GameSession | undefined {
-    const session = Object.values(this.gameSessions).find(session => session.Players.some(player => player.id === playerId));
+    const session = Object.values(this.gameSessions).find((session) =>
+      session.Players.some((player) => player.id === playerId)
+    );
     return session;
   }
 
@@ -66,6 +76,10 @@ export class GameSessionManager {
    * @param sessionId - The ID of the game session to remove.
    */
   public removeGameSession(sessionId: string): void {
+    if (!this.gameSessions[sessionId]) {
+      return;
+    }
+    this.gameSessions[sessionId].removeAllListeners();
     delete this.gameSessions[sessionId];
   }
 }

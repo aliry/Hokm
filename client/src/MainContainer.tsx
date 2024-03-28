@@ -6,11 +6,13 @@ import { Socket, io } from 'socket.io-client';
 const serverURL = 'http://localhost:3001';
 
 export const MainContainer = () => {
-  const [playerName, setPlayerName] = React.useState<string>();
+  const [playerName, setPlayerName] = React.useState<string>('');
   const [teamCodes, setTeamCodes] = React.useState<string[]>([]);
   const [sessionId, setSessionId] = React.useState<string>('');
   const [teamCode, setTeamCode] = React.useState<string>('');
   const [socket, setSocket] = React.useState<Socket>();
+  const [error, setError] = React.useState<string>('');
+  const [gameState, setGameState] = React.useState<any>({});
 
   React.useEffect(() => {
     const socket = io(serverURL, {
@@ -35,11 +37,11 @@ export const MainContainer = () => {
         console.log(response);
         setSessionId(response.data.sessionId);
         setTeamCodes(response.data.teamCodes);
-
         setTeamCode(response.data.teamCodes[0]);
       })
       .catch((error) => {
         console.error(error);
+        setError(`${error.message}\n${error.response?.data}`);
       });
   };
 
@@ -49,11 +51,38 @@ export const MainContainer = () => {
   };
 
   const handleSocketEvents = () => {
-    socket?.on(GameEvent.JoinGame, (data) => {
+    socket?.on(GameEvent.TrumpSuitSelected, (data) => {
       console.log(data);
+      setGameState(data);
     });
+    socket?.on(GameEvent.HakemCards, (data) => {
+      console.log(data);
+      setGameState(data);
+    });
+    socket?.on(GameEvent.HakemSelected, (data) => {
+      console.log(data);
+      setGameState(data);
+    });
+    socket?.on(GameEvent.PlayerJoined, (data) => {
+      console.log(data);
+      setGameState(data);
+    });
+    socket?.on(GameEvent.PlayerLeft, (data) => {
+      console.log(data);
+      setGameState(data);
+    });
+    socket?.on(GameEvent.RoundStarted, (data) => {
+      console.log(data);
+      setGameState(data);
+    });
+    socket?.on(GameEvent.RoundEnded, (data) => {
+      console.log(data);
+      setGameState(data);
+    });
+
     socket?.on(GameEvent.Error, (data) => {
       console.log(data);
+      setError(`${data.message}\n${data.response?.data}`);
     });
   };
 
@@ -70,7 +99,12 @@ export const MainContainer = () => {
         </div>
         <div style={{ border: '1px black dashed', padding: 5 }}>
           <button
-            style={{ padding: 15, margin: 5, color: 'red' }}
+            style={{
+              padding: 15,
+              margin: 5,
+              color: 'darkGreen',
+              fontWeight: 'bold'
+            }}
             onClick={handleCreateGame}
           >
             Create Game
@@ -105,7 +139,13 @@ export const MainContainer = () => {
         ))}
       </div>
       <div>
-        <textarea rows={40} cols={150} />
+        <textarea
+          rows={40}
+          cols={150}
+          value={JSON.stringify(gameState, null, 2)}
+          style={{ color: 'blue' }}
+        />
+        <textarea rows={10} cols={100} value={error} style={{ color: 'red' }} />
       </div>
       {teamCodes.length === 2 && (
         <div>
