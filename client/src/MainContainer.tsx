@@ -1,5 +1,5 @@
 import { GameEvent } from './constants';
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Socket, io } from 'socket.io-client';
 
@@ -10,20 +10,41 @@ export const MainContainer = () => {
   const [teamCodes, setTeamCodes] = React.useState<string[]>([]);
   const [sessionId, setSessionId] = React.useState<string>('');
   const [teamCode, setTeamCode] = React.useState<string>('');
-  const [socket, setSocket] = React.useState<Socket>();
-  const [error, setError] = React.useState<string>('');
-  const [gameState, setGameState] = React.useState<any>({});
+  const [errors, setErrors] = React.useState<string[]>([]);
+  const [gameStates, setGameStates] = React.useState<any[]>([]);
+  const socketRef = useRef<Socket | null>(null);
 
-  React.useEffect(() => {
-    const socket = io(serverURL, {
-      transports: ['websocket']
-    });
-    setSocket(socket);
-
-    return () => {
-      socket?.disconnect();
-    };
+  const removeSocketEvents = useCallback(() => {
+    socketRef.current?.off(GameEvent.TrumpSuitSelected);
+    socketRef.current?.off(GameEvent.HakemCards);
+    socketRef.current?.off(GameEvent.HakemSelected);
+    socketRef.current?.off(GameEvent.PlayerJoined);
+    socketRef.current?.off(GameEvent.PlayerLeft);
+    socketRef.current?.off(GameEvent.RoundStarted);
+    socketRef.current?.off(GameEvent.RoundEnded);
+    socketRef.current?.off(GameEvent.Error);
   }, []);
+
+  useEffect(() => {
+    if (!socketRef.current) {
+      socketRef.current = io(serverURL, {
+        transports: ['websocket']
+      });
+
+      socketRef.current.on('connect_error', (err: { message: any }) => {
+        console.log(`connect_error due to ${err.message}`);
+      });
+
+      return () => {
+        if (socketRef.current) {
+          socketRef.current.off('connect_error');
+          removeSocketEvents();
+          socketRef.current.disconnect();
+          socketRef.current = null;
+        }
+      };
+    }
+  }, [removeSocketEvents]);
 
   const handleEvent = (event: GameEvent) => {
     console.log(event);
@@ -41,50 +62,57 @@ export const MainContainer = () => {
       })
       .catch((error) => {
         console.error(error);
-        setError(`${error.message}\n${error.response?.data}`);
+        setErrors((prevErrors) => [...prevErrors, error.message]);
       });
   };
 
-  const handleJoinGame = () => {
+  const handleSocketEvents = useCallback(() => {
+    socketRef.current?.on(GameEvent.TrumpSuitSelected, (data: any) => {
+      console.log(data);
+      setGameStates((prevStates) => [...prevStates, data]);
+    });
+    socketRef.current?.on(GameEvent.HakemCards, (data: any) => {
+      console.log(data);
+      setGameStates((prevStates) => [...prevStates, data]);
+    });
+    socketRef.current?.on(GameEvent.HakemSelected, (data: any) => {
+      console.log(data);
+      setGameStates((prevStates) => [...prevStates, data]);
+    });
+    socketRef.current?.on(GameEvent.PlayerJoined, (data: any) => {
+      console.log(data);
+      setGameStates((prevStates) => [...prevStates, data]);
+    });
+    socketRef.current?.on(GameEvent.PlayerLeft, (data: any) => {
+      console.log(data);
+      setGameStates((prevStates) => [...prevStates, data]);
+    });
+    socketRef.current?.on(GameEvent.RoundStarted, (data: any) => {
+      console.log(data);
+      setGameStates((prevStates) => [...prevStates, data]);
+    });
+    socketRef.current?.on(GameEvent.RoundEnded, (data: any) => {
+      console.log(data);
+      setGameStates((prevStates) => [...prevStates, data]);
+    });
+
+    socketRef.current?.on(GameEvent.Error, (data: string) => {
+      console.log(data);
+      setErrors((prevErrors) => [...prevErrors, data]);
+    });
+  }, []);
+
+  const handleJoinGame = useCallback(() => {
+    if (!socketRef.current || !teamCode || !playerName) {
+      return;
+    }
     handleSocketEvents();
-    socket?.emit(GameEvent.JoinGame, { teamCode, playerName });
-  };
+    socketRef.current?.emit(GameEvent.JoinGame, { teamCode, playerName });
+  }, [handleSocketEvents, teamCode, playerName]);
 
-  const handleSocketEvents = () => {
-    socket?.on(GameEvent.TrumpSuitSelected, (data) => {
-      console.log(data);
-      setGameState(data);
-    });
-    socket?.on(GameEvent.HakemCards, (data) => {
-      console.log(data);
-      setGameState(data);
-    });
-    socket?.on(GameEvent.HakemSelected, (data) => {
-      console.log(data);
-      setGameState(data);
-    });
-    socket?.on(GameEvent.PlayerJoined, (data) => {
-      console.log(data);
-      setGameState(data);
-    });
-    socket?.on(GameEvent.PlayerLeft, (data) => {
-      console.log(data);
-      setGameState(data);
-    });
-    socket?.on(GameEvent.RoundStarted, (data) => {
-      console.log(data);
-      setGameState(data);
-    });
-    socket?.on(GameEvent.RoundEnded, (data) => {
-      console.log(data);
-      setGameState(data);
-    });
-
-    socket?.on(GameEvent.Error, (data) => {
-      console.log(data);
-      setError(`${data.message}\n${data.response?.data}`);
-    });
-  };
+  React.useEffect(() => {
+    handleJoinGame();
+  }, [handleJoinGame, teamCode]);
 
   return (
     <div style={{ display: 'flex', gap: 10 }}>
@@ -142,10 +170,17 @@ export const MainContainer = () => {
         <textarea
           rows={40}
           cols={150}
-          value={JSON.stringify(gameState, null, 2)}
+          value={gameStates
+            .map((state) => JSON.stringify(state, null, 2))
+            .join('\n===========\n')}
           style={{ color: 'blue' }}
         />
-        <textarea rows={10} cols={100} value={error} style={{ color: 'red' }} />
+        <textarea
+          rows={10}
+          cols={100}
+          value={errors.join('\n===========\n')}
+          style={{ color: 'red' }}
+        />
       </div>
       {teamCodes.length === 2 && (
         <div>
