@@ -80,6 +80,15 @@ export class GameRuntime {
     socket.to(session.SessionId).emit(GameEvent.PlayerLeft, player.toJSON());
   }
 
+  public SessionDestroyed(sessionId: string) {
+    this.io
+      .to(sessionId)
+      .emit(
+        GameEvent.SessionDestroyed,
+        'Game session has been terminated due to inactivity.'
+      );
+  }
+
   private startRound(session: GameSession) {
     if (
       !session.Deck ||

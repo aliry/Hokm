@@ -15,7 +15,8 @@ export enum GameEvent {
   SetTrumpSuit = 'set-trump-suit',
   TrickEnded = 'trick-ended',
   TrickStarted = 'trick-started',
-  TrumpSuitSelected = 'trump-suit-selected'
+  TrumpSuitSelected = 'trump-suit-selected',
+  SessionDestroyed = 'session-destroyed'
 }
 
 export const Suits = ['hearts', 'diamonds', 'clubs', 'spades'];

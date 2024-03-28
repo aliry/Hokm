@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { Card, Round } from './types';
 import { CardValues, Suits } from './constants';
 import { Player } from './player';
+import { GameConfigs } from './gameConfigs';
 
 export type CustomEvents = 'sessionDestroyed';
 
@@ -25,8 +26,7 @@ export class GameSession {
   private gameEnded: boolean;
   private roundHistory: Round[];
   private createdDateTime: Date;
-  private lastEventDateTime: Date;
-  private selfDestructTimeout: NodeJS.Timeout;
+  private sessionInactiveTimeout?: NodeJS.Timeout;
   private eventListeners: { [event: string]: Function[] } = {};
 
   /**
@@ -52,14 +52,16 @@ export class GameSession {
     this.gameEnded = false;
     this.roundHistory = [];
     this.createdDateTime = new Date();
-    this.lastEventDateTime = new Date();
 
     // Automatically destroy the game session after 3s if the manager does not join
-    this.selfDestructTimeout = setTimeout(() => {
+    setTimeout(() => {
       if (this.players.length === 0) {
-        this.emit('sessionDestroyed', { sessionId: this.sessionId });
+        this.triggerEvent('sessionDestroyed', { sessionId: this.sessionId });
       }
-    }, 3000);
+    }, GameConfigs.managerJoinTimeout);
+
+    // Automatically destroy the game session if session is inactive for 10 minutes
+    this.sessionHadActivity();
   }
 
   /**
@@ -265,12 +267,14 @@ export class GameSession {
     return this.createdDateTime;
   }
 
-  /**
-   * Get the date and time of the last event in the game session.
-   * @returns {Date} The date and time of the last event in the game session.
-   */
-  public get LastEventDateTime(): Date {
-    return this.lastEventDateTime;
+  public sessionHadActivity(): void {
+    // If the game session has been inactive for 10 minutes, destroy it
+    if (this.sessionInactiveTimeout) {
+      clearTimeout(this.sessionInactiveTimeout);
+    }
+    this.sessionInactiveTimeout = setTimeout(() => {
+      this.triggerEvent('sessionDestroyed', { sessionId: this.sessionId });
+    }, GameConfigs.sessionInactivityTimeout);
   }
 
   /**
@@ -327,11 +331,11 @@ export class GameSession {
   }
 
   /**
-   * Emits an event to all registered event listeners.
-   * @param {string} event - The event to emit.
+   * Trigger an event to all registered event listeners.
+   * @param {string} event - The event to trigger.
    * @param {any} data - The data to pass to the event listeners.
    */
-  private emit(event: CustomEvents, data: any) {
+  private triggerEvent(event: CustomEvents, data: any) {
     if (this.eventListeners[event]) {
       this.eventListeners[event].forEach((listener) => listener(data));
     }
