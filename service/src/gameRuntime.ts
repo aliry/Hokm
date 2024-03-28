@@ -40,11 +40,17 @@ export class GameRuntime {
 
   public selectTrumpSuit(socket: Socket, suit: string) {
     const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
-    if (!session || session.Hakem?.id !== socket.id || session.TrumpSuit) {
+    if (
+      !session ||
+      session.Hakem?.id !== socket.id ||
+      session.TrumpSuit ||
+      typeof suit !== 'string'
+    ) {
       socket.emit(GameEvent.Error, 'Invalid operation');
       return;
     }
 
+    suit = suit.toLowerCase();
     if (!Suits.includes(suit)) {
       socket.emit(GameEvent.Error, 'Invalid suit');
       return;

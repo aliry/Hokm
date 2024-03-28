@@ -12,6 +12,7 @@ export const MainContainer = () => {
   const [teamCode, setTeamCode] = React.useState<string>('');
   const [errors, setErrors] = React.useState<string[]>([]);
   const [gameStates, setGameStates] = React.useState<any[]>([]);
+  const [trumpSuit, setTrumpSuit] = React.useState<string>('');
   const socketRef = useRef<Socket | null>(null);
 
   const removeSocketEvents = useCallback(() => {
@@ -45,10 +46,6 @@ export const MainContainer = () => {
       };
     }
   }, [removeSocketEvents]);
-
-  const handleEvent = (event: GameEvent) => {
-    console.log(event);
-  };
 
   const handleCreateGame = () => {
     console.log('Join Game');
@@ -110,9 +107,16 @@ export const MainContainer = () => {
     socketRef.current?.emit(GameEvent.JoinGame, { teamCode, playerName });
   }, [handleSocketEvents, teamCode, playerName]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     handleJoinGame();
   }, [handleJoinGame, teamCode]);
+
+  const handleSelectTrumpSuit = () => {
+    if (!socketRef.current || !trumpSuit) {
+      return;
+    }
+    socketRef.current.emit(GameEvent.SetTrumpSuit, trumpSuit);
+  };
 
   return (
     <div style={{ display: 'flex', gap: 10 }}>
@@ -154,17 +158,17 @@ export const MainContainer = () => {
             </button>
           </div>
         </div>
-        {Object.entries(GameEvent).map(([key, value]) => (
-          <div key={key}>
-            <button
-              key={key}
-              style={{ padding: 5, margin: 5 }}
-              onClick={() => handleEvent(value)}
-            >
-              {value}
-            </button>
+        <div style={{ border: '1px black dashed', padding: 5 }}>
+          <label>Trump Suit:</label>
+          <input
+            type="text"
+            value={trumpSuit}
+            onChange={(e) => setTrumpSuit(e.target.value)}
+          />
+          <div>
+            <button onClick={handleSelectTrumpSuit}>Select Trump Suit</button>
           </div>
-        ))}
+        </div>
       </div>
       <div>
         <textarea

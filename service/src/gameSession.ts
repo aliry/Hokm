@@ -108,6 +108,18 @@ export class GameSession {
     teamCode: string,
     socketId: string
   ): Player {
+    if (this.players.length === 4) {
+      // when the game is full, only allow reconnection
+      const playerIndex = this.players.findIndex(
+        (player) => player.name === playerName && player.teamCode === teamCode
+      );
+      if (playerIndex !== -1) {
+        this.players[playerIndex].id = socketId;
+        this.players[playerIndex].connected = true;
+        return this.players[playerIndex];
+      }
+    }
+
     const isNameUnique = this.players.every(
       (player) => player.name !== playerName && player.id !== socketId
     );
