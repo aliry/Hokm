@@ -47,6 +47,20 @@ export const MainContainer = () => {
     }
   }, [removeSocketEvents]);
 
+  const joinGame = (
+    _teamCode: string = teamCode,
+    _playerName: string = playerName
+  ) => {
+    if (!socketRef.current || !_teamCode || !_playerName) {
+      return;
+    }
+    handleSocketEvents();
+    socketRef.current?.emit(GameEvent.JoinGame, {
+      teamCode: _teamCode,
+      playerName: _playerName
+    });
+  };
+
   const handleCreateGame = () => {
     console.log('Join Game');
     axios
@@ -56,6 +70,8 @@ export const MainContainer = () => {
         setSessionId(response.data.sessionId);
         setTeamCodes(response.data.teamCodes);
         setTeamCode(response.data.teamCodes[0]);
+
+        joinGame(response.data.teamCodes[0], playerName);
       })
       .catch((error) => {
         console.error(error);
@@ -66,31 +82,59 @@ export const MainContainer = () => {
   const handleSocketEvents = useCallback(() => {
     socketRef.current?.on(GameEvent.TrumpSuitSelected, (data: any) => {
       console.log(data);
-      setGameStates((prevStates) => [...prevStates, data]);
+      setGameStates((prevStates) => [
+        ...prevStates,
+        GameEvent.TrumpSuitSelected,
+        data
+      ]);
     });
     socketRef.current?.on(GameEvent.HakemCards, (data: any) => {
       console.log(data);
-      setGameStates((prevStates) => [...prevStates, data]);
+      setGameStates((prevStates) => [
+        ...prevStates,
+        GameEvent.HakemCards,
+        data
+      ]);
     });
     socketRef.current?.on(GameEvent.HakemSelected, (data: any) => {
       console.log(data);
-      setGameStates((prevStates) => [...prevStates, data]);
+      setGameStates((prevStates) => [
+        ...prevStates,
+        GameEvent.HakemSelected,
+        data
+      ]);
     });
     socketRef.current?.on(GameEvent.PlayerJoined, (data: any) => {
       console.log(data);
-      setGameStates((prevStates) => [...prevStates, data]);
+      setGameStates((prevStates) => [
+        ...prevStates,
+        GameEvent.PlayerJoined,
+        data
+      ]);
     });
     socketRef.current?.on(GameEvent.PlayerLeft, (data: any) => {
       console.log(data);
-      setGameStates((prevStates) => [...prevStates, data]);
+      setGameStates((prevStates) => [
+        ...prevStates,
+        GameEvent.PlayerLeft,
+        data
+      ]);
     });
     socketRef.current?.on(GameEvent.RoundStarted, (data: any) => {
       console.log(data);
-      setGameStates((prevStates) => [...prevStates, data]);
+      setGameStates((prevStates) => [
+        ...prevStates,
+        GameEvent.RoundStarted,
+        data
+      ]);
     });
     socketRef.current?.on(GameEvent.RoundEnded, (data: any) => {
       console.log(data);
-      setGameStates((prevStates) => [...prevStates, data]);
+      setGameStates((prevStates) => [
+        ...prevStates,
+        GameEvent.RoundEnded,
+        data
+      ]);
     });
 
     socketRef.current?.on(GameEvent.Error, (data: string) => {
@@ -99,23 +143,13 @@ export const MainContainer = () => {
     });
   }, []);
 
-  const handleJoinGame = useCallback(() => {
-    if (!socketRef.current || !teamCode || !playerName) {
-      return;
-    }
-    handleSocketEvents();
-    socketRef.current?.emit(GameEvent.JoinGame, { teamCode, playerName });
-  }, [handleSocketEvents, teamCode, playerName]);
-
-  useEffect(() => {
-    handleJoinGame();
-  }, [handleJoinGame, teamCode]);
+  const handleJoinGame = () => joinGame();
 
   const handleSelectTrumpSuit = () => {
     if (!socketRef.current || !trumpSuit) {
       return;
     }
-    socketRef.current.emit(GameEvent.SetTrumpSuit, trumpSuit);
+    socketRef.current.emit(GameEvent.SetTrumpSuit, { suit: trumpSuit });
   };
 
   return (

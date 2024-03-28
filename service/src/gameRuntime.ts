@@ -38,27 +38,29 @@ export class GameRuntime {
     this.checkAllPlayersJoined(session);
   }
 
-  public selectTrumpSuit(socket: Socket, suit: string) {
+  public selectTrumpSuit(socket: Socket, trumpSuit: string) {
     const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
     if (
       !session ||
-      session.Hakem?.id !== socket.id ||
+      session.Hakem?.Id !== socket.id ||
       session.TrumpSuit ||
-      typeof suit !== 'string'
+      typeof trumpSuit !== 'string'
     ) {
       socket.emit(GameEvent.Error, 'Invalid operation');
       return;
     }
 
-    suit = suit.toLowerCase();
-    if (!Suits.includes(suit)) {
+    trumpSuit = trumpSuit.toLowerCase();
+    if (!Suits.includes(trumpSuit)) {
       socket.emit(GameEvent.Error, 'Invalid suit');
       return;
     }
 
-    session.TrumpSuit = suit;
+    session.TrumpSuit = trumpSuit;
     // Broadcast the selected trump suit to all sockets in the room.
-    this.io.to(session.SessionId).emit(GameEvent.TrumpSuitSelected, { suit });
+    this.io
+      .to(session.SessionId)
+      .emit(GameEvent.TrumpSuitSelected, { trumpSuit });
 
     this.startRound(session);
   }
@@ -70,22 +72,19 @@ export class GameRuntime {
     }
 
     const playerIndex = session.Players.findIndex(
-      (player) => player.id === socket.id
+      (player) => player.Id === socket.id
     );
     const player = session.Players[playerIndex];
-    player.connected = false;
+    player.Connected = false;
 
-    socket.to(session.SessionId).emit(GameEvent.PlayerLeft, {
-      playerName: player.name,
-      id: player.id
-    });
+    socket.to(session.SessionId).emit(GameEvent.PlayerLeft, player.toJSON());
   }
 
   private startRound(session: GameSession) {
     if (
       !session.Deck ||
       !session.Hakem ||
-      !session.Hakem.cards ||
+      !session.Hakem.Cards ||
       !session.TrumpSuit
     ) {
       throw new Error('Operation not allowed.');
@@ -93,30 +92,28 @@ export class GameRuntime {
 
     // Distribute the remaining cards to the players.
     // Hakem already has 5 cards so should get 8 more.
-    const hakemCards = session.Deck.splice(0, 8);
-    session.Hakem.cards.push(...hakemCards);
+    const hakemRemainingCards = session.Deck.splice(0, 8);
+    session.Hakem.Cards.push(...hakemRemainingCards);
     this.io
-      .to(session.Hakem.id)
-      .emit(GameEvent.RoundStarted, { cards: hakemCards });
+      .to(session.Hakem.Id)
+      .emit(GameEvent.RoundStarted, hakemRemainingCards);
 
     // Other players get 13 cards. emit RoundStarted event.
     session.Players.forEach((player) => {
-      if (player.id === session.Hakem?.id) {
+      if (player.Id === session.Hakem?.Id) {
         return;
       }
 
       const playerCards = session.Deck!.splice(0, 13);
-      player.cards = playerCards;
-      this.io.to(player.id).emit(GameEvent.RoundStarted, {
-        cards: playerCards
-      });
+      player.addCards(playerCards);
+      this.io.to(player.Id).emit(GameEvent.RoundStarted, playerCards);
     });
   }
 
   private checkAllPlayersJoined(session: GameSession) {
     const allTeamsFull = session.TeamCodes.every(
       (code) =>
-        session.Players.filter((player) => player.teamCode === code).length ===
+        session.Players.filter((player) => player.TeamCode === code).length ===
         2
     );
 
@@ -131,16 +128,14 @@ export class GameRuntime {
     session.setHakemPlayerIndex(hakemIndex);
 
     // Broadcast to the room that the hakem has been selected.
-    this.io.to(session.SessionId).emit(GameEvent.HakemSelected, {
-      hakem: session.Hakem
-    });
+    this.io
+      .to(session.SessionId)
+      .emit(GameEvent.HakemSelected, session.Hakem?.toJSON());
 
     if (session.Deck && session.Hakem) {
       const hakemCards = session.Deck.splice(0, 5);
-      this.io.to(session.Hakem.id).emit(GameEvent.HakemCards, {
-        cards: hakemCards
-      });
-      session.Players[hakemIndex].cards = hakemCards;
+      this.io.to(session.Hakem.Id).emit(GameEvent.HakemCards, hakemCards);
+      session.Players[hakemIndex].addCards(hakemCards);
     }
   }
 }

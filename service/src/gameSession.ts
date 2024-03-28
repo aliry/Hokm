@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
-import { Card, Player, Round } from './types';
+import { Card, Round } from './types';
 import { CardValues, Suits } from './constants';
+import { Player } from './player';
 
 export type CustomEvents = 'sessionDestroyed';
 
@@ -40,12 +41,7 @@ export class GameSession {
       this.generateUniqueCode(this.sessionId + 'team2')
     ];
     this.players = [];
-    this.manager = {
-      id: '',
-      teamCode: this.teamCodes[0],
-      name: managerName,
-      connected: true
-    };
+    this.manager = new Player('', managerName, this.teamCodes[0], true);
     this.currentRound = 0;
     this.maxRounds = 0;
     this.scores = {
@@ -72,21 +68,13 @@ export class GameSession {
   public get stateForBroadcast() {
     return {
       sessionId: this.sessionId,
-      team1Players: this.players
-        .filter((player) => player.teamCode === this.teamCodes[0])
-        .map((player) => ({ id: player.id, name: player.name })),
-      team2Players: this.players
-        .filter((player) => player.teamCode === this.teamCodes[1])
-        .map((player) => ({ id: player.id, name: player.name })),
-      hakem: this.Hakem
-        ? { id: this.Hakem.id, name: this.Hakem.name }
-        : undefined,
+      players: this.players.map((player) => player.toJSON()),
+      hakem: this.Hakem?.toJSON(),
       currentRound: this.currentRound,
-      team1Score: this.scores[this.teamCodes[0]],
-      team2Score: this.scores[this.teamCodes[1]],
+      scores: this.scores,
       currentPlayer:
         this.currentPlayerIndex !== undefined
-          ? this.players[this.currentPlayerIndex]
+          ? this.players[this.currentPlayerIndex].toJSON()
           : undefined,
       trumpSuit: this.trumpSuit,
       gameStarted: this.gameStarted,
@@ -111,17 +99,20 @@ export class GameSession {
     if (this.players.length === 4) {
       // when the game is full, only allow reconnection
       const playerIndex = this.players.findIndex(
-        (player) => player.name === playerName && player.teamCode === teamCode
+        (player) =>
+          player.Name === playerName &&
+          player.TeamCode === teamCode &&
+          !player.Connected
       );
       if (playerIndex !== -1) {
-        this.players[playerIndex].id = socketId;
-        this.players[playerIndex].connected = true;
+        this.players[playerIndex].Id = socketId;
+        this.players[playerIndex].Connected = true;
         return this.players[playerIndex];
       }
     }
 
     const isNameUnique = this.players.every(
-      (player) => player.name !== playerName && player.id !== socketId
+      (player) => player.Name !== playerName && player.Id !== socketId
     );
     if (!isNameUnique) {
       throw new Error('Player must be unique.');
@@ -130,27 +121,22 @@ export class GameSession {
     // First player joining should be the manager
     if (this.Players.length === 0) {
       if (
-        this.Manager.name !== playerName ||
-        this.Manager.teamCode !== teamCode
+        this.Manager.Name !== playerName ||
+        this.Manager.TeamCode !== teamCode
       ) {
         throw new Error('Game manager must join the team 1 first.');
       }
-      this.Manager.id = socketId;
+      this.Manager.Id = socketId;
     }
 
     const teamPlayerCount = this.players.filter(
-      (player) => player.teamCode === teamCode
+      (player) => player.TeamCode === teamCode
     ).length;
     if (teamPlayerCount >= 2) {
       throw new Error('Team has reached its capacity.');
     }
 
-    const player: Player = {
-      id: socketId,
-      teamCode,
-      name: playerName,
-      connected: true
-    };
+    const player = new Player(socketId, playerName, teamCode, true);
     this.players.push(player);
 
     return player;
