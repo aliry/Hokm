@@ -1,7 +1,8 @@
-import { GameAction, GameEvent } from './constants';
+import { GameAction, GameEvent, SocketEvents } from './constants';
 import React, { useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Socket, io } from 'socket.io-client';
+import { ClientActionPayload, GameSessionState, ServerEventPayload } from './sharedTypes';
 
 const serverURL = 'http://localhost:3001';
 
@@ -11,20 +12,17 @@ export const MainContainer = () => {
   const [sessionId, setSessionId] = React.useState<string>('');
   const [teamCode, setTeamCode] = React.useState<string>('');
   const [errors, setErrors] = React.useState<string[]>([]);
-  const [gameStates, setGameStates] = React.useState<any[]>([]);
+  const [gameStates, setGameStates] = React.useState<ServerEventPayload[]>([]);
   const [trumpSuit, setTrumpSuit] = React.useState<string>('');
   const socketRef = useRef<Socket | null>(null);
 
-  const removeSocketEvents = useCallback(() => {
-    socketRef.current?.off(GameEvent.TrumpSuitSelected);
-    socketRef.current?.off(GameEvent.HakemCards);
-    socketRef.current?.off(GameEvent.HakemSelected);
-    socketRef.current?.off(GameEvent.PlayerJoined);
-    socketRef.current?.off(GameEvent.PlayerLeft);
-    socketRef.current?.off(GameEvent.RoundStarted);
-    socketRef.current?.off(GameEvent.RoundEnded);
-    socketRef.current?.off(GameEvent.Error);
-  }, []);
+  const emitAction = (action: GameAction, data: any) => {
+    if (!socketRef.current) {
+      return;
+    }
+    const payload: ClientActionPayload = { action, data };
+    socketRef.current.emit(SocketEvents.clientAction, payload);
+  }
 
   useEffect(() => {
     if (!socketRef.current) {
@@ -39,13 +37,13 @@ export const MainContainer = () => {
       return () => {
         if (socketRef.current) {
           socketRef.current.off('connect_error');
-          removeSocketEvents();
+          socketRef.current.off(SocketEvents.serverEvent);
           socketRef.current.disconnect();
           socketRef.current = null;
         }
       };
     }
-  }, [removeSocketEvents]);
+  }, []);
 
   const joinGame = (
     _teamCode: string = teamCode,
@@ -54,11 +52,9 @@ export const MainContainer = () => {
     if (!socketRef.current || !_teamCode || !_playerName) {
       return;
     }
+
     handleSocketEvents();
-    socketRef.current?.emit(GameAction.JoinGame, {
-      teamCode: _teamCode,
-      playerName: _playerName
-    });
+    emitAction(GameAction.JoinGame, { teamCode: _teamCode, playerName: _playerName });
   };
 
   const handleCreateGame = () => {
@@ -80,66 +76,13 @@ export const MainContainer = () => {
   };
 
   const handleSocketEvents = useCallback(() => {
-    socketRef.current?.on(GameEvent.TrumpSuitSelected, (data: any) => {
-      console.log(data);
-      setGameStates((prevStates) => [
-        ...prevStates,
-        GameEvent.TrumpSuitSelected,
-        data
-      ]);
-    });
-    socketRef.current?.on(GameEvent.HakemCards, (data: any) => {
-      console.log(data);
-      setGameStates((prevStates) => [
-        ...prevStates,
-        GameEvent.HakemCards,
-        data
-      ]);
-    });
-    socketRef.current?.on(GameEvent.HakemSelected, (data: any) => {
-      console.log(data);
-      setGameStates((prevStates) => [
-        ...prevStates,
-        GameEvent.HakemSelected,
-        data
-      ]);
-    });
-    socketRef.current?.on(GameEvent.PlayerJoined, (data: any) => {
-      console.log(data);
-      setGameStates((prevStates) => [
-        ...prevStates,
-        GameEvent.PlayerJoined,
-        data
-      ]);
-    });
-    socketRef.current?.on(GameEvent.PlayerLeft, (data: any) => {
-      console.log(data);
-      setGameStates((prevStates) => [
-        ...prevStates,
-        GameEvent.PlayerLeft,
-        data
-      ]);
-    });
-    socketRef.current?.on(GameEvent.RoundStarted, (data: any) => {
-      console.log(data);
-      setGameStates((prevStates) => [
-        ...prevStates,
-        GameEvent.RoundStarted,
-        data
-      ]);
-    });
-    socketRef.current?.on(GameEvent.RoundEnded, (data: any) => {
-      console.log(data);
-      setGameStates((prevStates) => [
-        ...prevStates,
-        GameEvent.RoundEnded,
-        data
-      ]);
-    });
-
-    socketRef.current?.on(GameEvent.Error, (data: string) => {
-      console.log(data);
-      setErrors((prevErrors) => [...prevErrors, data]);
+    socketRef.current?.on(SocketEvents.serverEvent, (payload: ServerEventPayload) => {
+      console.log(payload);
+      if (payload.event === GameEvent.Error) {
+        setErrors((prevErrors) => [...prevErrors, payload.data]);
+      } else {
+        setGameStates((prevStates) => [...prevStates, payload]);
+      }
     });
   }, []);
 
@@ -149,7 +92,7 @@ export const MainContainer = () => {
     if (!socketRef.current || !trumpSuit) {
       return;
     }
-    socketRef.current.emit(GameAction.SelectTrumpSuit, { suit: trumpSuit });
+    emitAction(GameAction.SelectTrumpSuit, { trumpSuit });
   };
 
   return (

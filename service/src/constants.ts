@@ -1,8 +1,8 @@
 /** SHOULD NOT IMPORT ANYTHING SINCE THIS IS SHARED WITH CLIENT */
 
 export enum SocketEvents {
-  serverEvent = 'server-event',
-  clientAction = 'client-action'
+  ServerEvent = 'server-event',
+  ClientAction = 'client-action'
 };
 
 export enum GameEvent {

@@ -12,7 +12,7 @@ export class SocketHandler {
   }
 
   public handleConnection(socket: Socket): void {
-    socket.on(SocketEvents.clientAction, (payload: ClientActionPayload) => {
+    socket.on(SocketEvents.ClientAction, (payload: ClientActionPayload) => {
       try {
         const { action } = payload;
         switch (action) {
@@ -21,8 +21,8 @@ export class SocketHandler {
             this.gameRuntime.joinGame(socket, teamCode, playerName);
             break;
           case GameAction.SelectTrumpSuit:
-            const { suit } = payload.data;
-            this.gameRuntime.selectTrumpSuit(socket, suit);
+            const { trumpSuit } = payload.data;
+            this.gameRuntime.selectTrumpSuit(socket, trumpSuit);
             break;
           case GameAction.Disconnect:
             this.gameRuntime.disconnect(socket);
