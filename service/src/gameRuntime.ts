@@ -214,16 +214,12 @@ export class GameRuntime {
       winner: winner?.toJSON()
     });
 
-    // If all cards have been played, end the round.
-    if (session.Players.every((player) => player.Cards.length === 0)) {
+    if (session.checkIfRoundHasWinnerSoFar()) {
       this.endRound(session);
     }
   }
 
   private endRound(session: GameSession) {
-    // Calculate the scores for the round.
-    session.calculateRoundScores();
-
     // Broadcast to the room that the round has ended.
     this.io
       .to(session.SessionId)

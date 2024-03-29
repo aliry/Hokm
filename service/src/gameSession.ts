@@ -394,13 +394,14 @@ export class GameSession {
     return winningPlayer;
   }
 
-  public calculateRoundScores() {
+  /**
+   * Checks if there is a winner for the current round based on the number of tricks won by the hakem and the other team.
+   * @returns {boolean} - Returns true if there is a winner, false otherwise.
+   * @throws {Error} - Throws an error if the current round or the hakem index is invalid.
+   */
+  public checkIfRoundHasWinnerSoFar() {
     if (!this.currentRound || !this.currentRound.hakemIndex) {
       throw new Error('Invalid round operation.');
-    }
-    // there should be 13 tricks in a round
-    if (this.currentRound.tricks.length !== 13) {
-      throw new Error('Round is not complete.');
     }
 
     const hakem = this.players[this.currentRound.hakemIndex];
@@ -414,16 +415,44 @@ export class GameSession {
       }
     });
 
-    const hakemTeamCode = hakem.TeamCode;
-    const otherTeamCode = this.teamCodes.find((code) => code !== hakemTeamCode);
-    if (!otherTeamCode) {
-      throw new Error('Invalid team code.');
+    if (
+      this.currentRound.tricks.length < 13 &&
+      (hakemTricks === 0 || otherTeamTricks === 0)
+    ) {
+      // if round is not ended (less than 13 tricks) and one of the teams has not won any tricks, there is a chance for the other team to win all tricks (Kap or Kot)
+      return false;
     }
+
+    const otherTeamCode =
+      hakem.TeamCode === this.teamCodes[0]
+        ? this.teamCodes[1]
+        : this.teamCodes[0];
+
+    if (hakemTricks === 13) {
+      this.scores[hakem.TeamCode] += 2;
+      this.currentRound.winnerTeam = hakem.TeamCode;
+      return true;
+    }
+
+    if (otherTeamTricks === 13) {
+      this.scores[hakem.TeamCode] += 3;
+      this.currentRound.winnerTeam = otherTeamCode;
+      return true;
+    }
+
     if (hakemTricks >= 7) {
-      this.scores[hakemTeamCode] += 1;
-    } else {
-      this.scores[otherTeamCode] += 1;
+      this.scores[hakem.TeamCode] += 1;
+      this.currentRound.winnerTeam = hakem.TeamCode;
+      return true;
     }
+
+    if (otherTeamTricks >= 7) {
+      this.scores[hakem.TeamCode] += 1;
+      this.currentRound.winnerTeam = otherTeamCode;
+      return true;
+    }
+
+    return false;
   }
 
   /**
