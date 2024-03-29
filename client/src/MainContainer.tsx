@@ -21,7 +21,7 @@ export const MainContainer = () => {
       return;
     }
     const payload: ClientActionPayload = { action, data };
-    socketRef.current.emit(SocketEvents.clientAction, payload);
+    socketRef.current.emit(SocketEvents.ClientAction, payload);
   }
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export const MainContainer = () => {
       return () => {
         if (socketRef.current) {
           socketRef.current.off('connect_error');
-          socketRef.current.off(SocketEvents.serverEvent);
+          socketRef.current.off(SocketEvents.ServerEvent);
           socketRef.current.disconnect();
           socketRef.current = null;
         }
@@ -76,7 +76,7 @@ export const MainContainer = () => {
   };
 
   const handleSocketEvents = useCallback(() => {
-    socketRef.current?.on(SocketEvents.serverEvent, (payload: ServerEventPayload) => {
+    socketRef.current?.on(SocketEvents.ServerEvent, (payload: ServerEventPayload) => {
       console.log(payload);
       if (payload.event === GameEvent.Error) {
         setErrors((prevErrors) => [...prevErrors, payload]);

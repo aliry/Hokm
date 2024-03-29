@@ -1,4 +1,6 @@
+/** THIS IS SHARED WITH CLIENT. DO NOT IMPORT ANYTHING OTHER THAN CONSTANTS */
 import { GameAction } from './constants';
+/** THIS IS SHARED WITH CLIENT. DO NOT IMPORT ANYTHING OTHER THAN CONSTANTS */
 
 export interface Card {
   suit: string;
