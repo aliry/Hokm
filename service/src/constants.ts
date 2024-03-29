@@ -1,5 +1,3 @@
-import exp from 'constants';
-
 export enum GameEvent {
   Disconnect = 'disconnect',
   Error = 'error',

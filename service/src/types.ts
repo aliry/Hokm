@@ -32,22 +32,13 @@ export interface Round {
   /**
    * The tricks played in the round.
    */
-  tricks?: Trick[];
+  tricks: Trick[];
 }
 
 /**
  * Represents a trick in the game.
  */
-export interface Trick {
-  /**
-   * Cards played by each player in the trick.
-   */
-  cards: { [playerId: string]: Card };
-  /**
-   * The player who won the trick.
-   */
-  winner: Player;
-}
+export type Trick = Array<{ player: Player; card: Card }>;
 
 export interface Action {
   player: Player;

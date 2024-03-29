@@ -46,6 +46,21 @@ export class Player {
     this.cards.push(...cards);
   }
 
+  public removeCard(card: Card) {
+    const index = this.cards.findIndex(
+      (c) => c.value === card.value && c.suit === card.suit
+    );
+    if (index !== -1) {
+      this.cards.splice(index, 1);
+    }
+  }
+
+  public hasCard(card: Card): boolean {
+    return this.cards.some(
+      (c) => c.value === card.value && c.suit === card.suit
+    );
+  }
+
   public toJSON() {
     return {
       id: this.id,

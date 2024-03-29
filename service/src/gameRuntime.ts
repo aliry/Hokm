@@ -1,7 +1,8 @@
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { GameSession } from './gameSession';
-import { GameEvent, Suits } from './constants';
+import { GameAction, GameEvent, Suits } from './constants';
+import { Card } from './types';
 
 export class GameRuntime {
   private gameSessionManager: GameSessionManager;
@@ -34,7 +35,16 @@ export class GameRuntime {
       .to(session.SessionId)
       .emit(GameEvent.PlayerJoined, session.stateForBroadcast);
 
-    this.checkAllPlayersJoined(session);
+    // Once all teams are full, we can start the game and select the hakem.
+    const allTeamsFull = session.TeamCodes.every(
+      (code) =>
+        session.Players.filter((player) => player.TeamCode === code).length ===
+        2
+    );
+    if (allTeamsFull) {
+      session.startGame();
+      this.selectHakem(session);
+    }
   }
 
   public selectTrumpSuit(socket: Socket, trumpSuit: string) {
@@ -63,6 +73,61 @@ export class GameRuntime {
     this.distributeCards(session);
   }
 
+  public cardPlayed(socket: Socket, sessionId: string, card: Card) {
+    const session = this.gameSessionManager.getGameSession(sessionId);
+    if (!session) {
+      this.emitError(socket, 'Invalid session ID');
+      return;
+    }
+
+    if (!session.CurrentRound) {
+      this.emitError(socket, 'Round not started');
+      return;
+    }
+
+    // find the player index by socket id, if not found return error
+    const playerIndex = session.Players.findIndex(
+      (player) => player.Id === socket.id
+    );
+    if (playerIndex === -1) {
+      this.emitError(socket, 'Invalid player');
+      return;
+    }
+
+    // Check if it's the player's turn.
+    if (session.CurrentPlayerIndex !== playerIndex) {
+      this.emitError(socket, 'Not your turn');
+      return;
+    }
+
+    // Broadcast the played card to all sockets in the room.
+    this.io.to(session.SessionId).emit(GameAction.CardPlayed, {
+      playerId: socket.id,
+      card
+    });
+
+    const player = session.Players[playerIndex];
+    player.removeCard(card);
+
+    const trickItem = { player, card };
+    const currentTrickIndex = session.CurrentRound.tricks.length - 1;
+    if (currentTrickIndex < 0) {
+      // Start a new trick.
+      session.CurrentRound.tricks.push([trickItem]);
+    } else {
+      // Add the played card to the current trick.
+      session.CurrentRound.tricks[currentTrickIndex].push(trickItem);
+    }
+
+    // Move to the next player.
+    session.CurrentPlayerIndex = (session.CurrentPlayerIndex + 1) % 4;
+
+    // If all players have played a card, end the trick.
+    if (session.CurrentRound.tricks[currentTrickIndex].length === 4) {
+      this.endTrick(session);
+    }
+  }
+
   public disconnect(socket: Socket) {
     const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
     if (!session) {
@@ -76,15 +141,6 @@ export class GameRuntime {
     player.Connected = false;
 
     socket.to(session.SessionId).emit(GameEvent.PlayerLeft, player.toJSON());
-  }
-
-  public SessionDestroyed(sessionId: string) {
-    this.io
-      .to(sessionId)
-      .emit(
-        GameEvent.SessionDestroyed,
-        'Game session has been terminated due to inactivity.'
-      );
   }
 
   private distributeCards(session: GameSession) {
@@ -117,20 +173,6 @@ export class GameRuntime {
     });
   }
 
-  private checkAllPlayersJoined(session: GameSession) {
-    const allTeamsFull = session.TeamCodes.every(
-      (code) =>
-        session.Players.filter((player) => player.TeamCode === code).length ===
-        2
-    );
-
-    // Once all teams are full, start a new round and select a hakem.
-    if (allTeamsFull) {
-      session.startGame();
-      this.selectHakem(session);
-    }
-  }
-
   private selectHakem(session: GameSession) {
     // Assign a random player as the hakem.
     const hakemIndex = Math.floor(Math.random() * session.Players.length);
@@ -145,6 +187,42 @@ export class GameRuntime {
       const hakemCards = session.Deck.splice(0, 5);
       this.io.to(session.Hakem.Id).emit(GameEvent.HakemCards, hakemCards);
       session.Players[hakemIndex].addCards(hakemCards);
+    }
+  }
+
+  private endTrick(session: GameSession) {
+    // Determine the winner of the trick.
+    const winner = session.determineTrickWinner();
+
+    // Broadcast to the room that the trick has ended.
+    this.io.to(session.SessionId).emit(GameEvent.TrickEnded, {
+      winner: winner?.toJSON()
+    });
+
+    // If all cards have been played, end the round.
+    if (session.Players.every((player) => player.Cards.length === 0)) {
+      this.endRound(session);
+    }
+  }
+
+  private endRound(session: GameSession) {
+    // Calculate the scores for the round.
+    session.calculateRoundScores();
+
+    // Broadcast to the room that the round has ended.
+    this.io
+      .to(session.SessionId)
+      .emit(GameEvent.RoundEnded, session.stateForBroadcast);
+
+    // If the game has ended, broadcast the final scores.
+    if (session.GameOver) {
+      this.io
+        .to(session.SessionId)
+        .emit(GameEvent.GameEnded, session.stateForBroadcast);
+    } else {
+      // Start a new round.
+      session.startRound();
+      this.selectHakem(session);
     }
   }
 

@@ -215,6 +215,10 @@ export class GameSession {
     return this.currentPlayerIndex;
   }
 
+  public set CurrentPlayerIndex(index: number) {
+    this.currentPlayerIndex = index;
+  }
+
   /**
    * Check if the game session has started.
    * @returns {boolean} True if the game session has started, false otherwise.
@@ -324,6 +328,7 @@ export class GameSession {
     this.currentRoundNumber++;
     this.currentRound = {
       roundNumber: this.currentRoundNumber,
+      tricks: []
     };
   }
 
