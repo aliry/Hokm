@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Socket, io } from 'socket.io-client';
 import { ClientActionPayload, ServerEventPayload } from './sharedTypes';
+import { PlayerCardPanel } from './PlayerCardPanel';
 
 const serverURL = 'http://localhost:3001';
 
@@ -146,6 +147,7 @@ export const MainContainer = () => {
             <button onClick={handleSelectTrumpSuit}>Select Trump Suit</button>
           </div>
         </div>
+        <PlayerCardPanel emitAction={emitAction} gameStates={gameStates[gameStates.length - 1]?.gameState} />
       </div>
       <div>
         <textarea
