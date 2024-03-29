@@ -15,14 +15,14 @@ export class GameRuntime {
   public joinGame(socket: Socket, teamCode: string, playerName: string) {
     const session = this.gameSessionManager.getGameSessionByTeamCode(teamCode);
     if (!session) {
-      socket.emit(GameEvent.Error, 'Invalid team code');
+      this.emitError(socket, 'Invalid team code');
       return;
     }
 
     try {
       session.addPlayer(playerName, teamCode, socket.id);
     } catch (error: any) {
-      socket.emit(GameEvent.Error, error.message);
+      this.emitError(socket, error.message);
       return;
     }
 
@@ -44,13 +44,13 @@ export class GameRuntime {
       session.Hakem?.Id !== socket.id ||
       typeof trumpSuit !== 'string'
     ) {
-      socket.emit(GameEvent.Error, 'Invalid operation');
+      this.emitError(socket, 'Invalid operation');
       return;
     }
 
     trumpSuit = trumpSuit.toLowerCase();
     if (!Suits.includes(trumpSuit)) {
-      socket.emit(GameEvent.Error, 'Invalid suit');
+      this.emitError(socket, 'Invalid suit');
       return;
     }
 
@@ -146,5 +146,9 @@ export class GameRuntime {
       this.io.to(session.Hakem.Id).emit(GameEvent.HakemCards, hakemCards);
       session.Players[hakemIndex].addCards(hakemCards);
     }
+  }
+
+  private emitError(socket: Socket, message: string): void {
+    socket.emit(GameEvent.Error, { message });
   }
 }

@@ -1,4 +1,4 @@
-import { GameEvent } from './constants';
+import { GameAction, GameEvent } from './constants';
 import React, { useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Socket, io } from 'socket.io-client';
@@ -55,7 +55,7 @@ export const MainContainer = () => {
       return;
     }
     handleSocketEvents();
-    socketRef.current?.emit(GameEvent.JoinGame, {
+    socketRef.current?.emit(GameAction.JoinGame, {
       teamCode: _teamCode,
       playerName: _playerName
     });
@@ -149,7 +149,7 @@ export const MainContainer = () => {
     if (!socketRef.current || !trumpSuit) {
       return;
     }
-    socketRef.current.emit(GameEvent.SetTrumpSuit, { suit: trumpSuit });
+    socketRef.current.emit(GameAction.SelectTrumpSuit, { suit: trumpSuit });
   };
 
   return (

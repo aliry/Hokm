@@ -1,7 +1,7 @@
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { GameRuntime } from './gameRuntime';
-import { GameEvent } from './constants';
+import { GameAction, GameEvent } from './constants';
 
 export class SocketHandler {
   private gameRuntime: GameRuntime;
@@ -11,19 +11,19 @@ export class SocketHandler {
   }
 
   public handleConnection(socket: Socket): void {
-    socket.on(GameEvent.JoinGame, ({ teamCode, playerName }) => {
+    socket.on(GameAction.JoinGame, ({ teamCode, playerName }) => {
       try {
         this.gameRuntime.joinGame(socket, teamCode, playerName);
       } catch (error: any) {
-        socket.emit(GameEvent.Error, { message: error.message });
+        this.emitError(socket, error.message);
       }
     });
 
-    socket.on(GameEvent.SetTrumpSuit, ({ suit }) => {
+    socket.on(GameAction.SelectTrumpSuit, ({ suit }) => {
       try {
         this.gameRuntime.selectTrumpSuit(socket, suit);
       } catch (error: any) {
-        socket.emit(GameEvent.Error, { message: error.message });
+        this.emitError(socket, error.message);
       }
     });
 
@@ -31,8 +31,12 @@ export class SocketHandler {
       try {
         this.gameRuntime.disconnect(socket);
       } catch (error: any) {
-        socket.emit(GameEvent.Error, { message: error.message });
+        this.emitError(socket, error.message);
       }
     });
+  }
+
+  public emitError(socket: Socket, message: string): void {
+    socket.emit(GameEvent.Error, { message });
   }
 }
