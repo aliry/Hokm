@@ -1,5 +1,6 @@
+/** THIS IS SHARED WITH CLIENT. DO NOT IMPORT ANYTHING OTHER THAN CONSTANTS */
 import { GameAction } from './constants';
-import { Player } from './player';
+/** THIS IS SHARED WITH CLIENT. DO NOT IMPORT ANYTHING OTHER THAN CONSTANTS */
 
 export interface Card {
   suit: string;
@@ -40,12 +41,12 @@ export interface Round {
  * Represents a trick in the game.
  */
 export interface Trick {
-  items: { player: Player; card: Card }[];
-  winner?: Player;
+  items: { playerIndex: number; card: Card }[];
+  winnerIndex?: number;
 }
 
 export interface Action {
-  player: Player;
+  player: PlayerState;
   card: Card;
   // Additional properties can be added to represent specific actions taken by the player
 }

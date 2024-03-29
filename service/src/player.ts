@@ -1,4 +1,4 @@
-import { Card, PlayerState } from './types';
+import { Card, PlayerState } from './sharedTypes';
 
 export class Player {
   private id: string;

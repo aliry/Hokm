@@ -1,3 +1,5 @@
+/** SHOULD NOT IMPORT ANYTHING SINCE THIS IS SHARED WITH CLIENT */
+
 export enum SocketEvents {
   serverEvent = 'server-event',
   clientAction = 'client-action'

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
-import { Card, GameSessionState, Round } from './types';
+import { Card, GameSessionState, PlayerState, Round } from './sharedTypes';
 import { CardValues, Suits } from './constants';
 import { Player } from './player';
 import { GameConfigs } from './gameConfigs';
@@ -363,7 +363,7 @@ export class GameSession {
    * @returns The winning player of the current trick.
    * @throws {Error} If the round has not started yet.
    */
-  public determineTrickWinner() {
+  public determineTrickWinner(): PlayerState {
     if (!this.currentRound) {
       throw new Error('Round has not started yet.');
     }
@@ -376,22 +376,22 @@ export class GameSession {
     const trumpSuit = this.currentRound.trumpSuit;
     const trickItems = currentTrick.items;
     let winningCard = trickItems[0].card;
-    let winningPlayer = trickItems[0].player;
+    let winningPlayerIndex = trickItems[0].playerIndex;
     for (let i = 1; i < trickItems.length; i++) {
       const card = trickItems[i].card;
       if (card.suit === trumpSuit && winningCard.suit !== trumpSuit) {
         winningCard = card;
-        winningPlayer = trickItems[i].player;
+        winningPlayerIndex = trickItems[i].playerIndex;
       } else if (
         card.suit === winningCard.suit &&
         CardValues.indexOf(card.value) > CardValues.indexOf(winningCard.value)
       ) {
         winningCard = card;
-        winningPlayer = trickItems[i].player;
+        winningPlayerIndex = trickItems[i].playerIndex;
       }
     }
-    currentTrick.winner = winningPlayer;
-    return winningPlayer;
+    currentTrick.winnerIndex = winningPlayerIndex;
+    return this.players[winningPlayerIndex].getState();
   }
 
   /**
@@ -408,7 +408,7 @@ export class GameSession {
     let hakemTricks = 0;
     let otherTeamTricks = 0;
     this.currentRound.tricks.forEach((trick) => {
-      if (trick.winner === hakem) {
+      if (trick.winnerIndex === this.currentRound?.hakemIndex) {
         hakemTricks++;
       } else {
         otherTeamTricks++;

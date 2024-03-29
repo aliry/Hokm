@@ -2,7 +2,7 @@ import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { GameRuntime } from './gameRuntime';
 import { GameAction, GameEvent, SocketEvents } from './constants';
-import { ClientActionPayload } from './types';
+import { ClientActionPayload } from './sharedTypes';
 
 export class SocketHandler {
   private gameRuntime: GameRuntime;

@@ -2,7 +2,7 @@ import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { GameSession } from './gameSession';
 import { GameAction, GameEvent, SocketEvents, Suits } from './constants';
-import { Card, ServerEventPayload } from './types';
+import { Card, ServerEventPayload } from './sharedTypes';
 
 export class GameRuntime {
   private gameSessionManager: GameSessionManager;
@@ -114,7 +114,7 @@ export class GameRuntime {
     const player = session.Players[playerIndex];
     player.removeCard(card);
 
-    const trickItem = { player, card };
+    const trickItem = { playerIndex, card };
     const currentTrickIndex = session.CurrentRound.tricks.length - 1;
     if (currentTrickIndex < 0) {
       // Start a new trick.
@@ -203,7 +203,7 @@ export class GameRuntime {
 
     // Broadcast to the room that the trick has ended.
     this.emitToSession(session, GameEvent.TrickEnded, {
-      winner: winner?.getState()
+      winner
     });
 
     if (session.checkIfRoundHasWinnerSoFar()) {
