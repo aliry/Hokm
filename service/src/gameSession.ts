@@ -332,7 +332,100 @@ export class GameSession {
     };
   }
 
-  // implement an event registration system
+  /**
+   * Checks if a card is valid for the current round.
+   * @param {Card} card - The card to be checked.
+   * @returns {boolean} - Returns true if the card is valid, false otherwise.
+   * @throws {Error} - Throws an error if the round has not started yet.
+   */
+  public isCardValidForCurrentRound(card: Card) {
+    if (!this.currentRound || this.currentPlayerIndex === undefined) {
+      throw new Error('Round has not started yet.');
+    }
+    // if its the first trick of the round, any card is valid else check if the card is valid
+    if (this.currentRound.tricks.length === 0) {
+      return true;
+    }
+    const currentTrick =
+      this.currentRound.tricks[this.currentRound.tricks.length - 1];
+    const firstCard = currentTrick.items[0].card;
+    const player = this.players[this.currentPlayerIndex];
+    // if the player has a card of the first card's suit, they must play a card of that suit
+    if (card.suit !== firstCard.suit && player.hasSuit(firstCard.suit)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Determines the winner of the current trick.
+   * @returns The winning player of the current trick.
+   * @throws {Error} If the round has not started yet.
+   */
+  public determineTrickWinner() {
+    if (!this.currentRound) {
+      throw new Error('Round has not started yet.');
+    }
+    if (this.currentRound.tricks.length < this.players.length) {
+      throw new Error('Trick is not complete.');
+    }
+
+    const currentTrick =
+      this.currentRound.tricks[this.currentRound.tricks.length - 1];
+    const trumpSuit = this.currentRound.trumpSuit;
+    const trickItems = currentTrick.items;
+    let winningCard = trickItems[0].card;
+    let winningPlayer = trickItems[0].player;
+    for (let i = 1; i < trickItems.length; i++) {
+      const card = trickItems[i].card;
+      if (card.suit === trumpSuit && winningCard.suit !== trumpSuit) {
+        winningCard = card;
+        winningPlayer = trickItems[i].player;
+      } else if (
+        card.suit === winningCard.suit &&
+        CardValues.indexOf(card.value) > CardValues.indexOf(winningCard.value)
+      ) {
+        winningCard = card;
+        winningPlayer = trickItems[i].player;
+      }
+    }
+    currentTrick.winner = winningPlayer;
+    return winningPlayer;
+  }
+
+  public calculateRoundScores() {
+    if (!this.currentRound || !this.currentRound.hakemIndex) {
+      throw new Error('Invalid round operation.');
+    }
+    // there should be 13 tricks in a round
+    if (this.currentRound.tricks.length !== 13) {
+      throw new Error('Round is not complete.');
+    }
+
+    const hakem = this.players[this.currentRound.hakemIndex];
+    let hakemTricks = 0;
+    let otherTeamTricks = 0;
+    this.currentRound.tricks.forEach((trick) => {
+      if (trick.winner === hakem) {
+        hakemTricks++;
+      } else {
+        otherTeamTricks++;
+      }
+    });
+
+    const hakemTeamCode = hakem.TeamCode;
+    const otherTeamCode = this.teamCodes.find((code) => code !== hakemTeamCode);
+    if (!otherTeamCode) {
+      throw new Error('Invalid team code.');
+    }
+    if (hakemTricks >= 7) {
+      this.scores[hakemTeamCode] += 1;
+    } else {
+      this.scores[otherTeamCode] += 1;
+    }
+  }
+
   /**
    * Registers a new event listener for the game session.
    * @param {string} event - The event to listen for.

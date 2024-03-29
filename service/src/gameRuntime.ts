@@ -100,6 +100,15 @@ export class GameRuntime {
       return;
     }
 
+    // Check if the player has the card in their hand and if it's a valid card.
+    if (
+      !session.Players[playerIndex].hasCard(card) ||
+      !session.isCardValidForCurrentRound(card)
+    ) {
+      this.emitError(socket, 'Invalid card');
+      return;
+    }
+
     // Broadcast the played card to all sockets in the room.
     this.io.to(session.SessionId).emit(GameAction.CardPlayed, {
       playerId: socket.id,
@@ -113,17 +122,23 @@ export class GameRuntime {
     const currentTrickIndex = session.CurrentRound.tricks.length - 1;
     if (currentTrickIndex < 0) {
       // Start a new trick.
-      session.CurrentRound.tricks.push([trickItem]);
+      session.CurrentRound.tricks.push({
+        items: [trickItem]
+      });
     } else {
       // Add the played card to the current trick.
-      session.CurrentRound.tricks[currentTrickIndex].push(trickItem);
+      session.CurrentRound.tricks[currentTrickIndex].items.push(trickItem);
     }
 
     // Move to the next player.
-    session.CurrentPlayerIndex = (session.CurrentPlayerIndex + 1) % 4;
+    session.CurrentPlayerIndex =
+      (session.CurrentPlayerIndex + 1) % session.Players.length;
 
     // If all players have played a card, end the trick.
-    if (session.CurrentRound.tricks[currentTrickIndex].length === 4) {
+    if (
+      session.CurrentRound.tricks[currentTrickIndex].items.length ===
+      session.Players.length
+    ) {
       this.endTrick(session);
     }
   }
@@ -215,13 +230,13 @@ export class GameRuntime {
       .emit(GameEvent.RoundEnded, session.stateForBroadcast);
 
     // If the game has ended, broadcast the final scores.
-    if (session.GameOver) {
+    if (session.GameEnded) {
       this.io
         .to(session.SessionId)
         .emit(GameEvent.GameEnded, session.stateForBroadcast);
     } else {
       // Start a new round.
-      session.startRound();
+      session.startNewRound();
       this.selectHakem(session);
     }
   }

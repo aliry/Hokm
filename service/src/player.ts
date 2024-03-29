@@ -5,7 +5,7 @@ export class Player {
   private name: string;
   private teamCode: string;
   private connected: boolean;
-  private cards: Card[] = [];
+  private hand: Card[] = [];
 
   constructor(id: string, name: string, teamCode: string, connected: boolean) {
     this.id = id;
@@ -39,26 +39,30 @@ export class Player {
   }
 
   public get Cards(): Card[] {
-    return this.cards;
+    return this.hand;
   }
 
   public addCards(cards: Card[]) {
-    this.cards.push(...cards);
+    this.hand.push(...cards);
   }
 
   public removeCard(card: Card) {
-    const index = this.cards.findIndex(
+    const index = this.hand.findIndex(
       (c) => c.value === card.value && c.suit === card.suit
     );
     if (index !== -1) {
-      this.cards.splice(index, 1);
+      this.hand.splice(index, 1);
     }
   }
 
   public hasCard(card: Card): boolean {
-    return this.cards.some(
+    return this.hand.some(
       (c) => c.value === card.value && c.suit === card.suit
     );
+  }
+
+  public hasSuit(suit: string): boolean {
+    return this.hand.some((c) => c.suit === suit);
   }
 
   public toJSON() {

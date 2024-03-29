@@ -38,7 +38,10 @@ export interface Round {
 /**
  * Represents a trick in the game.
  */
-export type Trick = Array<{ player: Player; card: Card }>;
+export interface Trick {
+  items: { player: Player; card: Card }[];
+  winner?: Player;
+}
 
 export interface Action {
   player: Player;
