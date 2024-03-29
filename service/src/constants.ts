@@ -1,5 +1,9 @@
+export enum SocketEvents {
+  serverEvent = 'server-event',
+  clientAction = 'client-action'
+};
+
 export enum GameEvent {
-  Disconnect = 'disconnect',
   Error = 'error',
   GameEnded = 'game-ended',
   HakemCards = 'hakem-cards',
@@ -11,10 +15,12 @@ export enum GameEvent {
   TrickEnded = 'trick-ended',
   TrickStarted = 'trick-started',
   TrumpSuitSelected = 'trump-suit-selected',
-  SessionDestroyed = 'session-destroyed'
+  SessionDestroyed = 'session-destroyed',
+  CardPlayed = 'card-played'
 }
 
 export enum GameAction {
+  Disconnect = 'disconnect',
   CardPlayed = 'card-played',
   CreateGame = 'create-game',
   JoinGame = 'join-game',

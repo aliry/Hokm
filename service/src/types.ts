@@ -1,3 +1,4 @@
+import { GameAction } from './constants';
 import { Player } from './player';
 
 export interface Card {
@@ -47,4 +48,33 @@ export interface Action {
   player: Player;
   card: Card;
   // Additional properties can be added to represent specific actions taken by the player
+}
+
+export interface PlayerState {
+  id: string;
+  name: string;
+  teamCode: string;
+}
+
+export interface GameSessionState {
+  sessionId: string;
+  players: PlayerState[];
+  hakem?: PlayerState;
+  currentRound?: Round;
+  scores: { [teamCode: string]: number };
+  currentPlayer?: PlayerState;
+  gameStarted: boolean;
+  gameEnded: boolean;
+  roundHistory: Round[];
+}
+
+export interface ClientActionPayload {
+  action: GameAction;
+  data?: any;
+}
+
+export interface ServerEventPayload {
+  event: string;
+  data?: any;
+  gameState: GameSessionState;
 }

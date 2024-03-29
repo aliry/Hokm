@@ -1,4 +1,4 @@
-import { Card } from './types';
+import { Card, PlayerState } from './types';
 
 export class Player {
   private id: string;
@@ -65,7 +65,7 @@ export class Player {
     return this.hand.some((c) => c.suit === suit);
   }
 
-  public toJSON() {
+  public getState(): PlayerState {
     return {
       id: this.id,
       name: this.name,

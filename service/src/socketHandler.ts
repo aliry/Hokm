@@ -1,7 +1,8 @@
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { GameRuntime } from './gameRuntime';
-import { GameAction, GameEvent } from './constants';
+import { GameAction, GameEvent, SocketEvents } from './constants';
+import { ClientActionPayload } from './types';
 
 export class SocketHandler {
   private gameRuntime: GameRuntime;
@@ -11,25 +12,25 @@ export class SocketHandler {
   }
 
   public handleConnection(socket: Socket): void {
-    socket.on(GameAction.JoinGame, ({ teamCode, playerName }) => {
+    socket.on(SocketEvents.clientAction, (payload: ClientActionPayload) => {
       try {
-        this.gameRuntime.joinGame(socket, teamCode, playerName);
-      } catch (error: any) {
-        this.emitError(socket, error.message);
-      }
-    });
-
-    socket.on(GameAction.SelectTrumpSuit, ({ suit }) => {
-      try {
-        this.gameRuntime.selectTrumpSuit(socket, suit);
-      } catch (error: any) {
-        this.emitError(socket, error.message);
-      }
-    });
-
-    socket.on(GameEvent.Disconnect, () => {
-      try {
-        this.gameRuntime.disconnect(socket);
+        const { action } = payload;
+        switch (action) {
+          case GameAction.JoinGame:
+            const { teamCode, playerName } = payload.data;
+            this.gameRuntime.joinGame(socket, teamCode, playerName);
+            break;
+          case GameAction.SelectTrumpSuit:
+            const { suit } = payload.data;
+            this.gameRuntime.selectTrumpSuit(socket, suit);
+            break;
+          case GameAction.Disconnect:
+            this.gameRuntime.disconnect(socket);
+            break;
+          default:
+            this.emitError(socket, 'Invalid action');
+            break;
+        }
       } catch (error: any) {
         this.emitError(socket, error.message);
       }
