@@ -226,16 +226,16 @@ export class GameRuntime {
   }
 
   private emitError(socket: Socket, message: string): void {
-    socket.emit(GameEvent.Error, { message });
+    socket.emit(SocketEvents.ServerEvent, { event: GameEvent.Error, message });
   }
 
   private emitToSession(session: GameSession, event: GameEvent, data?: unknown) {
     const payLoad: ServerEventPayload = { event, data, gameState: session.stateForBroadcast };
-    this.io.to(session.SessionId).emit(event, data);
+    this.io.to(session.SessionId).emit(SocketEvents.ServerEvent, payLoad);
   }
 
   private emitToPlayer(playerId: string, session: GameSession, event: GameEvent, data?: unknown) {
     const payLoad: ServerEventPayload = { event, data, gameState: session.stateForBroadcast };
-    this.io.to(playerId).emit(event, payLoad);
+    this.io.to(playerId).emit(SocketEvents.ServerEvent, payLoad);
   }
 }

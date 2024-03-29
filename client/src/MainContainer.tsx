@@ -2,7 +2,7 @@ import { GameAction, GameEvent, SocketEvents } from './constants';
 import React, { useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Socket, io } from 'socket.io-client';
-import { ClientActionPayload, GameSessionState, ServerEventPayload } from './sharedTypes';
+import { ClientActionPayload, ServerEventPayload } from './sharedTypes';
 
 const serverURL = 'http://localhost:3001';
 
@@ -11,7 +11,7 @@ export const MainContainer = () => {
   const [teamCodes, setTeamCodes] = React.useState<string[]>([]);
   const [sessionId, setSessionId] = React.useState<string>('');
   const [teamCode, setTeamCode] = React.useState<string>('');
-  const [errors, setErrors] = React.useState<string[]>([]);
+  const [errors, setErrors] = React.useState<ServerEventPayload[]>([]);
   const [gameStates, setGameStates] = React.useState<ServerEventPayload[]>([]);
   const [trumpSuit, setTrumpSuit] = React.useState<string>('');
   const socketRef = useRef<Socket | null>(null);
@@ -79,7 +79,7 @@ export const MainContainer = () => {
     socketRef.current?.on(SocketEvents.serverEvent, (payload: ServerEventPayload) => {
       console.log(payload);
       if (payload.event === GameEvent.Error) {
-        setErrors((prevErrors) => [...prevErrors, payload.data]);
+        setErrors((prevErrors) => [...prevErrors, payload]);
       } else {
         setGameStates((prevStates) => [...prevStates, payload]);
       }
@@ -159,7 +159,7 @@ export const MainContainer = () => {
         <textarea
           rows={10}
           cols={100}
-          value={errors.join('\n===========\n')}
+          value={errors.map((err) => JSON.stringify(err, null, 2)).join('\n===========\n')}
           style={{ color: 'red' }}
         />
       </div>
