@@ -17,7 +17,7 @@ export const MainContainer = () => {
   const [trumpSuit, setTrumpSuit] = React.useState<string>('');
   const socketRef = useRef<Socket | null>(null);
 
-  const emitAction = (action: GameAction, data: any) => {
+  const emitAction = (action: GameAction, data: any, _sessionId?: string) => {
     if (!socketRef.current) {
       return;
     }
@@ -147,7 +147,7 @@ export const MainContainer = () => {
             <button onClick={handleSelectTrumpSuit}>Select Trump Suit</button>
           </div>
         </div>
-        <PlayerCardPanel emitAction={emitAction} gameStates={gameStates[gameStates.length - 1]?.gameState} />
+        <PlayerCardPanel emitAction={emitAction} playerId={socketRef.current?.id} gameState={gameStates[gameStates.length - 1]?.gameState} />
       </div>
       <div>
         <textarea

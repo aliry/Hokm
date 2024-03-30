@@ -23,7 +23,7 @@ export enum GameEvent {
 
 export enum GameAction {
   Disconnect = 'disconnect',
-  CardPlayed = 'card-played',
+  PlayCard = 'play-card',
   CreateGame = 'create-game',
   JoinGame = 'join-game',
   SelectHakem = 'select-hakem',

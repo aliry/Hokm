@@ -105,19 +105,17 @@ export class GameSession {
     teamCode: string,
     socketId: string
   ): Player {
-    if (this.players.length === 4) {
-      // when the game is full, only allow reconnection
-      const playerIndex = this.players.findIndex(
-        (player) =>
-          player.Name === playerName &&
-          player.TeamCode === teamCode &&
-          !player.Connected
-      );
-      if (playerIndex !== -1) {
-        this.players[playerIndex].Id = socketId;
-        this.players[playerIndex].Connected = true;
-        return this.players[playerIndex];
-      }
+    // Check if the player is already in the game session and reconnecting
+    const playerIndex = this.players.findIndex(
+      (player) =>
+        player.Name === playerName &&
+        player.TeamCode === teamCode &&
+        !player.Connected
+    );
+    if (playerIndex !== -1) {
+      this.players[playerIndex].Id = socketId;
+      this.players[playerIndex].Connected = true;
+      return this.players[playerIndex];
     }
 
     const isNameUnique = this.players.every(
@@ -304,6 +302,7 @@ export class GameSession {
       throw new Error('Invalid player');
     }
     this.currentRound.hakemIndex = playerIndex;
+    this.currentPlayerIndex = playerIndex;
     this.deck = this.generateShuffledDeck();
   }
 

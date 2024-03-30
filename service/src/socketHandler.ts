@@ -14,15 +14,19 @@ export class SocketHandler {
   public handleConnection(socket: Socket): void {
     socket.on(SocketEvents.ClientAction, (payload: ClientActionPayload) => {
       try {
-        const { action } = payload;
+        const { action, data } = payload;
         switch (action) {
           case GameAction.JoinGame:
-            const { teamCode, playerName } = payload.data;
+            const { teamCode, playerName } = data;
             this.gameRuntime.joinGame(socket, teamCode, playerName);
             break;
           case GameAction.SelectTrumpSuit:
-            const { trumpSuit } = payload.data;
+            const { trumpSuit } = data;
             this.gameRuntime.selectTrumpSuit(socket, trumpSuit);
+            break;
+          case GameAction.PlayCard:
+            const { card } = data;
+            this.gameRuntime.playCard(socket, card);
             break;
           case GameAction.Disconnect:
             this.gameRuntime.disconnect(socket);
@@ -34,6 +38,9 @@ export class SocketHandler {
       } catch (error: any) {
         this.emitError(socket, error.message);
       }
+    });
+    socket.on('disconnect', () => {
+      this.gameRuntime.disconnect(socket);
     });
   }
 

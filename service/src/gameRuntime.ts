@@ -16,7 +16,7 @@ export class GameRuntime {
   public joinGame(socket: Socket, teamCode: string, playerName: string) {
     const session = this.gameSessionManager.getGameSessionByTeamCode(teamCode);
     if (!session) {
-      this.emitError(socket, 'Invalid team code');
+      this.emitError(socket);
       return;
     }
 
@@ -52,7 +52,7 @@ export class GameRuntime {
       session.Hakem?.Id !== socket.id ||
       typeof trumpSuit !== 'string'
     ) {
-      this.emitError(socket, 'Invalid operation');
+      this.emitError(socket);
       return;
     }
 
@@ -69,10 +69,10 @@ export class GameRuntime {
     this.distributeCards(session);
   }
 
-  public cardPlayed(socket: Socket, sessionId: string, card: Card) {
-    const session = this.gameSessionManager.getGameSession(sessionId);
+  public playCard(socket: Socket, card: Card) {
+    const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
     if (!session) {
-      this.emitError(socket, 'Invalid session ID');
+      this.emitError(socket);
       return;
     }
 
@@ -105,14 +105,16 @@ export class GameRuntime {
       return;
     }
 
+    const player = session.Players[playerIndex];
+    player.removeCard(card);
+
     // Broadcast the played card to all sockets in the room.
     this.emitToSession(session, GameEvent.CardPlayed, {
       playerId: socket.id,
       card
     });
 
-    const player = session.Players[playerIndex];
-    player.removeCard(card);
+    this.emitToPlayer(socket.id, session, GameEvent.CardPlayed);
 
     const trickItem = { playerIndex, card };
     const currentTrickIndex = session.CurrentRound.tricks.length - 1;
@@ -225,7 +227,7 @@ export class GameRuntime {
     }
   }
 
-  private emitError(socket: Socket, message: string): void {
+  private emitError(socket: Socket, message: string = "Invalid operation!"): void {
     socket.emit(SocketEvents.ServerEvent, { event: GameEvent.Error, message });
   }
 
