@@ -10,7 +10,7 @@ import {
 } from './constants';
 import { Card, ServerEventPayload } from './sharedTypes';
 
-export class GameRuntime {
+export class GameEngine {
   private gameSessionManager: GameSessionManager;
   private io: SocketIOServer;
 

@@ -1,14 +1,14 @@
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
-import { GameRuntime } from './gameRuntime';
+import { GameEngine } from './gameEngine';
 import { GameAction, GameEvent, SocketEvents } from './constants';
 import { ClientActionPayload } from './sharedTypes';
 
 export class SocketHandler {
-  private gameRuntime: GameRuntime;
+  private gameRuntime: GameEngine;
 
   constructor(io: SocketIOServer, gameSessionManager: GameSessionManager) {
-    this.gameRuntime = new GameRuntime(gameSessionManager, io);
+    this.gameRuntime = new GameEngine(gameSessionManager, io);
   }
 
   public handleConnection(socket: Socket): void {
