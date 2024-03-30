@@ -58,7 +58,7 @@ export class GameSession {
     }, GameConfigs.managerJoinTimeout);
 
     // Automatically destroy the game session if session is inactive for 10 minutes
-    this.sessionHadActivity();
+    this.SessionHadActivity();
   }
 
   /**
@@ -66,7 +66,7 @@ export class GameSession {
    * @param {string} playerId - The ID of the player to get the state for.
    * @returns {GameSessionState} The state of the game session.
    */
-  public getStateForBroadcast(playerId?: string): GameSessionState {
+  public GetStateForBroadcast(playerId?: string): GameSessionState {
     const state = {
       sessionId: this.sessionId,
       players: this.players.map((player) => player.getState()),
@@ -99,7 +99,7 @@ export class GameSession {
    * @param playerId - The ID of the player to retrieve.
    * @returns The player object if found, otherwise undefined.
    */
-  public getPlayerById(playerId: string): Player | undefined {
+  public GetPlayerById(playerId: string): Player | undefined {
     return this.players.find((player) => player.Id === playerId);
   }
 
@@ -111,7 +111,7 @@ export class GameSession {
    * @returns {Player} The player that was added to the game session.
    * @throws {Error} If the player name is not unique or the team has reached its capacity.
    */
-  public addPlayer(
+  public AddPlayer(
     playerName: string,
     teamCode: string,
     socketId: string
@@ -235,6 +235,10 @@ export class GameSession {
     return this.currentPlayerIndex;
   }
 
+  /**
+   * Sets the index of the current player.
+   * @param index - The index of the current player.
+   */
   public set CurrentPlayerIndex(index: number) {
     this.currentPlayerIndex = index;
   }
@@ -247,6 +251,10 @@ export class GameSession {
     return this.gameStarted;
   }
 
+  /**
+   * Setter for the `GameStarted` property.
+   * @param started - A boolean value indicating whether the game has started or not.
+   */
   public set GameStarted(started: boolean) {
     this.gameStarted = started;
   }
@@ -275,6 +283,9 @@ export class GameSession {
     return this.createdDateTime;
   }
 
+  /**
+   * Ends the current round and adds it to the round history.
+   */
   public EndRound() {
     if (this.currentRound && this.currentRoundNumber > 0) {
       this.roundHistory.push(this.currentRound);
@@ -292,7 +303,10 @@ export class GameSession {
     };
   }
 
-  public sessionHadActivity(): void {
+  /**
+   * Reset the session inactive timeout.
+   */
+  public SessionHadActivity(): void {
     // If the game session has been inactive for 10 minutes, destroy it
     if (this.sessionInactiveTimeout) {
       clearTimeout(this.sessionInactiveTimeout);
@@ -306,7 +320,7 @@ export class GameSession {
    * Sets the value of the Hakem property.
    * @param {number} playerIndex - The index of the player to set as the Hakem.
    */
-  public setHakemPlayerIndex(playerIndex: number) {
+  public SetHakemPlayerIndex(playerIndex: number) {
     if (!this.gameStarted) {
       throw new Error('Game has not started yet.');
     }
@@ -354,7 +368,7 @@ export class GameSession {
    * @returns {boolean} - Returns true if there is a winner, false otherwise.
    * @throws {Error} - Throws an error if the current round or the hakem index is invalid.
    */
-  public checkIfRoundHasWinnerSoFar() {
+  public CheckIfRoundHasWinnerSoFar() {
     if (!this.currentRound || !this.currentRound.hakemIndex) {
       throw new Error('Invalid round operation.');
     }
@@ -412,6 +426,7 @@ export class GameSession {
     return false;
   }
 
+  //#region Event Handling
   /**
    * Registers a new event listener for the game session.
    * @param {string} event - The event to listen for.
@@ -443,6 +458,7 @@ export class GameSession {
   public removeAllListeners() {
     this.eventListeners = {};
   }
+  //#endregion
 
   /**
    * Trigger an event to all registered event listeners.

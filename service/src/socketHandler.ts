@@ -5,10 +5,10 @@ import { GameAction, GameEvent, SocketEvents } from './constants';
 import { ClientActionPayload } from './sharedTypes';
 
 export class SocketHandler {
-  private gameRuntime: GameEngine;
+  private gameEngine: GameEngine;
 
   constructor(io: SocketIOServer, gameSessionManager: GameSessionManager) {
-    this.gameRuntime = new GameEngine(gameSessionManager, io);
+    this.gameEngine = new GameEngine(gameSessionManager, io);
   }
 
   public handleConnection(socket: Socket): void {
@@ -18,18 +18,18 @@ export class SocketHandler {
         switch (action) {
           case GameAction.JoinGame:
             const { teamCode, playerName } = data;
-            this.gameRuntime.joinGame(socket, teamCode, playerName);
+            this.gameEngine.JoinGame(socket, teamCode, playerName);
             break;
           case GameAction.SelectTrumpSuit:
             const { trumpSuit } = data;
-            this.gameRuntime.selectTrumpSuit(socket, trumpSuit);
+            this.gameEngine.SelectTrumpSuit(socket, trumpSuit);
             break;
           case GameAction.PlayCard:
             const { card } = data;
-            this.gameRuntime.playCard(socket, card);
+            this.gameEngine.PlayCard(socket, card);
             break;
           case GameAction.Disconnect:
-            this.gameRuntime.disconnect(socket);
+            this.gameEngine.Disconnect(socket);
             break;
           default:
             this.emitError(socket, 'Invalid action');
@@ -40,7 +40,7 @@ export class SocketHandler {
       }
     });
     socket.on('disconnect', () => {
-      this.gameRuntime.disconnect(socket);
+      this.gameEngine.Disconnect(socket);
     });
   }
 

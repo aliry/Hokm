@@ -10,6 +10,10 @@ import {
 } from './constants';
 import { Card, ServerEventPayload } from './sharedTypes';
 
+/*
+ * The GameEngine class is responsible for managing the game logic.
+ * It receives events from the clients and updates the game state accordingly.
+ */
 export class GameEngine {
   private gameSessionManager: GameSessionManager;
   private io: SocketIOServer;
@@ -19,13 +23,21 @@ export class GameEngine {
     this.io = io;
   }
 
-  public joinGame(socket: Socket, teamCode: string, playerName: string) {
+  /**
+   * Joins a player to a game session.
+   *
+   * @param socket - The socket object representing the player's connection.
+   * @param teamCode - The team code of the player.
+   * @param playerName - The name of the player.
+   * @throws Error if the session is not found.
+   */
+  public JoinGame(socket: Socket, teamCode: string, playerName: string) {
     const session = this.gameSessionManager.getGameSessionByTeamCode(teamCode);
     if (!session) {
       throw new Error('Session not found');
     }
 
-    session.addPlayer(playerName, teamCode, socket.id);
+    session.AddPlayer(playerName, teamCode, socket.id);
 
     // Join the socket to the room named after the session ID.
     socket.join(session.SessionId);
@@ -45,7 +57,14 @@ export class GameEngine {
     }
   }
 
-  public selectTrumpSuit(socket: Socket, trumpSuit: string) {
+  /**
+   * Selects the trump suit for the game session.
+   *
+   * @param socket - The socket object representing the player.
+   * @param trumpSuit - The selected trump suit.
+   * @throws Error if the operation is not allowed or the trump suit is invalid.
+   */
+  public SelectTrumpSuit(socket: Socket, trumpSuit: string) {
     const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
     if (
       !session ||
@@ -67,7 +86,14 @@ export class GameEngine {
     this.distributeCards(session);
   }
 
-  public playCard(socket: Socket, card: Card) {
+  /**
+   * Plays a card for the specified player.
+   *
+   * @param {Socket} socket - The socket of the player.
+   * @param {Card} card - The card to be played.
+   * @throws {Error} If the session is not found, the round has not started yet, the player is not found, it's not the player's turn, or the card is invalid.
+   */
+  public PlayCard(socket: Socket, card: Card) {
     //#region Validation
     const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
     if (!session) {
@@ -135,7 +161,11 @@ export class GameEngine {
     }
   }
 
-  public disconnect(socket: Socket) {
+  /**
+   * Disconnects a player from the game session.
+   * @param socket - The socket representing the player's connection.
+   */
+  public Disconnect(socket: Socket) {
     const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
     if (!session) {
       return;
@@ -207,7 +237,7 @@ export class GameEngine {
   private selectHakem(session: GameSession) {
     // Assign a random player as the hakem.
     const hakemIndex = Math.floor(Math.random() * session.Players.length);
-    session.setHakemPlayerIndex(hakemIndex);
+    session.SetHakemPlayerIndex(hakemIndex);
 
     // Broadcast to the room that the hakem has been selected.
     this.emitToSession(
@@ -257,7 +287,7 @@ export class GameEngine {
       winner: session.Players[winnerIndex].getState()
     });
 
-    if (session.checkIfRoundHasWinnerSoFar()) {
+    if (session.CheckIfRoundHasWinnerSoFar()) {
       this.endRound(session);
     } else {
       this.startNewTrick(session);
@@ -296,10 +326,7 @@ export class GameEngine {
     return winningPlayerIndex;
   }
 
-  /**
-   * Starts the game session.
-   */
-  public startGame(session: GameSession) {
+  private startGame(session: GameSession) {
     if (session.GameStarted) {
       throw new Error('Game has already started.');
     }
@@ -338,7 +365,7 @@ export class GameEngine {
     const payLoad: ServerEventPayload = {
       event,
       data,
-      gameState: session.getStateForBroadcast()
+      gameState: session.GetStateForBroadcast()
     };
     this.io.to(session.SessionId).emit(SocketEvents.ServerEvent, payLoad);
   }
@@ -350,7 +377,7 @@ export class GameEngine {
   ) {
     const payLoad: ServerEventPayload = {
       event,
-      gameState: session.getStateForBroadcast(playerId)
+      gameState: session.GetStateForBroadcast(playerId)
     };
     this.io.to(playerId).emit(SocketEvents.ServerEvent, payLoad);
   }
