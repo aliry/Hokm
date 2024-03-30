@@ -98,7 +98,7 @@ export class GameRuntime {
     ) {
       throw new Error('Invalid card');
     }
-    //#endegion
+    //#endregion
 
     const player = session.Players[playerIndex];
     player.removeCard(card);
