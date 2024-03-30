@@ -64,7 +64,7 @@ export class GameRuntime {
 
     session.TrumpSuit = trumpSuit;
     // Broadcast the selected trump suit to all sockets in the room.
-    this.emitToSession(session, GameEvent.TrumpSuitSelected, { trumpSuit });
+    this.emitToSession(session, GameEvent.TrumpSuitSelected);
 
     this.distributeCards(session);
   }
@@ -168,7 +168,7 @@ export class GameRuntime {
     // Hakem already has 5 cards so should get 8 more.
     const hakemRemainingCards = session.Deck.splice(0, 8);
     session.Hakem.Cards.push(...hakemRemainingCards);
-    this.emitToPlayer(session.Hakem.Id, session, GameEvent.RoundStarted, hakemRemainingCards);
+    this.emitToPlayer(session.Hakem.Id, session, GameEvent.RoundStarted);
 
     // Other players get 13 cards. emit RoundStarted event.
     session.Players.forEach((player) => {
@@ -178,7 +178,7 @@ export class GameRuntime {
 
       const playerCards = session.Deck!.splice(0, 13);
       player.addCards(playerCards);
-      this.emitToPlayer(player.Id, session, GameEvent.RoundStarted, playerCards);
+      this.emitToPlayer(player.Id, session, GameEvent.RoundStarted);
     });
   }
 
@@ -192,8 +192,8 @@ export class GameRuntime {
 
     if (session.Deck && session.Hakem) {
       const hakemCards = session.Deck.splice(0, 5);
-      this.emitToPlayer(session.Hakem.Id, session, GameEvent.HakemCards, hakemCards);
       session.Players[hakemIndex].addCards(hakemCards);
+      this.emitToPlayer(session.Hakem.Id, session, GameEvent.HakemCards);
     }
   }
 
@@ -213,11 +213,11 @@ export class GameRuntime {
 
   private endRound(session: GameSession) {
     // Broadcast to the room that the round has ended.
-    this.emitToSession(session, GameEvent.RoundEnded, session.stateForBroadcast);
+    this.emitToSession(session, GameEvent.RoundEnded);
 
     // If the game has ended, broadcast the final scores.
     if (session.GameEnded) {
-      this.emitToSession(session, GameEvent.GameEnded, session.stateForBroadcast);
+      this.emitToSession(session, GameEvent.GameEnded);
     } else {
       // Start a new round.
       session.startNewRound();
@@ -230,12 +230,12 @@ export class GameRuntime {
   }
 
   private emitToSession(session: GameSession, event: GameEvent, data?: unknown) {
-    const payLoad: ServerEventPayload = { event, data, gameState: session.stateForBroadcast };
+    const payLoad: ServerEventPayload = { event, data, gameState: session.getStateForBroadcast() };
     this.io.to(session.SessionId).emit(SocketEvents.ServerEvent, payLoad);
   }
 
-  private emitToPlayer(playerId: string, session: GameSession, event: GameEvent, data?: unknown) {
-    const payLoad: ServerEventPayload = { event, data, gameState: session.stateForBroadcast };
+  private emitToPlayer(playerId: string, session: GameSession, event: GameEvent) {
+    const payLoad: ServerEventPayload = { event, gameState: session.getStateForBroadcast(playerId) };
     this.io.to(playerId).emit(SocketEvents.ServerEvent, payLoad);
   }
 }

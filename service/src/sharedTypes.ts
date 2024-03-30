@@ -55,6 +55,7 @@ export interface PlayerState {
   id: string;
   name: string;
   teamCode: string;
+  cards?: Card[];
 }
 
 export interface GameSessionState {

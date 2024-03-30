@@ -62,10 +62,12 @@ export class GameSession {
   }
 
   /**
-   * @returns {Object} The public state of the game session for broadcasting to clients.
+   * Gets the state of the game session for broadcasting to clients.
+   * @param {string} playerId - The ID of the player to get the state for.
+   * @returns {GameSessionState} The state of the game session.
    */
-  public get stateForBroadcast(): GameSessionState {
-    return {
+  public getStateForBroadcast(playerId?: string): GameSessionState {
+    const state = {
       sessionId: this.sessionId,
       players: this.players.map((player) => player.getState()),
       hakem: this.Hakem?.getState(),
@@ -79,6 +81,15 @@ export class GameSession {
       gameEnded: this.gameEnded,
       roundHistory: this.roundHistory
     };
+
+    if (playerId) {
+      const playerIndex = this.players.findIndex((player) => player.Id === playerId);
+      if (playerIndex !== -1) {
+        state.players[playerIndex].cards = this.players[playerIndex].Cards;
+      }
+    }
+
+    return state;
   }
 
   /**
