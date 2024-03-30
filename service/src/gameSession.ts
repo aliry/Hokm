@@ -35,8 +35,8 @@ export class GameSession {
   constructor(managerName: string) {
     this.sessionId = uuidv4(); // Generate a UUID for the session ID
     this.teamCodes = [
-      this.generateUniqueCode(this.sessionId + 'team1'),
-      this.generateUniqueCode(this.sessionId + 'team2')
+      this.generateTeamCode(this.sessionId + 'team1'),
+      this.generateTeamCode(this.sessionId + 'team2')
     ];
     this.players = [];
     this.manager = new Player('', managerName, this.teamCodes[0], true);
@@ -350,32 +350,6 @@ export class GameSession {
   }
 
   /**
-   * Checks if a card is valid for the current round.
-   * @param {Card} card - The card to be checked.
-   * @returns {boolean} - Returns true if the card is valid, false otherwise.
-   * @throws {Error} - Throws an error if the round has not started yet.
-   */
-  public isCardValidForCurrentRound(card: Card) {
-    if (!this.currentRound || this.currentPlayerIndex === undefined) {
-      throw new Error('Round has not started yet.');
-    }
-    // if its the first trick of the round, any card is valid else check if the card is valid
-    if (this.currentRound.tricks.length === 0) {
-      return true;
-    }
-    const currentTrick =
-      this.currentRound.tricks[this.currentRound.tricks.length - 1];
-    const firstCard = currentTrick.items[0].card;
-    const player = this.players[this.currentPlayerIndex];
-    // if the player has a card of the first card's suit, they must play a card of that suit
-    if (card.suit !== firstCard.suit && player.hasSuit(firstCard.suit)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
    * Checks if there is a winner for the current round based on the number of tricks won by the hakem and the other team.
    * @returns {boolean} - Returns true if there is a winner, false otherwise.
    * @throws {Error} - Throws an error if the current round or the hakem index is invalid.
@@ -486,7 +460,7 @@ export class GameSession {
    * @param {string} uuidSeed - The UUID seed used to generate the code.
    * @returns {string} The generated unique code.
    */
-  private generateUniqueCode(uuidSeed: string): string {
+  private generateTeamCode(uuidSeed: string): string {
     const hash = crypto.createHash('sha256').update(uuidSeed).digest('hex');
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const length = 6;

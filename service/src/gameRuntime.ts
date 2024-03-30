@@ -41,7 +41,7 @@ export class GameRuntime {
     );
     if (allTeamsFull) {
       this.startGame(session);
-      this.selectHakem(session);
+      this.startRound(session);
     }
   }
 
@@ -94,7 +94,7 @@ export class GameRuntime {
     // Check if the player has the card in their hand and if it's a valid card.
     if (
       !session.Players[playerIndex].hasCard(card) ||
-      !session.isCardValidForCurrentRound(card)
+      !this.isCardValidForCurrentRound(session, card)
     ) {
       throw new Error('Invalid card');
     }
@@ -148,6 +148,32 @@ export class GameRuntime {
     player.Connected = false;
 
     this.emitToSession(session, GameEvent.PlayerLeft, player.getState());
+  }
+
+  /**
+   * Checks if a card is valid for the current round.
+   * @param {Card} card - The card to be checked.
+   * @returns {boolean} - Returns true if the card is valid, false otherwise.
+   * @throws {Error} - Throws an error if the round has not started yet.
+   */
+  private isCardValidForCurrentRound(session: GameSession, card: Card) {
+    const round = session.CurrentRound;
+    if (!round || session.CurrentPlayerIndex === undefined) {
+      throw new Error('Round has not started yet.');
+    }
+    // if its the first trick of the round, any card is valid else check if the card is valid
+    if (round.tricks.length === 0) {
+      return true;
+    }
+    const currentTrick = round.tricks[round.tricks.length - 1];
+    const firstCard = currentTrick.items[0].card;
+    const player = session.Players[session.CurrentPlayerIndex];
+    // if the player has a card of the first card's suit, they must play a card of that suit
+    if (card.suit !== firstCard.suit && player.hasSuit(firstCard.suit)) {
+      return false;
+    }
+
+    return true;
   }
 
   private distributeCards(session: GameSession) {
@@ -278,7 +304,6 @@ export class GameRuntime {
       throw new Error('Game has already started.');
     }
     session.GameStarted = true;
-    this.startRound(session);
   }
 
   private startRound(session: GameSession) {
