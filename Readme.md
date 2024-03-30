@@ -27,3 +27,15 @@ If the Hakem's team wins the first 7 tricks consecutively, they score a "Kap" (a
 Variations: Some play with variations like "Shelem," where a player can declare they will win all the tricks and play alone against the other three players for extra points.
 
 Hokm involves a significant amount of strategy, with players having to carefully manage their hands and remember which cards have been played. Teamwork and communication (usually through game play rather than talking) are also crucial to success.
+
+## In Hokm, the terms "round" and "trick" have specific meanings:
+
+### Trick
+
+A trick consists of each player playing one card from their hand, following the lead suit if possible. The player who plays the highest-ranking card of the lead suit wins the trick unless a trump card is played. If a trump card is played, the highest-ranking trump card wins the trick. Each trick is a mini-battle within the round to capture the cards played.
+
+### Round
+
+A round (also known as a "hand") in Hokm consists of 13 tricks. At the start of a round, the dealer shuffles the deck, removes the 2 of clubs, and deals the remaining 51 cards to the four players, giving each player a hand of 13 cards. After the cards are dealt and the trump suit is declared by the "Hokm" (the player who chooses the trump suit), play begins. Players take turns playing their cards to win tricks. The round continues until all 13 tricks have been played.
+
+At the end of the round, the number of tricks won by each team is tallied. The objective for each team is to win the majority of the tricks (at least 7 out of 13) to score points. The game of Hokm is typically played over several rounds, and the first team to reach a predetermined number of points wins the game. The exact number of points required to win can vary based on the players' agreement before starting the game.

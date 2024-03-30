@@ -83,13 +83,24 @@ export class GameSession {
     };
 
     if (playerId) {
-      const playerIndex = this.players.findIndex((player) => player.Id === playerId);
+      const playerIndex = this.players.findIndex(
+        (player) => player.Id === playerId
+      );
       if (playerIndex !== -1) {
         state.players[playerIndex].cards = this.players[playerIndex].Cards;
       }
     }
 
     return state;
+  }
+
+  /**
+   * Retrieves a player by their ID.
+   * @param playerId - The ID of the player to retrieve.
+   * @returns The player object if found, otherwise undefined.
+   */
+  public getPlayerById(playerId: string): Player | undefined {
+    return this.players.find((player) => player.Id === playerId);
   }
 
   /**
@@ -236,6 +247,10 @@ export class GameSession {
     return this.gameStarted;
   }
 
+  public set GameStarted(started: boolean) {
+    this.gameStarted = started;
+  }
+
   /**
    * Check if the game session has ended.
    * @returns {boolean} True if the game session has ended, false otherwise.
@@ -260,6 +275,23 @@ export class GameSession {
     return this.createdDateTime;
   }
 
+  public EndRound() {
+    if (this.currentRound && this.currentRoundNumber > 0) {
+      this.roundHistory.push(this.currentRound);
+    }
+  }
+
+  /**
+   * Starts a new round in the game session.
+   */
+  public StartNewRound() {
+    this.currentRoundNumber++;
+    this.currentRound = {
+      roundNumber: this.currentRoundNumber,
+      tricks: []
+    };
+  }
+
   public sessionHadActivity(): void {
     // If the game session has been inactive for 10 minutes, destroy it
     if (this.sessionInactiveTimeout) {
@@ -268,17 +300,6 @@ export class GameSession {
     this.sessionInactiveTimeout = setTimeout(() => {
       this.triggerEvent('sessionDestroyed', { sessionId: this.sessionId });
     }, GameConfigs.sessionInactivityTimeout);
-  }
-
-  /**
-   * Starts the game session.
-   */
-  public startGame() {
-    if (this.gameStarted) {
-      throw new Error('Game has already started.');
-    }
-    this.gameStarted = true;
-    this.startNewRound();
   }
 
   /**
@@ -329,20 +350,6 @@ export class GameSession {
   }
 
   /**
-   * Starts a new round in the game session.
-   */
-  public startNewRound() {
-    if (this.currentRound && this.currentRoundNumber > 0) {
-      this.roundHistory.push(this.currentRound);
-    }
-    this.currentRoundNumber++;
-    this.currentRound = {
-      roundNumber: this.currentRoundNumber,
-      tricks: []
-    };
-  }
-
-  /**
    * Checks if a card is valid for the current round.
    * @param {Card} card - The card to be checked.
    * @returns {boolean} - Returns true if the card is valid, false otherwise.
@@ -366,42 +373,6 @@ export class GameSession {
     }
 
     return true;
-  }
-
-  /**
-   * Determines the winner of the current trick.
-   * @returns The winning player of the current trick.
-   * @throws {Error} If the round has not started yet.
-   */
-  public determineTrickWinner(): PlayerState {
-    if (!this.currentRound) {
-      throw new Error('Round has not started yet.');
-    }
-    if (this.currentRound.tricks.length < this.players.length) {
-      throw new Error('Trick is not complete.');
-    }
-
-    const currentTrick =
-      this.currentRound.tricks[this.currentRound.tricks.length - 1];
-    const trumpSuit = this.currentRound.trumpSuit;
-    const trickItems = currentTrick.items;
-    let winningCard = trickItems[0].card;
-    let winningPlayerIndex = trickItems[0].playerIndex;
-    for (let i = 1; i < trickItems.length; i++) {
-      const card = trickItems[i].card;
-      if (card.suit === trumpSuit && winningCard.suit !== trumpSuit) {
-        winningCard = card;
-        winningPlayerIndex = trickItems[i].playerIndex;
-      } else if (
-        card.suit === winningCard.suit &&
-        CardValues.indexOf(card.value) > CardValues.indexOf(winningCard.value)
-      ) {
-        winningCard = card;
-        winningPlayerIndex = trickItems[i].playerIndex;
-      }
-    }
-    currentTrick.winnerIndex = winningPlayerIndex;
-    return this.players[winningPlayerIndex].getState();
   }
 
   /**
@@ -552,5 +523,4 @@ export class GameSession {
 
     return deck;
   }
-  // Add other game functionalities as methods here
 }
