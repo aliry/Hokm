@@ -160,6 +160,12 @@ export class GameSession {
     return player;
   }
 
+  public ReconnectPlayer(playerIndex: number, socketId: string): Player {
+    this.players[playerIndex].Id = socketId;
+    this.players[playerIndex].Connected = true;
+    return this.players[playerIndex];
+  }
+
   /**
    * Get the session ID for the game session.
    * @returns {string} The session ID.

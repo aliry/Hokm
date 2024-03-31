@@ -3,7 +3,7 @@
 export enum SocketEvents {
   ServerEvent = 'server-event',
   ClientAction = 'client-action'
-};
+}
 
 export enum GameEvent {
   Error = 'error',
@@ -18,7 +18,8 @@ export enum GameEvent {
   TrickStarted = 'trick-started',
   TrumpSuitSelected = 'trump-suit-selected',
   SessionDestroyed = 'session-destroyed',
-  CardPlayed = 'card-played'
+  CardPlayed = 'card-played',
+  GameState = 'game-state'
 }
 
 export enum GameAction {

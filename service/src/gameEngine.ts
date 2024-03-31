@@ -37,7 +37,20 @@ export class GameEngine {
       throw new Error('Session not found');
     }
 
-    session.AddPlayer(playerName, teamCode, socket.id);
+    // Check if the player is already in the game session and reconnecting
+    const playerIndex = session.Players.findIndex(
+      (player) =>
+        player.Name === playerName &&
+        player.TeamCode === teamCode &&
+        !player.Connected
+    );
+    if (playerIndex !== -1) {
+      // Reconnect the player.
+      session.ReconnectPlayer(playerIndex, socket.id);
+      this.emitToPlayer(socket.id, session, GameEvent.GameState);
+    } else {
+      session.AddPlayer(playerName, teamCode, socket.id);
+    }
 
     // Join the socket to the room named after the session ID.
     socket.join(session.SessionId);
@@ -84,6 +97,7 @@ export class GameEngine {
     this.emitToSession(session, GameEvent.TrumpSuitSelected);
 
     this.distributeCards(session);
+    this.startNewTrick(session);
   }
 
   /**
@@ -138,12 +152,13 @@ export class GameEngine {
     this.emitToPlayer(socket.id, session, GameEvent.CardPlayed);
 
     const trickItem = { playerIndex, card };
-    const currentTrickIndex = session.CurrentRound.tricks.length - 1;
+    let currentTrickIndex = session.CurrentRound.tricks.length - 1;
     if (currentTrickIndex < 0) {
       // Start a new trick.
       session.CurrentRound.tricks.push({
         items: [trickItem]
       });
+      currentTrickIndex = 0;
     } else {
       // Add the played card to the current trick.
       session.CurrentRound.tricks[currentTrickIndex].items.push(trickItem);
@@ -157,7 +172,8 @@ export class GameEngine {
       this.endTrick(session);
     } else {
       // Move to the next player.
-      session.CurrentPlayerIndex++;
+      session.CurrentPlayerIndex =
+        (session.CurrentPlayerIndex + 1) % session.Players.length;
     }
   }
 
@@ -191,12 +207,14 @@ export class GameEngine {
     if (!round || session.CurrentPlayerIndex === undefined) {
       throw new Error('Round has not started yet.');
     }
+
+    const currentTrickItems = round.tricks[round.tricks.length - 1].items;
+
     // if its the first trick of the round, any card is valid else check if the card is valid
-    if (round.tricks.length === 0) {
+    if (currentTrickItems.length === 0) {
       return true;
     }
-    const currentTrick = round.tricks[round.tricks.length - 1];
-    const firstCard = currentTrick.items[0].card;
+    const firstCard = currentTrickItems[0].card;
     const player = session.Players[session.CurrentPlayerIndex];
     // if the player has a card of the first card's suit, they must play a card of that suit
     if (card.suit !== firstCard.suit && player.hasSuit(firstCard.suit)) {
@@ -257,16 +275,19 @@ export class GameEngine {
     if (!session.CurrentRound) {
       throw new Error('Round has not started yet.');
     }
-    const lastTrickWinnerIndex =
-      session.CurrentRound.tricks[session.CurrentRound.tricks.length - 1]
-        .winnerIndex;
-    if (lastTrickWinnerIndex === undefined) {
-      throw new Error('Last trick winner not determined.');
+
+    const currentRoundTricks = session.CurrentRound.tricks;
+
+    if (currentRoundTricks.length > 0) {
+      const lastTrickWinnerIndex =
+        currentRoundTricks[currentRoundTricks.length - 1].winnerIndex;
+      if (lastTrickWinnerIndex === undefined) {
+        throw new Error('Last trick winner not determined.');
+      }
+      session.CurrentPlayerIndex = lastTrickWinnerIndex;
     }
 
-    session.CurrentPlayerIndex = lastTrickWinnerIndex;
-    session.CurrentRound.tricks.push({ items: [] });
-
+    currentRoundTricks.push({ items: [] });
     this.emitToSession(session, GameEvent.TrickStarted);
   }
 
@@ -299,15 +320,14 @@ export class GameEngine {
     if (!session.CurrentRound) {
       throw new Error('Round has not started yet.');
     }
-    if (session.CurrentRound.tricks.length < session.Players.length) {
+    const trickItems =
+      session.CurrentRound.tricks[session.CurrentRound.tricks.length - 1].items;
+    if (trickItems.length !== session.Players.length) {
       throw new Error('Trick is not complete.');
     }
     //#endregion
 
-    const currentTrick =
-      session.CurrentRound.tricks[session.CurrentRound.tricks.length - 1];
     const trumpSuit = session.CurrentRound.trumpSuit;
-    const trickItems = currentTrick.items;
     let winningCard = trickItems[0].card;
     let winningPlayerIndex = trickItems[0].playerIndex;
     for (let i = 1; i < trickItems.length; i++) {

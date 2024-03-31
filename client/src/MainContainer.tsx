@@ -2,7 +2,7 @@ import { GameAction, GameEvent, SocketEvents } from './constants';
 import React, { useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Socket, io } from 'socket.io-client';
-import { ClientActionPayload, ServerEventPayload } from './sharedTypes';
+import { Card, ClientActionPayload, ServerEventPayload } from './sharedTypes';
 import { PlayerCardPanel } from './PlayerCardPanel';
 
 const serverURL = 'http://localhost:3001';
@@ -15,6 +15,7 @@ export const MainContainer = () => {
   const [errors, setErrors] = React.useState<ServerEventPayload[]>([]);
   const [gameStates, setGameStates] = React.useState<ServerEventPayload[]>([]);
   const [trumpSuit, setTrumpSuit] = React.useState<string>('');
+  const [cards, setCards] = React.useState<Card[]>([]);
   const socketRef = useRef<Socket | null>(null);
 
   const emitAction = (action: GameAction, data: any, _sessionId?: string) => {
@@ -23,7 +24,7 @@ export const MainContainer = () => {
     }
     const payload: ClientActionPayload = { action, data };
     socketRef.current.emit(SocketEvents.ClientAction, payload);
-  }
+  };
 
   useEffect(() => {
     if (!socketRef.current) {
@@ -55,7 +56,10 @@ export const MainContainer = () => {
     }
 
     handleSocketEvents();
-    emitAction(GameAction.JoinGame, { teamCode: _teamCode, playerName: _playerName });
+    emitAction(GameAction.JoinGame, {
+      teamCode: _teamCode,
+      playerName: _playerName
+    });
   };
 
   const handleCreateGame = () => {
@@ -77,14 +81,17 @@ export const MainContainer = () => {
   };
 
   const handleSocketEvents = useCallback(() => {
-    socketRef.current?.on(SocketEvents.ServerEvent, (payload: ServerEventPayload) => {
-      console.log(payload);
-      if (payload.event === GameEvent.Error) {
-        setErrors((prevErrors) => [...prevErrors, payload]);
-      } else {
-        setGameStates((prevStates) => [...prevStates, payload]);
+    socketRef.current?.on(
+      SocketEvents.ServerEvent,
+      (payload: ServerEventPayload) => {
+        console.log(payload);
+        if (payload.event === GameEvent.Error) {
+          setErrors((prevErrors) => [...prevErrors, payload]);
+        } else {
+          setGameStates((prevStates) => [...prevStates, payload]);
+        }
       }
-    });
+    );
   }, []);
 
   const handleJoinGame = () => joinGame();
@@ -95,6 +102,23 @@ export const MainContainer = () => {
     }
     emitAction(GameAction.SelectTrumpSuit, { trumpSuit });
   };
+
+  // update cards if the game state provides them
+  useEffect(() => {
+    if (gameStates.length === 0) {
+      return;
+    }
+
+    const gameState = gameStates[gameStates.length - 1]?.gameState;
+    if (gameState) {
+      const cards = gameState.players.find(
+        (player) => player.id === socketRef.current?.id
+      )?.cards;
+      if (cards) {
+        setCards(cards);
+      }
+    }
+  }, [gameStates]);
 
   return (
     <div style={{ display: 'flex', gap: 10 }}>
@@ -147,7 +171,7 @@ export const MainContainer = () => {
             <button onClick={handleSelectTrumpSuit}>Select Trump Suit</button>
           </div>
         </div>
-        <PlayerCardPanel emitAction={emitAction} playerId={socketRef.current?.id} gameState={gameStates[gameStates.length - 1]?.gameState} />
+        <PlayerCardPanel emitAction={emitAction} cards={cards} />
       </div>
       <div>
         <textarea
@@ -161,7 +185,9 @@ export const MainContainer = () => {
         <textarea
           rows={10}
           cols={100}
-          value={errors.map((err) => JSON.stringify(err, null, 2)).join('\n===========\n')}
+          value={errors
+            .map((err) => JSON.stringify(err, null, 2))
+            .join('\n===========\n')}
           style={{ color: 'red' }}
         />
       </div>
