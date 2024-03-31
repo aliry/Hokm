@@ -116,24 +116,19 @@ export class GameSession {
     teamCode: string,
     socketId: string
   ): Player {
-    // Check if the player is already in the game session and reconnecting
-    const playerIndex = this.players.findIndex(
-      (player) =>
-        player.Name === playerName &&
-        player.TeamCode === teamCode &&
-        !player.Connected
-    );
-    if (playerIndex !== -1) {
-      this.players[playerIndex].Id = socketId;
-      this.players[playerIndex].Connected = true;
-      return this.players[playerIndex];
-    }
-
     const isNameUnique = this.players.every(
       (player) => player.Name !== playerName && player.Id !== socketId
     );
     if (!isNameUnique) {
       throw new Error('Player must be unique.');
+    }
+
+    // check of socketId is already in use
+    const isSocketIdUnique = this.players.every(
+      (player) => player.Id !== socketId
+    );
+    if (!isSocketIdUnique) {
+      throw new Error('Player already exists.');
     }
 
     // First player joining should be the manager
@@ -356,7 +351,7 @@ export class GameSession {
       throw new Error('Hakem has not been set for the round.');
     }
     if (this.currentRound?.trumpSuit) {
-      throw new Error('Trump suit has already been set for the round.');
+      throw new Error('Trump suit has already been set.');
     }
     this.currentRound.trumpSuit = trumpSuit;
   }

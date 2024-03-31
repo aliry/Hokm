@@ -44,9 +44,12 @@ export class GameEngine {
         player.TeamCode === teamCode &&
         !player.Connected
     );
+
+    let isReconnecting = false;
     if (playerIndex !== -1) {
       // Reconnect the player.
       session.ReconnectPlayer(playerIndex, socket.id);
+      isReconnecting = true;
       this.emitToPlayer(socket.id, session, GameEvent.GameState);
     } else {
       session.AddPlayer(playerName, teamCode, socket.id);
@@ -58,15 +61,17 @@ export class GameEngine {
     // Broadcast to the room that a new player has joined.
     this.emitToSession(session, GameEvent.PlayerJoined);
 
-    // Once all teams are full, we can start the game and select the hakem.
-    const allTeamsFull = session.TeamCodes.every(
-      (code) =>
-        session.Players.filter((player) => player.TeamCode === code).length ===
-        2
-    );
-    if (allTeamsFull) {
-      this.startGame(session);
-      this.startRound(session);
+    if (!isReconnecting) {
+      // Once all teams are full, we can start the game and select the hakem.
+      const allTeamsFull = session.TeamCodes.every(
+        (code) =>
+          session.Players.filter((player) => player.TeamCode === code)
+            .length === 2
+      );
+      if (allTeamsFull) {
+        this.startGame(session);
+        this.startRound(session);
+      }
     }
   }
 
@@ -374,6 +379,8 @@ export class GameEngine {
     session.EndRound();
     // Broadcast to the room that the round has ended.
     this.emitToSession(session, GameEvent.RoundEnded);
+
+    this.startRound(session);
   }
 
   //#region emitters

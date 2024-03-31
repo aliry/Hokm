@@ -2,7 +2,12 @@ import { GameAction, GameEvent, SocketEvents } from './constants';
 import React, { useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Socket, io } from 'socket.io-client';
-import { Card, ClientActionPayload, ServerEventPayload } from './sharedTypes';
+import {
+  Card,
+  ClientActionPayload,
+  GameSessionState,
+  ServerEventPayload
+} from './sharedTypes';
 import { PlayerCardPanel } from './PlayerCardPanel';
 
 const serverURL = 'http://localhost:3001';
@@ -13,7 +18,10 @@ export const MainContainer = () => {
   const [sessionId, setSessionId] = React.useState<string>('');
   const [teamCode, setTeamCode] = React.useState<string>('');
   const [errors, setErrors] = React.useState<ServerEventPayload[]>([]);
-  const [gameStates, setGameStates] = React.useState<ServerEventPayload[]>([]);
+  const [payloads, setPayloads] = React.useState<ServerEventPayload[]>([]);
+  const [gameState, setGameState] = React.useState<
+    GameSessionState | undefined
+  >();
   const [trumpSuit, setTrumpSuit] = React.useState<string>('');
   const [cards, setCards] = React.useState<Card[]>([]);
   const socketRef = useRef<Socket | null>(null);
@@ -88,7 +96,18 @@ export const MainContainer = () => {
         if (payload.event === GameEvent.Error) {
           setErrors((prevErrors) => [...prevErrors, payload]);
         } else {
-          setGameStates((prevStates) => [...prevStates, payload]);
+          setPayloads((prevStates) => [...prevStates, payload]);
+          if (payload.gameState) {
+            setGameState(payload.gameState);
+            if (payload.gameState) {
+              const cards = payload.gameState.players.find(
+                (player) => player.id === socketRef.current?.id
+              )?.cards;
+              if (cards) {
+                setCards(cards);
+              }
+            }
+          }
         }
       }
     );
@@ -102,23 +121,6 @@ export const MainContainer = () => {
     }
     emitAction(GameAction.SelectTrumpSuit, { trumpSuit });
   };
-
-  // update cards if the game state provides them
-  useEffect(() => {
-    if (gameStates.length === 0) {
-      return;
-    }
-
-    const gameState = gameStates[gameStates.length - 1]?.gameState;
-    if (gameState) {
-      const cards = gameState.players.find(
-        (player) => player.id === socketRef.current?.id
-      )?.cards;
-      if (cards) {
-        setCards(cards);
-      }
-    }
-  }, [gameStates]);
 
   return (
     <div style={{ display: 'flex', gap: 10 }}>
@@ -177,8 +179,8 @@ export const MainContainer = () => {
         <textarea
           rows={40}
           cols={150}
-          value={gameStates
-            .map((state) => JSON.stringify(state, null, 2))
+          value={payloads
+            .map((p) => JSON.stringify([p], null, 2))
             .join('\n===========\n')}
           style={{ color: 'blue' }}
         />
