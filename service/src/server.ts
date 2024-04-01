@@ -42,6 +42,26 @@ app.post('/create-game', (req, res) => {
   }
 });
 
+// endpoint to download the game state. params: sessionId, socketId
+app.get('/game-state', (req, res) => {
+  const sessionId = req.query.sessionId as string;
+  const socketId = req.query.socketId as string;
+
+  if (!sessionId || !socketId) {
+    return res.status(400).send('sessionId and socketId are required');
+  }
+
+  try {
+    const encryptedGameState = gameSessions.encryptGameState(
+      sessionId,
+      socketId
+    );
+    res.json(encryptedGameState);
+  } catch (error: any) {
+    res.status(400).send(error.message);
+  }
+});
+
 io.on('connection', (socket: Socket) => {
   socketHandler.handleConnection(socket);
 });

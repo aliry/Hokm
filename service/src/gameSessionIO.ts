@@ -1,5 +1,4 @@
 import * as crypto from 'crypto';
-import { GameSession } from './gameSession';
 import { GameState } from './sharedTypes';
 
 // load environment variables
@@ -41,11 +40,14 @@ function decrypt(encryptedText: string, key: Buffer, iv: Buffer): string {
 /**
  * Encrypts the game session state using a password-based encryption scheme.
  * @param gameState The game state to be encrypted.
+ * @param playerName The player name to be used as the password.
  * @returns The encrypted game session as a string.
  */
-export function EncryptGameSession(gameState: GameState): string {
-  const password = gameState.manager.name;
-  const key = getKeyFromPassword(password);
+export function EncryptGameSession(
+  gameState: GameState,
+  playerName: string
+): string {
+  const key = getKeyFromPassword(playerName);
   const gameSessionStr = JSON.stringify(gameState);
   const gameSessionEncrypted = encrypt(gameSessionStr, key);
   return gameSessionEncrypted;
@@ -55,11 +57,11 @@ export function EncryptGameSession(gameState: GameState): string {
  * Decrypts the encrypted game state using the provided password.
  *
  * @param blob - The encrypted game state as a string.
- * @param password - The password used for decryption.
+ * @param playerName - The player name to be used as the password.
  * @returns The decrypted game state.
  */
-export function DecryptGameState(blob: string, password: string): GameState {
-  const key = getKeyFromPassword(password);
+export function DecryptGameState(blob: string, playerName: string): GameState {
+  const key = getKeyFromPassword(playerName);
   const decryptedText = decrypt(blob, key, iv);
   return JSON.parse(decryptedText);
 }

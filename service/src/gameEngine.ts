@@ -1,13 +1,7 @@
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { GameSession } from './gameSession';
-import {
-  CardValues,
-  GameAction,
-  GameEvent,
-  SocketEvents,
-  Suits
-} from './constants';
+import { CardValues, GameEvent, SocketEvents, Suits } from './constants';
 import { Card, ServerEventPayload } from './sharedTypes';
 
 /*

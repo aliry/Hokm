@@ -1,4 +1,5 @@
 import { GameSession } from './gameSession';
+import { EncryptGameSession } from './gameSessionIO';
 
 const MAX_CONCURRENT_GAMES = 100;
 
@@ -81,5 +82,27 @@ export class GameSessionManager {
     }
     this.gameSessions[sessionId].removeAllListeners();
     delete this.gameSessions[sessionId];
+  }
+
+  public encryptGameState(sessionId: string, socketId: string) {
+    const session = this.gameSessions[sessionId];
+    if (!session) {
+      throw new Error('Game session not found');
+    }
+
+    const playerName = session.Players.find(
+      (player) => player.id === socketId
+    )?.name;
+    if (!playerName) {
+      throw new Error('Player not found');
+    }
+
+    // Encrypt the game state using the player's name as the password.
+    const encryptedGameState = EncryptGameSession(
+      session.GetState(),
+      playerName
+    );
+
+    return encryptedGameState;
   }
 }

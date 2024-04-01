@@ -2,13 +2,9 @@ import { GameAction, GameEvent, SocketEvents } from './constants';
 import React, { useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Socket, io } from 'socket.io-client';
-import {
-  Card,
-  ClientActionPayload,
-  GameSessionState,
-  ServerEventPayload
-} from './sharedTypes';
+import { Card, ClientActionPayload, ServerEventPayload } from './sharedTypes';
 import { PlayerCardPanel } from './PlayerCardPanel';
+import { SaveLoadPanel } from './saveLoadPanel';
 
 const serverURL = 'http://localhost:3001';
 
@@ -19,9 +15,7 @@ export const MainContainer = () => {
   const [teamCode, setTeamCode] = React.useState<string>('');
   const [errors, setErrors] = React.useState<ServerEventPayload[]>([]);
   const [payloads, setPayloads] = React.useState<ServerEventPayload[]>([]);
-  const [gameState, setGameState] = React.useState<
-    GameSessionState | undefined
-  >();
+
   const [trumpSuit, setTrumpSuit] = React.useState<string>('');
   const [cards, setCards] = React.useState<Card[]>([]);
   const socketRef = useRef<Socket | null>(null);
@@ -98,7 +92,6 @@ export const MainContainer = () => {
         } else {
           setPayloads((prevStates) => [...prevStates, payload]);
           if (payload.gameState) {
-            setGameState(payload.gameState);
             if (payload.gameState) {
               const cards = payload.gameState.players.find(
                 (player) => player.id === socketRef.current?.id
@@ -191,6 +184,11 @@ export const MainContainer = () => {
             .map((err) => JSON.stringify(err, null, 2))
             .join('\n===========\n')}
           style={{ color: 'red' }}
+        />
+        <SaveLoadPanel
+          serverURL={serverURL}
+          sessionId={sessionId}
+          socketId={socketRef.current?.id || ''}
         />
       </div>
       {teamCodes.length === 2 && (
