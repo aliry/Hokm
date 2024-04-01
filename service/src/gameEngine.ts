@@ -40,9 +40,9 @@ export class GameEngine {
     // Check if the player is already in the game session and reconnecting
     const playerIndex = session.Players.findIndex(
       (player) =>
-        player.Name === playerName &&
-        player.TeamCode === teamCode &&
-        !player.Connected
+        player.name === playerName &&
+        player.teamCode === teamCode &&
+        !player.connected
     );
 
     let isReconnecting = false;
@@ -65,7 +65,7 @@ export class GameEngine {
       // Once all teams are full, we can start the game and select the hakem.
       const allTeamsFull = session.TeamCodes.every(
         (code) =>
-          session.Players.filter((player) => player.TeamCode === code)
+          session.Players.filter((player) => player.teamCode === code)
             .length === 2
       );
       if (allTeamsFull) {
@@ -86,7 +86,7 @@ export class GameEngine {
     const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
     if (
       !session ||
-      session.Hakem?.Id !== socket.id ||
+      session.Hakem?.id !== socket.id ||
       typeof trumpSuit !== 'string'
     ) {
       throw new Error('Operation not allowed.');
@@ -125,7 +125,7 @@ export class GameEngine {
 
     // find the player index by socket id, if not found return error
     const playerIndex = session.Players.findIndex(
-      (player) => player.Id === socket.id
+      (player) => player.id === socket.id
     );
     if (playerIndex === -1) {
       throw new Error('Player not found');
@@ -193,10 +193,10 @@ export class GameEngine {
     }
 
     const playerIndex = session.Players.findIndex(
-      (player) => player.Id === socket.id
+      (player) => player.id === socket.id
     );
     const player = session.Players[playerIndex];
-    player.Connected = false;
+    player.connected = false;
 
     this.emitToSession(session, GameEvent.PlayerLeft, player.getState());
   }
@@ -233,7 +233,7 @@ export class GameEngine {
     if (
       !session.Deck ||
       !session.Hakem ||
-      !session.Hakem.Cards ||
+      !session.Hakem.cards ||
       !session.TrumpSuit
     ) {
       throw new Error('Operation not allowed.');
@@ -242,18 +242,18 @@ export class GameEngine {
     // Distribute the remaining cards to the players.
     // Hakem already has 5 cards so should get 8 more.
     const hakemRemainingCards = session.Deck.splice(0, 8);
-    session.Hakem.Cards.push(...hakemRemainingCards);
-    this.emitToPlayer(session.Hakem.Id, session, GameEvent.RoundStarted);
+    session.Hakem.cards.push(...hakemRemainingCards);
+    this.emitToPlayer(session.Hakem.id, session, GameEvent.RoundStarted);
 
     // Other players get 13 cards. emit RoundStarted event.
     session.Players.forEach((player) => {
-      if (player.Id === session.Hakem?.Id) {
+      if (player.id === session.Hakem?.id) {
         return;
       }
 
       const playerCards = session.Deck!.splice(0, 13);
       player.addCards(playerCards);
-      this.emitToPlayer(player.Id, session, GameEvent.RoundStarted);
+      this.emitToPlayer(player.id, session, GameEvent.RoundStarted);
     });
   }
 
@@ -272,7 +272,7 @@ export class GameEngine {
     if (session.Deck && session.Hakem) {
       const hakemCards = session.Deck.splice(0, 5);
       session.Players[hakemIndex].addCards(hakemCards);
-      this.emitToPlayer(session.Hakem.Id, session, GameEvent.HakemCards);
+      this.emitToPlayer(session.Hakem.id, session, GameEvent.HakemCards);
     }
   }
 

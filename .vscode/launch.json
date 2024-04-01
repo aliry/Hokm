@@ -2,10 +2,23 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Service Debug Jest Tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/service",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/service/node_modules/.bin/jest",
+        "--runInBand"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Service Lunch",
-      "preLaunchTask": "tsc: build - tsconfig.json",
+      "preLaunchTask": "tsc: build - tsconfig.build.json",
       "program": "${workspaceFolder}/service/src/server.ts",
       "outFiles": ["${workspaceFolder}/service/dist/**/*.js"],
       "cwd": "${workspaceFolder}/service",

@@ -3,9 +3,9 @@
   "tasks": [
     {
       "type": "shell",
-      "label": "tsc: build - tsconfig.json",
+      "label": "tsc: build - tsconfig.build.json",
       "command": "./service/node_modules/.bin/tsc",
-      "args": ["-p", "service/tsconfig.json"],
+      "args": ["-p", "service/tsconfig.build.json"],
       "presentation": {
         "reveal": "silent"
       },

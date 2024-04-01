@@ -1,6 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
-import { Card, GameSessionState, PlayerState, Round } from './sharedTypes';
+import {
+  Card,
+  GameSessionState,
+  GameState,
+  PlayerState,
+  Round,
+  Trick
+} from './sharedTypes';
 import { CardValues, Suits } from './constants';
 import { Player } from './player';
 import { GameConfigs } from './gameConfigs';
@@ -16,7 +23,7 @@ export class GameSession {
   private players: Player[];
   private manager: Player;
   private deck?: Card[];
-  private currentRound?: Round;
+  private currentRound?: Round & { tricks: Trick[] };
   private currentRoundNumber: number;
   private scores: { [teamCode: string]: number };
   private currentPlayerIndex?: number;
@@ -39,7 +46,11 @@ export class GameSession {
       this.generateTeamCode(this.sessionId + 'team2')
     ];
     this.players = [];
-    this.manager = new Player('', managerName, this.teamCodes[0], true);
+    this.manager = new Player({
+      id: '',
+      name: managerName,
+      teamCode: this.teamCodes[0]
+    });
     this.scores = {
       [this.teamCodes[0]]: 0,
       [this.teamCodes[1]]: 0
@@ -84,14 +95,36 @@ export class GameSession {
 
     if (playerId) {
       const playerIndex = this.players.findIndex(
-        (player) => player.Id === playerId
+        (player) => player.id === playerId
       );
       if (playerIndex !== -1) {
-        state.players[playerIndex].cards = this.players[playerIndex].Cards;
+        state.players[playerIndex].cards = this.players[playerIndex].cards;
       }
     }
 
     return state;
+  }
+
+  /**
+   * Gets the state of the game session for saving to a file.
+   * @returns {GameState} The state of the game session.
+   */
+  public GetState(): GameState {
+    return {
+      sessionId: this.sessionId,
+      teamCodes: this.teamCodes,
+      players: this.players.map((player) => player.getStateWithCards()),
+      manager: this.manager.getState(),
+      deck: this.deck,
+      currentRound: this.currentRound,
+      currentRoundNumber: this.currentRoundNumber,
+      scores: this.scores,
+      currentPlayerIndex: this.currentPlayerIndex,
+      gameStarted: this.gameStarted,
+      gameEnded: this.gameEnded,
+      roundHistory: this.roundHistory,
+      createdDateTime: this.createdDateTime.toISOString()
+    };
   }
 
   /**
@@ -100,7 +133,7 @@ export class GameSession {
    * @returns The player object if found, otherwise undefined.
    */
   public GetPlayerById(playerId: string): Player | undefined {
-    return this.players.find((player) => player.Id === playerId);
+    return this.players.find((player) => player.id === playerId);
   }
 
   /**
@@ -116,8 +149,13 @@ export class GameSession {
     teamCode: string,
     socketId: string
   ): Player {
+    // player name should be at least 3 characters and start with a letter
+    if (!/^[a-zA-Z].{2,}$/.test(playerName)) {
+      throw new Error('Player name must be at least 3 characters long.');
+    }
+
     const isNameUnique = this.players.every(
-      (player) => player.Name !== playerName && player.Id !== socketId
+      (player) => player.name !== playerName && player.id !== socketId
     );
     if (!isNameUnique) {
       throw new Error('Player must be unique.');
@@ -125,7 +163,7 @@ export class GameSession {
 
     // check of socketId is already in use
     const isSocketIdUnique = this.players.every(
-      (player) => player.Id !== socketId
+      (player) => player.id !== socketId
     );
     if (!isSocketIdUnique) {
       throw new Error('Player already exists.');
@@ -134,30 +172,40 @@ export class GameSession {
     // First player joining should be the manager
     if (this.Players.length === 0) {
       if (
-        this.Manager.Name !== playerName ||
-        this.Manager.TeamCode !== teamCode
+        this.Manager.name !== playerName ||
+        this.Manager.teamCode !== teamCode
       ) {
         throw new Error('Game manager must join the team 1 first.');
       }
-      this.Manager.Id = socketId;
+      this.Manager.id = socketId;
     }
 
     const teamPlayerCount = this.players.filter(
-      (player) => player.TeamCode === teamCode
+      (player) => player.teamCode === teamCode
     ).length;
     if (teamPlayerCount >= 2) {
       throw new Error('Team has reached its capacity.');
     }
 
-    const player = new Player(socketId, playerName, teamCode, true);
+    const player = new Player({
+      id: socketId,
+      name: playerName,
+      teamCode
+    });
     this.players.push(player);
 
     return player;
   }
 
+  /**
+   * Reconnects a player to the game session.
+   * @param playerIndex - The index of the player to reconnect.
+   * @param socketId - The new socket ID of the player.
+   * @returns The updated player object.
+   */
   public ReconnectPlayer(playerIndex: number, socketId: string): Player {
-    this.players[playerIndex].Id = socketId;
-    this.players[playerIndex].Connected = true;
+    this.players[playerIndex].id = socketId;
+    this.players[playerIndex].connected = true;
     return this.players[playerIndex];
   }
 
@@ -216,7 +264,7 @@ export class GameSession {
    * Get the current round number in the game session.
    * @returns {number} The current round number.
    */
-  public get CurrentRound(): Round | undefined {
+  public get CurrentRound() {
     return this.currentRound;
   }
 
@@ -289,7 +337,14 @@ export class GameSession {
    */
   public EndRound() {
     if (this.currentRound && this.currentRoundNumber > 0) {
-      this.roundHistory.push(this.currentRound);
+      this.roundHistory.push({
+        roundNumber: this.currentRound.roundNumber,
+        hakemIndex: this.currentRound.hakemIndex,
+        trumpSuit: this.currentRound.trumpSuit,
+        score: this.currentRound.score,
+        winnerTeam: this.currentRound.winnerTeam
+      });
+      this.currentRound = undefined;
     }
   }
 
@@ -396,30 +451,30 @@ export class GameSession {
     }
 
     const otherTeamCode =
-      hakem.TeamCode === this.teamCodes[0]
+      hakem.teamCode === this.teamCodes[0]
         ? this.teamCodes[1]
         : this.teamCodes[0];
 
     if (hakemTricks === maxTricks) {
-      this.scores[hakem.TeamCode] += GameConfigs.kotScore;
-      this.currentRound.winnerTeam = hakem.TeamCode;
+      this.scores[hakem.teamCode] += GameConfigs.kotScore;
+      this.currentRound.winnerTeam = hakem.teamCode;
       return true;
     }
 
     if (otherTeamTricks === maxTricks) {
-      this.scores[hakem.TeamCode] += GameConfigs.hakemKotScore;
+      this.scores[hakem.teamCode] += GameConfigs.hakemKotScore;
       this.currentRound.winnerTeam = otherTeamCode;
       return true;
     }
 
     if (hakemTricks >= 7) {
-      this.scores[hakem.TeamCode] += 1;
-      this.currentRound.winnerTeam = hakem.TeamCode;
+      this.scores[hakem.teamCode] += 1;
+      this.currentRound.winnerTeam = hakem.teamCode;
       return true;
     }
 
     if (otherTeamTricks >= 7) {
-      this.scores[hakem.TeamCode] += 1;
+      this.scores[hakem.teamCode] += 1;
       this.currentRound.winnerTeam = otherTeamCode;
       return true;
     }

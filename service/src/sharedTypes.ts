@@ -7,6 +7,14 @@ export interface Card {
   value: string;
 }
 
+export interface IPlayer {
+  id: string;
+  name: string;
+  teamCode: string;
+  connected?: boolean;
+  cards?: Card[];
+}
+
 /**
  * Represents a round in the game.
  */
@@ -31,10 +39,6 @@ export interface Round {
    * The team that won the round.
    */
   winnerTeam?: string;
-  /**
-   * The tricks played in the round.
-   */
-  tricks: Trick[];
 }
 
 /**
@@ -68,6 +72,15 @@ export interface GameSessionState {
   gameStarted: boolean;
   gameEnded: boolean;
   roundHistory: Round[];
+}
+export interface GameState extends Omit<GameSessionState, 'players'> {
+  teamCodes: string[];
+  players: IPlayer[];
+  manager: PlayerState;
+  deck?: Card[];
+  currentRoundNumber: number;
+  currentPlayerIndex?: number;
+  createdDateTime: string;
 }
 
 export interface ClientActionPayload {

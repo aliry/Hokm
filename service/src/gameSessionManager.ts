@@ -58,7 +58,7 @@ export class GameSessionManager {
    */
   public getGameSessionByPlayerId(playerId: string): GameSession | undefined {
     const session = Object.values(this.gameSessions).find((session) =>
-      session.Players.some((player) => player.Id === playerId)
+      session.Players.some((player) => player.id === playerId)
     );
     return session;
   }
