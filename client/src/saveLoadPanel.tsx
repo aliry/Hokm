@@ -40,7 +40,38 @@ export const SaveLoadPanel: FC<SaveLoadPanelProps> = ({
   };
 
   const loadGame = () => {
-    console.log('Game loaded!');
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.hokm';
+    fileInput.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const gameState = e.target?.result as string;
+        axios
+          .post(`${serverURL}/game-state`, {
+            gameState,
+            playerName: 'Player'
+          })
+          .then((response) => {
+            console.log(response);
+          })
+          .catch((error) => {
+            console.error(error);
+          })
+          .finally(() => {
+            document.body.removeChild(fileInput);
+          });
+      };
+      reader.readAsText(file);
+    };
+    fileInput.click();
+
+    document.body.appendChild(fileInput);
   };
 
   return (

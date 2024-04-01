@@ -1,5 +1,6 @@
 import { GameSession } from './gameSession';
-import { EncryptGameSession } from './gameSessionIO';
+import { DecryptGameState, EncryptGameSession } from './gameSessionIO';
+import { GameSessionState } from './sharedTypes';
 
 const MAX_CONCURRENT_GAMES = 100;
 
@@ -104,5 +105,19 @@ export class GameSessionManager {
     );
 
     return encryptedGameState;
+  }
+
+  public decryptAndLoadGameState(
+    encryptedGameState: string,
+    playerName: string
+  ): GameSessionState {
+    // Decrypt the game state using the player's name as the password.
+    const gameState = DecryptGameState(encryptedGameState, playerName);
+
+    // Player loading the game state becomes the manager.
+    const session = new GameSession(playerName);
+
+    // Load the game state into the session.
+    return session.LoadState(gameState);
   }
 }

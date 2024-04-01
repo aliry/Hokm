@@ -62,22 +62,26 @@ export interface PlayerState {
   cards?: Card[];
 }
 
-export interface GameSessionState {
+interface GameStateBase {
   sessionId: string;
-  players: PlayerState[];
   hakem?: PlayerState;
-  currentRound?: Round;
   scores: { [teamCode: string]: number };
   currentPlayer?: PlayerState;
   gameStarted: boolean;
   gameEnded: boolean;
   roundHistory: Round[];
 }
-export interface GameState extends Omit<GameSessionState, 'players'> {
+
+export interface GameSessionState extends GameStateBase {
+  players: PlayerState[];
+  currentRound?: Round;
+}
+export interface GameState extends GameStateBase {
   teamCodes: string[];
   players: IPlayer[];
   manager: PlayerState;
   deck?: Card[];
+  currentRound?: Round & { tricks: Trick[] };
   currentRoundNumber: number;
   currentPlayerIndex?: number;
   createdDateTime: string;

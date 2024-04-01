@@ -128,6 +128,30 @@ export class GameSession {
   }
 
   /**
+   * Loads the state of the game session from a file.
+   * @param {GameState} state - The state of the game session to load.
+   */
+  public LoadState(state: GameState): GameSessionState {
+    this.sessionId = state.sessionId;
+    this.teamCodes = state.teamCodes;
+    this.players = state.players.map((playerState) => new Player(playerState));
+    this.deck = state.deck;
+    this.currentRound = state.currentRound;
+    this.currentRoundNumber = state.currentRoundNumber;
+    this.scores = state.scores;
+    this.currentPlayerIndex = state.currentPlayerIndex;
+    this.gameStarted = state.gameStarted;
+    this.gameEnded = state.gameEnded;
+    this.roundHistory = state.roundHistory;
+    this.createdDateTime = new Date(state.createdDateTime);
+
+    // Automatically destroy the game session if session is inactive for 10 minutes
+    this.SessionHadActivity();
+
+    return this.GetStateForBroadcast();
+  }
+
+  /**
    * Retrieves a player by their ID.
    * @param playerId - The ID of the player to retrieve.
    * @returns The player object if found, otherwise undefined.

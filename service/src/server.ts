@@ -62,6 +62,22 @@ app.get('/game-state', (req, res) => {
   }
 });
 
+// endpoint to load the game state. params: sessionId, socketId, gameState
+app.post('/game-state', (req, res) => {
+  const gameState = req.body.gameState as string;
+  const playerName = req.body.playerName as string;
+
+  try {
+    const sessionState = gameSessions.decryptAndLoadGameState(
+      gameState,
+      playerName
+    );
+    res.json(sessionState);
+  } catch (error: any) {
+    res.status(400).send(error.message);
+  }
+});
+
 io.on('connection', (socket: Socket) => {
   socketHandler.handleConnection(socket);
 });
