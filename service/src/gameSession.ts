@@ -131,7 +131,7 @@ export class GameSession {
    * Loads the state of the game session from a file.
    * @param {GameState} state - The state of the game session to load.
    */
-  public LoadState(state: GameState): GameSessionState {
+  public LoadState(state: GameState) {
     this.sessionId = state.sessionId;
     this.teamCodes = state.teamCodes;
     this.players = state.players.map((playerState) => new Player(playerState));
@@ -151,8 +151,6 @@ export class GameSession {
 
     // Automatically destroy the game session if session is inactive for 10 minutes
     this.SessionHadActivity();
-
-    return this.GetStateForBroadcast();
   }
 
   /**

@@ -1,13 +1,16 @@
 import axios from 'axios';
 import { FC } from 'react';
-import { GameState } from './sharedTypes';
 
 export interface SaveLoadPanelProps {
   serverURL: string;
   sessionId: string;
   socketId: string;
   playerName: string;
-  setLoadedGameState: (gameState: GameState) => void;
+  setLoadedGameState: (gameState: {
+    sessionId: string;
+    teamCodes: string[];
+    teamCode: string;
+  }) => void;
 }
 
 export const SaveLoadPanel: FC<SaveLoadPanelProps> = ({

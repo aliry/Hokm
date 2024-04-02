@@ -5,7 +5,7 @@ import { Socket, io } from 'socket.io-client';
 import {
   Card,
   ClientActionPayload,
-  GameState,
+  GameSessionState,
   ServerEventPayload
 } from './sharedTypes';
 import { PlayerCardPanel } from './PlayerCardPanel';
@@ -20,9 +20,9 @@ export const MainContainer = () => {
   const [teamCode, setTeamCode] = React.useState<string>('');
   const [errors, setErrors] = React.useState<ServerEventPayload[]>([]);
   const [payloads, setPayloads] = React.useState<ServerEventPayload[]>([]);
-
   const [trumpSuit, setTrumpSuit] = React.useState<string>('');
   const [cards, setCards] = React.useState<Card[]>([]);
+  const [gameState, setGameState] = React.useState<GameSessionState>();
   const socketRef = useRef<Socket | null>(null);
 
   const emitAction = (action: GameAction, data: any, _sessionId?: string) => {
@@ -97,14 +97,13 @@ export const MainContainer = () => {
         } else {
           setPayloads((prevStates) => [...prevStates, payload]);
           if (payload.gameState) {
-            if (payload.gameState) {
-              const cards = payload.gameState.players.find(
-                (player) => player.id === socketRef.current?.id
-              )?.cards;
-              if (cards) {
-                setCards(cards);
-              }
+            const cards = payload.gameState.players.find(
+              (player) => player.id === socketRef.current?.id
+            )?.cards;
+            if (cards) {
+              setCards(cards);
             }
+            setGameState(payload.gameState);
           }
         }
       }
@@ -120,30 +119,26 @@ export const MainContainer = () => {
     emitAction(GameAction.SelectTrumpSuit, { trumpSuit });
   };
 
-  const setLoadedGameState = (_gameState: GameState) => {
+  const setLoadedGameState = (data: {
+    sessionId: string;
+    teamCodes: string[];
+    teamCode: string;
+  }) => {
     if (!socketRef.current) {
       console.log('Socket is not connected');
       return;
     }
 
-    const teamCode = _gameState.players.find(
-      (player) => player.name === playerName
-    )?.teamCode;
-    if (!teamCode) {
-      console.log('Team code not found');
-      return;
-    }
+    setSessionId(data.sessionId);
+    setTeamCodes(data.teamCodes);
+    setTeamCode(data.teamCode);
 
-    setSessionId(_gameState.sessionId);
-    setTeamCodes(_gameState.teamCodes);
-    setTeamCode(teamCode);
-
-    joinGame(teamCode, playerName);
+    joinGame(data.teamCode, playerName);
   };
 
   return (
     <div style={{ display: 'flex', gap: 10 }}>
-      <div style={{ border: '1px black solid' }}>
+      <div style={{ border: '1px black solid', flex: 0 }}>
         <div style={{ border: '1px black dashed', padding: 5 }}>
           <label>Player Name:</label>
           <input
@@ -194,7 +189,7 @@ export const MainContainer = () => {
         </div>
         <PlayerCardPanel emitAction={emitAction} cards={cards} />
       </div>
-      <div>
+      <div style={{ flex: 1 }}>
         <textarea
           rows={40}
           cols={150}
@@ -219,22 +214,68 @@ export const MainContainer = () => {
           setLoadedGameState={setLoadedGameState}
         />
       </div>
-      {teamCodes?.length === 2 && (
+      <div style={{ flex: 1 }}>
+        {teamCodes?.length === 2 && (
+          <div>
+            <div>
+              <label>Team 1:</label>
+              <input type="text" value={teamCodes[0]} readOnly />
+            </div>
+            <div>
+              <label>Team 2:</label>
+              <input type="text" value={teamCodes[1]} readOnly />
+            </div>
+          </div>
+        )}
         <div>
-          <div>
-            <label>Team 1:</label>
-            <input type="text" value={teamCodes[0]} readOnly />
-          </div>
-          <div>
-            <label>Team 2:</label>
-            <input type="text" value={teamCodes[1]} readOnly />
-          </div>
-          <div>
-            <label>Session ID:</label>
-            <input type="text" value={sessionId} readOnly />
-          </div>
+          <label>Session ID:</label>
+          <input type="text" value={sessionId} readOnly />
         </div>
-      )}
+        {gameState && (
+          <div>
+            <div>
+              <label>Team Scores:</label>
+              {Object.entries(gameState.scores).map(([teamCode, score]) => (
+                <div key={teamCode}>
+                  <label>
+                    {teamCode}: {score}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {gameState?.currentRound && (
+          <div>
+            <div style={{ margin: 5, fontWeight: 'bold' }}>
+              Current Round States
+            </div>
+            <div>
+              <label>{`Hakem Name: ${
+                gameState.currentRound?.hakemIndex
+                  ? gameState.players[gameState.currentRound.hakemIndex].name
+                  : ' not selected yet'
+              }`}</label>
+            </div>
+            <div>
+              <label>{`Trump Suit: ${gameState?.currentRound?.trumpSuit}`}</label>
+            </div>
+            <div>
+              <label>Scores:</label>
+              {gameState.currentRound.score &&
+                Object.entries(gameState.currentRound.score).map(
+                  ([teamCode, score]) => (
+                    <div key={teamCode}>
+                      <label>
+                        {teamCode}: {score}
+                      </label>
+                    </div>
+                  )
+                )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

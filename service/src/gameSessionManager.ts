@@ -110,7 +110,7 @@ export class GameSessionManager {
   public decryptAndLoadGameState(
     encryptedGameState: string,
     playerName: string
-  ): GameSessionState {
+  ): GameSession {
     // Decrypt the game state using the player's name as the password.
     const gameState = DecryptGameState(encryptedGameState, playerName);
 
@@ -118,6 +118,8 @@ export class GameSessionManager {
     const session = this.createGameSession(playerName);
 
     // Load the game state into the session.
-    return session.LoadState(gameState);
+    session.LoadState(gameState);
+
+    return session;
   }
 }

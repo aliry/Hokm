@@ -68,11 +68,15 @@ app.post('/game-state', (req, res) => {
   const playerName = req.body.playerName as string;
 
   try {
-    const sessionState = gameSessions.decryptAndLoadGameState(
-      gameState,
-      playerName
-    );
-    res.json(sessionState);
+    const session = gameSessions.decryptAndLoadGameState(gameState, playerName);
+    const teamCode = session.Players.find(
+      (player) => player.name === playerName
+    )?.teamCode;
+    res.json({
+      sessionId: session.SessionId,
+      teamCodes: session.TeamCodes,
+      teamCode
+    });
   } catch (error: any) {
     res.status(400).send(error.message);
   }
