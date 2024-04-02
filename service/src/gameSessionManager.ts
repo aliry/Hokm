@@ -115,7 +115,7 @@ export class GameSessionManager {
     const gameState = DecryptGameState(encryptedGameState, playerName);
 
     // Player loading the game state becomes the manager.
-    const session = new GameSession(playerName);
+    const session = this.createGameSession(playerName);
 
     // Load the game state into the session.
     return session.LoadState(gameState);

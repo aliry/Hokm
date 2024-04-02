@@ -1,16 +1,21 @@
 import axios from 'axios';
 import { FC } from 'react';
+import { GameState } from './sharedTypes';
 
 export interface SaveLoadPanelProps {
   serverURL: string;
   sessionId: string;
   socketId: string;
+  playerName: string;
+  setLoadedGameState: (gameState: GameState) => void;
 }
 
 export const SaveLoadPanel: FC<SaveLoadPanelProps> = ({
   serverURL,
   sessionId,
-  socketId
+  socketId,
+  playerName,
+  setLoadedGameState
 }) => {
   const downloadString = (text: string) => {
     const blob = new Blob([text], { type: 'text/plain' });
@@ -40,6 +45,16 @@ export const SaveLoadPanel: FC<SaveLoadPanelProps> = ({
   };
 
   const loadGame = () => {
+    if (!playerName) {
+      console.log('Player name is required to load game');
+      return;
+    }
+
+    if (!socketId) {
+      console.log('Socket ID is required to load game');
+      return;
+    }
+
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.hokm';
@@ -55,10 +70,11 @@ export const SaveLoadPanel: FC<SaveLoadPanelProps> = ({
         axios
           .post(`${serverURL}/game-state`, {
             gameState,
-            playerName: 'Player'
+            playerName
           })
           .then((response) => {
             console.log(response);
+            setLoadedGameState(response.data);
           })
           .catch((error) => {
             console.error(error);

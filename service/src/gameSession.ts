@@ -145,6 +145,10 @@ export class GameSession {
     this.roundHistory = state.roundHistory;
     this.createdDateTime = new Date(state.createdDateTime);
 
+    this.players.forEach((player) => {
+      player.connected = false;
+    });
+
     // Automatically destroy the game session if session is inactive for 10 minutes
     this.SessionHadActivity();
 

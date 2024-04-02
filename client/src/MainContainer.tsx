@@ -2,7 +2,12 @@ import { GameAction, GameEvent, SocketEvents } from './constants';
 import React, { useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Socket, io } from 'socket.io-client';
-import { Card, ClientActionPayload, ServerEventPayload } from './sharedTypes';
+import {
+  Card,
+  ClientActionPayload,
+  GameState,
+  ServerEventPayload
+} from './sharedTypes';
 import { PlayerCardPanel } from './PlayerCardPanel';
 import { SaveLoadPanel } from './saveLoadPanel';
 
@@ -115,6 +120,27 @@ export const MainContainer = () => {
     emitAction(GameAction.SelectTrumpSuit, { trumpSuit });
   };
 
+  const setLoadedGameState = (_gameState: GameState) => {
+    if (!socketRef.current) {
+      console.log('Socket is not connected');
+      return;
+    }
+
+    const teamCode = _gameState.players.find(
+      (player) => player.name === playerName
+    )?.teamCode;
+    if (!teamCode) {
+      console.log('Team code not found');
+      return;
+    }
+
+    setSessionId(_gameState.sessionId);
+    setTeamCodes(_gameState.teamCodes);
+    setTeamCode(teamCode);
+
+    joinGame(teamCode, playerName);
+  };
+
   return (
     <div style={{ display: 'flex', gap: 10 }}>
       <div style={{ border: '1px black solid' }}>
@@ -189,9 +215,11 @@ export const MainContainer = () => {
           serverURL={serverURL}
           sessionId={sessionId}
           socketId={socketRef.current?.id || ''}
+          playerName={playerName}
+          setLoadedGameState={setLoadedGameState}
         />
       </div>
-      {teamCodes.length === 2 && (
+      {teamCodes?.length === 2 && (
         <div>
           <div>
             <label>Team 1:</label>

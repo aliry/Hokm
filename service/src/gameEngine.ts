@@ -117,6 +117,10 @@ export class GameEngine {
       throw new Error('Round has not started yet.');
     }
 
+    if (session.Players.some((player) => !player.connected)) {
+      throw new Error('One or more players are not connected.');
+    }
+
     // find the player index by socket id, if not found return error
     const playerIndex = session.Players.findIndex(
       (player) => player.id === socket.id
