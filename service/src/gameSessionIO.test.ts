@@ -114,7 +114,8 @@ function createMockGameState(): GameState {
       teamCode: 'A'
     },
     currentRound: {
-      roundNumber: 1
+      roundNumber: 1,
+      tricks: []
     },
     scores: {
       A: 0,
@@ -141,18 +142,16 @@ function createMockGameState(): GameState {
 
 describe('EncryptGameSession', () => {
   it('should encrypt/decrypt the game session correctly', () => {
+    const player2Name = 'Player 2';
     const gameState = createMockGameState();
 
-    const encryptedSession = EncryptGameSession(gameState);
+    const encryptedSession = EncryptGameSession(gameState, player2Name);
 
     // Assert that the encrypted session is not empty
     expect(encryptedSession).toBeTruthy();
 
     // verify that decryption works
-    const decryptedSession = DecryptGameState(
-      encryptedSession,
-      gameState.manager.name
-    );
+    const decryptedSession = DecryptGameState(encryptedSession, player2Name);
     expect(decryptedSession).toEqual(gameState);
   });
 });
