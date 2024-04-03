@@ -20,6 +20,9 @@ export class SocketHandler {
             const { teamCode, playerName } = data;
             this.gameEngine.JoinGame(socket, teamCode, playerName);
             break;
+          case GameAction.StartNewRound:
+            this.gameEngine.StartNewRound(socket);
+            break;
           case GameAction.SelectTrumpSuit:
             const { trumpSuit } = data;
             this.gameEngine.SelectTrumpSuit(socket, trumpSuit);

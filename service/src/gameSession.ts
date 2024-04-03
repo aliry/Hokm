@@ -24,15 +24,13 @@ export class GameSession {
   private manager: Player;
   private deck?: Card[];
   private currentRound?: Round & { tricks: Trick[] };
-  private currentRoundNumber: number;
   private scores: { [teamCode: string]: number };
   private currentPlayerIndex?: number;
-  private gameStarted: boolean;
-  private gameEnded: boolean;
   private roundHistory: Round[];
   private createdDateTime: Date;
   private sessionInactiveTimeout?: NodeJS.Timeout;
   private eventListeners: { [event: string]: Function[] } = {};
+  private numberOfPlayersJoined: { [teamCode: string]: number };
 
   /**
    * Creates a new game session.
@@ -55,11 +53,19 @@ export class GameSession {
       [this.teamCodes[0]]: 0,
       [this.teamCodes[1]]: 0
     };
-    this.gameStarted = false;
-    this.gameEnded = false;
-    this.currentRoundNumber = 0;
+    this.numberOfPlayersJoined = {
+      [this.teamCodes[0]]: 0,
+      [this.teamCodes[1]]: 0
+    };
     this.roundHistory = [];
     this.createdDateTime = new Date();
+
+    // Add 4 players to the game session
+    for (let i = 0; i < 4; i++) {
+      this.players.push(
+        new Player({ id: '', name: '', teamCode: '', connected: false })
+      );
+    }
 
     // Automatically destroy the game session after 3s if the manager does not join
     setTimeout(() => {
@@ -88,8 +94,6 @@ export class GameSession {
         this.currentPlayerIndex !== undefined
           ? this.players[this.currentPlayerIndex].getState()
           : undefined,
-      gameStarted: this.gameStarted,
-      gameEnded: this.gameEnded,
       roundHistory: this.roundHistory
     };
 
@@ -117,11 +121,8 @@ export class GameSession {
       manager: this.manager.getState(),
       deck: this.deck,
       currentRound: this.currentRound,
-      currentRoundNumber: this.currentRoundNumber,
       scores: this.scores,
       currentPlayerIndex: this.currentPlayerIndex,
-      gameStarted: this.gameStarted,
-      gameEnded: this.gameEnded,
       roundHistory: this.roundHistory,
       createdDateTime: this.createdDateTime.toISOString()
     };
@@ -137,11 +138,8 @@ export class GameSession {
     this.players = state.players.map((playerState) => new Player(playerState));
     this.deck = state.deck;
     this.currentRound = state.currentRound;
-    this.currentRoundNumber = state.currentRoundNumber;
     this.scores = state.scores;
     this.currentPlayerIndex = state.currentPlayerIndex;
-    this.gameStarted = state.gameStarted;
-    this.gameEnded = state.gameEnded;
     this.roundHistory = state.roundHistory;
     this.createdDateTime = new Date(state.createdDateTime);
 
@@ -195,8 +193,8 @@ export class GameSession {
       throw new Error('Player already exists.');
     }
 
-    // First player joining should be the manager
-    if (this.Players.length === 0) {
+    // First player should be the manager joining the team 1
+    if (this.numberOfPlayersJoined[this.teamCodes[0]] === 0) {
       if (
         this.Manager.name !== playerName ||
         this.Manager.teamCode !== teamCode
@@ -206,19 +204,29 @@ export class GameSession {
       this.Manager.id = socketId;
     }
 
-    const teamPlayerCount = this.players.filter(
-      (player) => player.teamCode === teamCode
-    ).length;
-    if (teamPlayerCount >= 2) {
-      throw new Error('Team has reached its capacity.');
-    }
-
     const player = new Player({
       id: socketId,
       name: playerName,
       teamCode
     });
-    this.players.push(player);
+
+    /*
+     * Players are added to the players array in the following order:
+     * Team 1: [0] [1]
+     * Team 2: [2] [3]
+     * This is done to ensure that the players are always in the same order in the array.
+     * This order is used to determine the order of play in the game.
+     */
+    const newPlayerTeamIndex = this.teamCodes.indexOf(teamCode);
+    const playerStartIndex = newPlayerTeamIndex * 2;
+    if (this.numberOfPlayersJoined[teamCode] < 2) {
+      const newPlayerIndex =
+        playerStartIndex + this.numberOfPlayersJoined[teamCode];
+      this.players[newPlayerIndex] = player;
+      this.numberOfPlayersJoined[teamCode]++;
+    } else {
+      throw new Error('Team is full.');
+    }
 
     return player;
   }
@@ -319,30 +327,6 @@ export class GameSession {
   }
 
   /**
-   * Check if the game session has started.
-   * @returns {boolean} True if the game session has started, false otherwise.
-   */
-  public get GameStarted(): boolean {
-    return this.gameStarted;
-  }
-
-  /**
-   * Setter for the `GameStarted` property.
-   * @param started - A boolean value indicating whether the game has started or not.
-   */
-  public set GameStarted(started: boolean) {
-    this.gameStarted = started;
-  }
-
-  /**
-   * Check if the game session has ended.
-   * @returns {boolean} True if the game session has ended, false otherwise.
-   */
-  public get GameEnded(): boolean {
-    return this.gameEnded;
-  }
-
-  /**
    * Get the round history in the game session.
    * @returns {Round[]} The round history.
    */
@@ -362,9 +346,8 @@ export class GameSession {
    * Ends the current round and adds it to the round history.
    */
   public EndRound() {
-    if (this.currentRound && this.currentRoundNumber > 0) {
+    if (this.currentRound) {
       this.roundHistory.push({
-        roundNumber: this.currentRound.roundNumber,
         hakemIndex: this.currentRound.hakemIndex,
         trumpSuit: this.currentRound.trumpSuit,
         score: this.currentRound.score,
@@ -378,9 +361,7 @@ export class GameSession {
    * Starts a new round in the game session.
    */
   public StartNewRound() {
-    this.currentRoundNumber++;
     this.currentRound = {
-      roundNumber: this.currentRoundNumber,
       score: { [this.teamCodes[0]]: 0, [this.teamCodes[1]]: 0 },
       tricks: []
     };
@@ -404,12 +385,6 @@ export class GameSession {
    * @param {number} playerIndex - The index of the player to set as the Hakem.
    */
   public SetHakemPlayerIndex(playerIndex: number) {
-    if (!this.gameStarted) {
-      throw new Error('Game has not started yet.');
-    }
-    if (this.gameEnded) {
-      throw new Error('Game has already ended.');
-    }
     if (!this.currentRound) {
       throw new Error('Round has not started yet.');
     }

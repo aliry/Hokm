@@ -25,7 +25,7 @@ export const MainContainer = () => {
   const [gameState, setGameState] = React.useState<GameSessionState>();
   const socketRef = useRef<Socket | null>(null);
 
-  const emitAction = (action: GameAction, data: any, _sessionId?: string) => {
+  const emitAction = (action: GameAction, data: any) => {
     if (!socketRef.current) {
       return;
     }
@@ -136,6 +136,12 @@ export const MainContainer = () => {
     joinGame(data.teamCode, playerName);
   };
 
+  const handleStartNewRound = () => {
+    if (!socketRef.current) {
+      return;
+    }
+    emitAction(GameAction.StartNewRound, {});
+  };
   return (
     <div style={{ display: 'flex', gap: 10 }}>
       <div style={{ border: '1px black solid', flex: 0 }}>
@@ -186,6 +192,9 @@ export const MainContainer = () => {
           <div>
             <button onClick={handleSelectTrumpSuit}>Select Trump Suit</button>
           </div>
+        </div>
+        <div style={{ border: '1px black dashed', padding: 10 }}>
+          <button onClick={handleStartNewRound}>Start New Round</button>
         </div>
         <PlayerCardPanel emitAction={emitAction} cards={cards} />
       </div>

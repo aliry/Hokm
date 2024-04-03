@@ -2,7 +2,8 @@ import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { GameSession } from './gameSession';
 import { CardValues, GameEvent, SocketEvents, Suits } from './constants';
-import { Card, ServerEventPayload } from './sharedTypes';
+import { Card, Round, ServerEventPayload } from './sharedTypes';
+import { GameConfigs } from './gameConfigs';
 
 /*
  * The GameEngine class is responsible for managing the game logic.
@@ -63,10 +64,24 @@ export class GameEngine {
             .length === 2
       );
       if (allTeamsFull) {
-        this.startGame(session);
         this.startRound(session);
       }
     }
+  }
+
+  /**
+   * Starts a new round in the game.
+   *
+   * @param socket - The socket object representing the player's connection.
+   * @throws Error if the game session is not found.
+   */
+  public StartNewRound(socket: Socket) {
+    const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    this.startRound(session);
   }
 
   /**
@@ -231,10 +246,20 @@ export class GameEngine {
     if (
       !session.Deck ||
       !session.Hakem ||
+      !session.Hakem.id ||
       !session.Hakem.cards ||
       !session.TrumpSuit
     ) {
       throw new Error('Operation not allowed.');
+    }
+
+    // check if all players are joined and connected
+    if (
+      session.Players.some(
+        (player) => !player.connected || player.id === undefined
+      )
+    ) {
+      throw new Error('Not all players are joined or connected.');
     }
 
     // Distribute the remaining cards to the players.
@@ -248,17 +273,21 @@ export class GameEngine {
       if (player.id === session.Hakem?.id) {
         return;
       }
-
+      if (!player.id) {
+        throw new Error('Unexpected game state. Player ID is missing.');
+      }
       const playerCards = session.Deck!.splice(0, 13);
       player.addCards(playerCards);
       this.emitToPlayer(player.id, session, GameEvent.RoundStarted);
     });
   }
 
-  private selectHakem(session: GameSession) {
-    // Assign a random player as the hakem.
-    const hakemIndex = Math.floor(Math.random() * session.Players.length);
-    session.SetHakemPlayerIndex(hakemIndex);
+  private selectHakem(session: GameSession, hakemIndex?: number) {
+    if (hakemIndex === undefined) {
+      // Assign a random player as the hakem.
+      hakemIndex = Math.floor(Math.random() * session.Players.length);
+      session.SetHakemPlayerIndex(hakemIndex);
+    }
 
     // Broadcast to the room that the hakem has been selected.
     this.emitToSession(
@@ -267,7 +296,7 @@ export class GameEngine {
       session.Hakem?.getState()
     );
 
-    if (session.Deck && session.Hakem) {
+    if (session.Deck && session.Hakem && session.Hakem.id) {
       const hakemCards = session.Deck.splice(0, 5);
       session.Players[hakemIndex].addCards(hakemCards);
       this.emitToPlayer(session.Hakem.id, session, GameEvent.HakemCards);
@@ -352,16 +381,39 @@ export class GameEngine {
     return winningPlayerIndex;
   }
 
-  private startGame(session: GameSession) {
-    if (session.GameStarted) {
-      throw new Error('Game has already started.');
-    }
-    session.GameStarted = true;
-  }
-
   private startRound(session: GameSession) {
-    if (!session.GameStarted) {
-      throw new Error('Game has not started yet.');
+    // All players should be joined and connected
+    if (
+      session.Players.length !== GameConfigs.minPlayers ||
+      session.Players.some((player) => !player.connected)
+    ) {
+      throw new Error('One or more players are not connected.');
+    }
+
+    if (session.CurrentRound) {
+      throw new Error('Round has already started.');
+    }
+
+    // If there is previously selected hakem, then we need to see if their team is the hakem again.
+    // If Hakem team lost the last round, then the hakem should be passed to the next player in the opposite team.
+    let lastRound: Round | undefined;
+    let hakemIndex: number | undefined;
+    if (session.RoundHistory.length > 0) {
+      lastRound = session.RoundHistory[session.RoundHistory.length - 1];
+      if (
+        lastRound.hakemIndex !== undefined &&
+        lastRound.winnerTeam !== undefined
+      ) {
+        const hakemTeamCode = session.Players[lastRound.hakemIndex].teamCode;
+        if (lastRound.winnerTeam === hakemTeamCode) {
+          hakemIndex = lastRound.hakemIndex;
+        } else {
+          // If the hakem team lost the last round, pass the hakem to the next player in the opposite team.
+          hakemIndex = (lastRound.hakemIndex + 1) % session.Players.length;
+        }
+      } else {
+        throw new Error('Unexpected game state');
+      }
     }
 
     // Initialize the round.
@@ -370,7 +422,7 @@ export class GameEngine {
     // Broadcast to the room that a new round has started.
     this.emitToSession(session, GameEvent.RoundStarted);
 
-    this.selectHakem(session);
+    this.selectHakem(session, lastRound?.hakemIndex);
   }
 
   private endRound(session: GameSession) {
@@ -380,8 +432,6 @@ export class GameEngine {
     session.EndRound();
     // Broadcast to the room that the round has ended.
     this.emitToSession(session, GameEvent.RoundEnded);
-
-    this.startRound(session);
   }
 
   //#region emitters

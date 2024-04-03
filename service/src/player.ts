@@ -1,7 +1,7 @@
 import { Card, IPlayer, PlayerState } from './sharedTypes';
 
 export class Player implements IPlayer {
-  private _id: string;
+  private _id?: string;
   private _name: string;
   private _teamCode: string;
   private _connected: boolean;
@@ -15,7 +15,7 @@ export class Player implements IPlayer {
     this._cards = player.cards || [];
   }
 
-  public get id(): string {
+  public get id(): string | undefined {
     return this._id;
   }
 
@@ -67,6 +67,9 @@ export class Player implements IPlayer {
   }
 
   public getState(): PlayerState {
+    if (!this._id) {
+      throw new Error('Player is not initialized yet.');
+    }
     return {
       id: this._id,
       name: this._name,
@@ -75,6 +78,9 @@ export class Player implements IPlayer {
   }
 
   public getStateWithCards(): IPlayer {
+    if (!this._id) {
+      throw new Error('Player is not initialized yet.');
+    }
     return {
       id: this._id,
       name: this._name,

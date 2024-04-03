@@ -5,6 +5,9 @@ export enum SocketEvents {
   ClientAction = 'client-action'
 }
 
+/**
+ * Represents the different game events the server can emit
+ */
 export enum GameEvent {
   Error = 'error',
   GameEnded = 'game-ended',
@@ -22,13 +25,17 @@ export enum GameEvent {
   GameState = 'game-state'
 }
 
+/**
+ * Represents the different actions the client can send to the server
+ */
 export enum GameAction {
   Disconnect = 'disconnect',
   PlayCard = 'play-card',
   CreateGame = 'create-game',
   JoinGame = 'join-game',
   SelectHakem = 'select-hakem',
-  SelectTrumpSuit = 'select-trump-suit'
+  SelectTrumpSuit = 'select-trump-suit',
+  StartNewRound = 'start-new-round'
 }
 
 export const Suits = ['hearts', 'diamonds', 'clubs', 'spades'];
