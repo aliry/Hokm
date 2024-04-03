@@ -1,0 +1,88 @@
+.playing-table {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  border: 5px solid rgb(52, 155, 0);
+  border-radius: 50%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player {
+  position: absolute;
+  width: 100px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(176, 235, 28);
+  border-radius: 5px;
+}
+
+.partner {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, 10%);
+}
+
+.opponent1 {
+  left: 0;
+  top: 50%;
+  transform: translate(2%, -50%);
+}
+
+.opponent2 {
+  right: 0;
+  top: 50%;
+  transform: translate(-2%, -50%);
+}
+
+.active-user {
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, -10%);
+  flex-direction: column;
+}
+
+.user-cards {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.player img {
+  width: 50px;
+  height: auto;
+  position: absolute;
+}
+
+.partner img {
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+}
+
+.opponent1 img {
+  right: -120px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 80px;
+}
+
+.opponent2 img {
+  left: -120px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 80px;
+}
+
+.active-user img {
+  top: -150px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+}

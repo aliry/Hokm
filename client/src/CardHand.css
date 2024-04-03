@@ -1,0 +1,16 @@
+.card-hand {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  min-height: 200px;
+  perspective: 1000px;
+}
+
+.card {
+  position: absolute;
+  width: 100px;
+  /* adjust as needed */
+  height: 150px;
+  /* adjust as needed */
+  transition: transform 0.5s;
+}
