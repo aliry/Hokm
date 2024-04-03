@@ -212,21 +212,27 @@ export class GameSession {
 
     /*
      * Players are added to the players array in the following order:
-     * Team 1: [0] [1]
-     * Team 2: [2] [3]
+     * Team 1: [0] [2]
+     * Team 2: [1] [3]
      * This is done to ensure that the players are always in the same order in the array.
      * This order is used to determine the order of play in the game.
      */
-    const newPlayerTeamIndex = this.teamCodes.indexOf(teamCode);
-    const playerStartIndex = newPlayerTeamIndex * 2;
-    if (this.numberOfPlayersJoined[teamCode] < 2) {
-      const newPlayerIndex =
-        playerStartIndex + this.numberOfPlayersJoined[teamCode];
-      this.players[newPlayerIndex] = player;
-      this.numberOfPlayersJoined[teamCode]++;
+    let playerIndex: number;
+    if (teamCode === this.teamCodes[0]) {
+      if (this.numberOfPlayersJoined[this.teamCodes[0]] >= 2) {
+        throw new Error('Team has reached its capacity.');
+      }
+      playerIndex = this.numberOfPlayersJoined[this.teamCodes[0]] * 2;
+    } else if (teamCode === this.teamCodes[1]) {
+      if (this.numberOfPlayersJoined[this.teamCodes[1]] >= 2) {
+        throw new Error('Team has reached its capacity.');
+      }
+      playerIndex = this.numberOfPlayersJoined[this.teamCodes[1]] * 2 + 1;
     } else {
-      throw new Error('Team is full.');
+      throw new Error('Invalid team code.');
     }
+    this.players[playerIndex] = player;
+    this.numberOfPlayersJoined[teamCode]++;
 
     return player;
   }
