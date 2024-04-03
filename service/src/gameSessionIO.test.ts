@@ -1,8 +1,5 @@
 import { GameState } from './sharedTypes';
-import {
-  DecryptGameState,
-  EncryptGameSession
-} from '/Users/ali/repos/Hokm/service/src/gameSessionIO';
+import { EncryptGameSession, DecryptGameState } from './gameSessionIO';
 
 function createMockGameState(): GameState {
   return {
@@ -114,7 +111,10 @@ function createMockGameState(): GameState {
       teamCode: 'A'
     },
     currentRound: {
-      roundNumber: 1,
+      score: {
+        A: 0,
+        B: 0
+      },
       tricks: []
     },
     scores: {
@@ -126,8 +126,6 @@ function createMockGameState(): GameState {
       name: 'Player 1',
       teamCode: 'A'
     },
-    gameStarted: true,
-    gameEnded: false,
     roundHistory: [],
     teamCodes: ['A', 'B'],
     manager: {
@@ -135,7 +133,6 @@ function createMockGameState(): GameState {
       name: 'Player 1',
       teamCode: 'A'
     },
-    currentRoundNumber: 0,
     createdDateTime: new Date().toISOString()
   };
 }
