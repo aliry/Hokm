@@ -300,11 +300,14 @@ export class GameEngine {
     }
     // Determine the winner of the trick.
     const winnerIndex = this.determineTrickWinner(session);
+    const winnerTeamCode = session.Players[winnerIndex].teamCode;
 
     // Update the winner of the trick.
     session.CurrentRound.tricks[
       session.CurrentRound.tricks.length - 1
     ].winnerIndex = winnerIndex;
+
+    session.CurrentRound.score[winnerTeamCode] += 1;
 
     // Broadcast to the room that the trick has ended.
     this.emitToSession(session, GameEvent.TrickEnded, {

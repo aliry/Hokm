@@ -34,7 +34,7 @@ export interface Round {
   /**
    * Score for the round for each team.
    */
-  score?: { [teamCode: string]: number };
+  score: { [teamCode: string]: number };
   /**
    * The team that won the round.
    */

@@ -381,6 +381,7 @@ export class GameSession {
     this.currentRoundNumber++;
     this.currentRound = {
       roundNumber: this.currentRoundNumber,
+      score: { [this.teamCodes[0]]: 0, [this.teamCodes[1]]: 0 },
       tricks: []
     };
   }
@@ -455,52 +456,43 @@ export class GameSession {
       throw new Error('Invalid round operation.');
     }
 
-    const hakem = this.players[this.currentRound.hakemIndex];
-    let hakemTricks = 0;
-    let otherTeamTricks = 0;
-    this.currentRound.tricks.forEach((trick) => {
-      if (trick.winnerIndex === this.currentRound?.hakemIndex) {
-        hakemTricks++;
-      } else {
-        otherTeamTricks++;
-      }
-    });
-
     const maxTricks = Math.abs(52 / this.players.length);
+    const hakemTeamCode = this.players[this.currentRound.hakemIndex].teamCode;
+    const otherTeamCode =
+      hakemTeamCode === this.teamCodes[0]
+        ? this.teamCodes[1]
+        : this.teamCodes[0];
+    let hakemTeamTricks = this.currentRound.score[hakemTeamCode];
+    let otherTeamTricks = this.currentRound.score[otherTeamCode];
 
     if (
       this.currentRound.tricks.length < maxTricks &&
-      (hakemTricks === 0 || otherTeamTricks === 0)
+      (hakemTeamTricks === 0 || otherTeamTricks === 0)
     ) {
       // if round is not ended (less than 13 tricks) and one of the teams has not won any tricks, there is a chance for the other team to win all tricks (Kap or Kot)
       return false;
     }
 
-    const otherTeamCode =
-      hakem.teamCode === this.teamCodes[0]
-        ? this.teamCodes[1]
-        : this.teamCodes[0];
-
-    if (hakemTricks === maxTricks) {
-      this.scores[hakem.teamCode] += GameConfigs.kotScore;
-      this.currentRound.winnerTeam = hakem.teamCode;
+    if (hakemTeamTricks === maxTricks) {
+      this.scores[hakemTeamCode] += GameConfigs.kotScore;
+      this.currentRound.winnerTeam = hakemTeamCode;
       return true;
     }
 
     if (otherTeamTricks === maxTricks) {
-      this.scores[hakem.teamCode] += GameConfigs.hakemKotScore;
+      this.scores[otherTeamCode] += GameConfigs.hakemKotScore;
       this.currentRound.winnerTeam = otherTeamCode;
       return true;
     }
 
-    if (hakemTricks >= 7) {
-      this.scores[hakem.teamCode] += 1;
-      this.currentRound.winnerTeam = hakem.teamCode;
+    if (hakemTeamTricks >= 7) {
+      this.scores[hakemTeamCode] += 1;
+      this.currentRound.winnerTeam = hakemTeamCode;
       return true;
     }
 
     if (otherTeamTricks >= 7) {
-      this.scores[hakem.teamCode] += 1;
+      this.scores[otherTeamCode] += 1;
       this.currentRound.winnerTeam = otherTeamCode;
       return true;
     }

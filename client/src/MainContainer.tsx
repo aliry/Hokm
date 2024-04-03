@@ -208,7 +208,7 @@ export const MainContainer = () => {
         />
         <SaveLoadPanel
           serverURL={serverURL}
-          sessionId={sessionId}
+          sessionId={sessionId || gameState?.sessionId || ''}
           socketId={socketRef.current?.id || ''}
           playerName={playerName}
           setLoadedGameState={setLoadedGameState}
@@ -229,7 +229,11 @@ export const MainContainer = () => {
         )}
         <div>
           <label>Session ID:</label>
-          <input type="text" value={sessionId} readOnly />
+          <input
+            type="text"
+            value={sessionId || gameState?.sessionId}
+            readOnly
+          />
         </div>
         {gameState && (
           <div>
