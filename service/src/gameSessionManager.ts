@@ -98,11 +98,17 @@ export class GameSessionManager {
       throw new Error('Player not found');
     }
 
-    // Encrypt the game state using the player's name as the password.
-    const encryptedGameState = EncryptGameSession(
-      session.GetState(),
-      playerName
-    );
+    const currentGameState = session.GetState();
+
+    // check if we are not in middle of a trick
+    if ()
+
+
+      // Encrypt the game state using the player's name as the password.
+      const encryptedGameState = EncryptGameSession(
+        currentGameState,
+        playerName
+      );
 
     return encryptedGameState;
   }
