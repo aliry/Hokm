@@ -10,18 +10,6 @@ export enum SocketEvents {
  */
 export enum GameEvent {
   Error = 'error',
-  GameEnded = 'game-ended',
-  HakemCards = 'hakem-cards',
-  HakemSelected = 'hakem-selected',
-  PlayerJoined = 'player-joined',
-  PlayerLeft = 'player-left',
-  RoundEnded = 'round-ended',
-  RoundStarted = 'round-started',
-  TrickEnded = 'trick-ended',
-  TrickStarted = 'trick-started',
-  TrumpSuitSelected = 'trump-suit-selected',
-  SessionDestroyed = 'session-destroyed',
-  CardPlayed = 'card-played',
   GameState = 'game-state'
 }
 

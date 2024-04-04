@@ -11,27 +11,29 @@ import { GameConfigs } from './gameConfigs';
  */
 export class GameEngine {
   private gameSessionManager: GameSessionManager;
-  private io: SocketIOServer;
 
-  constructor(gameSessionManager: GameSessionManager, io: SocketIOServer) {
+  constructor(gameSessionManager: GameSessionManager) {
     this.gameSessionManager = gameSessionManager;
-    this.io = io;
   }
 
   /**
-   * Joins a player to a game session.
+   * Joins a player to the game session.
    *
    * @param socket - The socket object representing the player's connection.
    * @param teamCode - The team code of the player.
    * @param playerName - The name of the player.
+   * @returns The game session object.
    * @throws Error if the session is not found.
    */
-  public JoinGame(socket: Socket, teamCode: string, playerName: string) {
+  public JoinGame(
+    socket: Socket,
+    teamCode: string,
+    playerName: string
+  ): GameSession {
     const session = this.gameSessionManager.getGameSessionByTeamCode(teamCode);
     if (!session) {
       throw new Error('Session not found');
     }
-
     // Check if the player is already in the game session and reconnecting
     const playerIndex = session.Players.findIndex(
       (player) =>
@@ -45,16 +47,12 @@ export class GameEngine {
       // Reconnect the player.
       session.ReconnectPlayer(playerIndex, socket.id);
       isReconnecting = true;
-      this.emitToPlayer(socket.id, session, GameEvent.GameState);
     } else {
       session.AddPlayer(playerName, teamCode, socket.id);
     }
 
     // Join the socket to the room named after the session ID.
     socket.join(session.SessionId);
-
-    // Broadcast to the room that a new player has joined.
-    this.emitToSession(session, GameEvent.PlayerJoined);
 
     if (!isReconnecting) {
       // Once all teams are full, we can start the game and select the hakem.
@@ -64,38 +62,75 @@ export class GameEngine {
             .length === 2
       );
       if (allTeamsFull) {
-        this.startRound(session);
+        this.StartNewRound(session);
       }
     }
+
+    return session;
   }
 
   /**
-   * Starts a new round in the game.
+   * Starts a new round in the game session.
    *
-   * @param socket - The socket object representing the player's connection.
-   * @throws Error if the game session is not found.
+   * @param session - The game session object.
+   * @throws Error if one or more players are not connected or if a round has already started.
    */
-  public StartNewRound(socket: Socket) {
-    const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
-    if (!session) {
-      throw new Error('Session not found');
+  public StartNewRound(session: GameSession) {
+    // All players should be joined and connected
+    if (
+      session.Players.length !== GameConfigs.minPlayers ||
+      session.Players.some((player) => !player.connected)
+    ) {
+      throw new Error('One or more players are not connected.');
     }
 
-    this.startRound(session);
+    if (session.CurrentRound) {
+      throw new Error('Round has already started.');
+    }
+
+    // If there is previously selected hakem, then we need to see if their team is the hakem again.
+    // If Hakem team lost the last round, then the hakem should be passed to the next player in the opposite team.
+    let lastRound: Round | undefined;
+    let hakemIndex: number | undefined;
+    if (session.RoundHistory.length > 0) {
+      lastRound = session.RoundHistory[session.RoundHistory.length - 1];
+      if (
+        lastRound.hakemIndex !== undefined &&
+        lastRound.winnerTeam !== undefined
+      ) {
+        const hakemTeamCode = session.Players[lastRound.hakemIndex].teamCode;
+        if (lastRound.winnerTeam === hakemTeamCode) {
+          hakemIndex = lastRound.hakemIndex;
+        } else {
+          // If the hakem team lost the last round, pass the hakem to the next player in the opposite team.
+          hakemIndex = (lastRound.hakemIndex + 1) % session.Players.length;
+        }
+      } else {
+        throw new Error('Unexpected game state');
+      }
+    }
+
+    // Initialize the round.
+    session.StartNewRound();
+    this.selectHakem(session, lastRound?.hakemIndex);
   }
 
   /**
    * Selects the trump suit for the game session.
    *
-   * @param socket - The socket object representing the player.
+   * @param session - The game session.
+   * @param socketId - The ID of the socket making the selection.
    * @param trumpSuit - The selected trump suit.
    * @throws Error if the operation is not allowed or the trump suit is invalid.
    */
-  public SelectTrumpSuit(socket: Socket, trumpSuit: string) {
-    const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
+  public SelectTrumpSuit(
+    session: GameSession,
+    socketId: string,
+    trumpSuit: string
+  ) {
     if (
       !session ||
-      session.Hakem?.id !== socket.id ||
+      session.Hakem?.id !== socketId ||
       typeof trumpSuit !== 'string'
     ) {
       throw new Error('Operation not allowed.');
@@ -107,27 +142,22 @@ export class GameEngine {
     }
 
     session.TrumpSuit = trumpSuit;
-    // Broadcast the selected trump suit to all sockets in the room.
-    this.emitToSession(session, GameEvent.TrumpSuitSelected);
 
     this.distributeCards(session);
     this.startNewTrick(session);
   }
 
   /**
-   * Plays a card for the specified player.
+   * Plays a card in the game session.
    *
-   * @param {Socket} socket - The socket of the player.
-   * @param {Card} card - The card to be played.
-   * @throws {Error} If the session is not found, the round has not started yet, the player is not found, it's not the player's turn, or the card is invalid.
+   * @param session - The game session.
+   * @param socketId - The socket ID of the player.
+   * @param card - The card to be played.
+   * @throws {Error} If the round has not started yet, one or more players are not connected,
+   * the player is not found, it's not the player's turn, or the card is invalid.
    */
-  public PlayCard(socket: Socket, card: Card) {
+  public PlayCard(session: GameSession, socketId: string, card: Card) {
     //#region Validation
-    const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
-    if (!session) {
-      throw new Error('Session not found');
-    }
-
     if (!session.CurrentRound) {
       throw new Error('Round has not started yet.');
     }
@@ -138,7 +168,7 @@ export class GameEngine {
 
     // find the player index by socket id, if not found return error
     const playerIndex = session.Players.findIndex(
-      (player) => player.id === socket.id
+      (player) => player.id === socketId
     );
     if (playerIndex === -1) {
       throw new Error('Player not found');
@@ -160,14 +190,6 @@ export class GameEngine {
 
     const player = session.Players[playerIndex];
     player.removeCard(card);
-
-    // Broadcast the played card to all sockets in the room.
-    this.emitToSession(session, GameEvent.CardPlayed, {
-      playerId: socket.id,
-      card
-    });
-
-    this.emitToPlayer(socket.id, session, GameEvent.CardPlayed);
 
     const trickItem = { playerIndex, card };
     let currentTrickIndex = session.CurrentRound.tricks.length - 1;
@@ -197,21 +219,29 @@ export class GameEngine {
 
   /**
    * Disconnects a player from the game session.
-   * @param socket - The socket representing the player's connection.
+   * @param session - The game session.
+   * @param socketId - The ID of the socket associated with the player.
    */
-  public Disconnect(socket: Socket) {
-    const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
-    if (!session) {
-      return;
-    }
-
+  public Disconnect(session: GameSession, socketId: string) {
     const playerIndex = session.Players.findIndex(
-      (player) => player.id === socket.id
+      (player) => player.id === socketId
     );
     const player = session.Players[playerIndex];
     player.connected = false;
+  }
 
-    this.emitToSession(session, GameEvent.PlayerLeft, player.getState());
+  /**
+   * Retrieves the game session associated with the provided socket.
+   * @param socket - The socket object representing the player's connection.
+   * @returns The game session associated with the socket.
+   * @throws Error if the session is not found.
+   */
+  public GetSession(socket: Socket): GameSession {
+    const session = this.gameSessionManager.getGameSessionByPlayerId(socket.id);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+    return session;
   }
 
   /**
@@ -266,7 +296,6 @@ export class GameEngine {
     // Hakem already has 5 cards so should get 8 more.
     const hakemRemainingCards = session.Deck.splice(0, 8);
     session.Hakem.cards.push(...hakemRemainingCards);
-    this.emitToPlayer(session.Hakem.id, session, GameEvent.RoundStarted);
 
     // Other players get 13 cards. emit RoundStarted event.
     session.Players.forEach((player) => {
@@ -278,7 +307,6 @@ export class GameEngine {
       }
       const playerCards = session.Deck!.splice(0, 13);
       player.addCards(playerCards);
-      this.emitToPlayer(player.id, session, GameEvent.RoundStarted);
     });
   }
 
@@ -289,17 +317,9 @@ export class GameEngine {
       session.SetHakemPlayerIndex(hakemIndex);
     }
 
-    // Broadcast to the room that the hakem has been selected.
-    this.emitToSession(
-      session,
-      GameEvent.HakemSelected,
-      session.Hakem?.getState()
-    );
-
     if (session.Deck && session.Hakem && session.Hakem.id) {
       const hakemCards = session.Deck.splice(0, 5);
       session.Players[hakemIndex].addCards(hakemCards);
-      this.emitToPlayer(session.Hakem.id, session, GameEvent.HakemCards);
     }
   }
 
@@ -320,7 +340,6 @@ export class GameEngine {
     }
 
     currentRoundTricks.push({ items: [] });
-    this.emitToSession(session, GameEvent.TrickStarted);
   }
 
   private endTrick(session: GameSession) {
@@ -337,11 +356,6 @@ export class GameEngine {
     ].winnerIndex = winnerIndex;
 
     session.CurrentRound.score[winnerTeamCode] += 1;
-
-    // Broadcast to the room that the trick has ended.
-    this.emitToSession(session, GameEvent.TrickEnded, {
-      winner: session.Players[winnerIndex].getState()
-    });
 
     if (session.CheckIfRoundHasWinnerSoFar()) {
       this.endRound(session);
@@ -381,83 +395,10 @@ export class GameEngine {
     return winningPlayerIndex;
   }
 
-  private startRound(session: GameSession) {
-    // All players should be joined and connected
-    if (
-      session.Players.length !== GameConfigs.minPlayers ||
-      session.Players.some((player) => !player.connected)
-    ) {
-      throw new Error('One or more players are not connected.');
-    }
-
-    if (session.CurrentRound) {
-      throw new Error('Round has already started.');
-    }
-
-    // If there is previously selected hakem, then we need to see if their team is the hakem again.
-    // If Hakem team lost the last round, then the hakem should be passed to the next player in the opposite team.
-    let lastRound: Round | undefined;
-    let hakemIndex: number | undefined;
-    if (session.RoundHistory.length > 0) {
-      lastRound = session.RoundHistory[session.RoundHistory.length - 1];
-      if (
-        lastRound.hakemIndex !== undefined &&
-        lastRound.winnerTeam !== undefined
-      ) {
-        const hakemTeamCode = session.Players[lastRound.hakemIndex].teamCode;
-        if (lastRound.winnerTeam === hakemTeamCode) {
-          hakemIndex = lastRound.hakemIndex;
-        } else {
-          // If the hakem team lost the last round, pass the hakem to the next player in the opposite team.
-          hakemIndex = (lastRound.hakemIndex + 1) % session.Players.length;
-        }
-      } else {
-        throw new Error('Unexpected game state');
-      }
-    }
-
-    // Initialize the round.
-    session.StartNewRound();
-
-    // Broadcast to the room that a new round has started.
-    this.emitToSession(session, GameEvent.RoundStarted);
-
-    this.selectHakem(session, lastRound?.hakemIndex);
-  }
-
   private endRound(session: GameSession) {
     if (!session.CurrentRound) {
       throw new Error('Round has not started yet.');
     }
     session.EndRound();
-    // Broadcast to the room that the round has ended.
-    this.emitToSession(session, GameEvent.RoundEnded);
   }
-
-  //#region emitters
-  private emitToSession(
-    session: GameSession,
-    event: GameEvent,
-    data?: unknown
-  ) {
-    const payLoad: ServerEventPayload = {
-      event,
-      data,
-      gameState: session.GetStateForBroadcast()
-    };
-    this.io.to(session.SessionId).emit(SocketEvents.ServerEvent, payLoad);
-  }
-
-  private emitToPlayer(
-    playerId: string,
-    session: GameSession,
-    event: GameEvent
-  ) {
-    const payLoad: ServerEventPayload = {
-      event,
-      gameState: session.GetStateForBroadcast(playerId)
-    };
-    this.io.to(playerId).emit(SocketEvents.ServerEvent, payLoad);
-  }
-  //#endregion
 }
