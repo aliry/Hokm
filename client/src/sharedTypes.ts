@@ -8,7 +8,7 @@ export interface Card {
 }
 
 export interface IPlayer {
-  id: string;
+  id?: string;
   name: string;
   teamCode: string;
   connected?: boolean;
@@ -19,10 +19,6 @@ export interface IPlayer {
  * Represents a round in the game.
  */
 export interface Round {
-  /**
-   * The round number.
-   */
-  roundNumber: number;
   /**
    * The index of the hakem in the players array.
    */
@@ -56,7 +52,7 @@ export interface Action {
 }
 
 export interface PlayerState {
-  id: string;
+  id?: string;
   name: string;
   teamCode: string;
   cards?: Card[];
@@ -80,7 +76,6 @@ export interface GameState extends GameStateBase {
   manager: PlayerState;
   deck?: Card[];
   currentRound?: Round & { tricks: Trick[] };
-  currentRoundNumber: number;
   currentPlayerIndex?: number;
   createdDateTime: string;
 }

@@ -67,9 +67,6 @@ export class Player implements IPlayer {
   }
 
   public getState(): PlayerState {
-    if (!this._id) {
-      throw new Error('Player is not initialized yet.');
-    }
     return {
       id: this._id,
       name: this._name,
@@ -78,9 +75,6 @@ export class Player implements IPlayer {
   }
 
   public getStateWithCards(): IPlayer {
-    if (!this._id) {
-      throw new Error('Player is not initialized yet.');
-    }
     return {
       id: this._id,
       name: this._name,

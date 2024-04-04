@@ -433,7 +433,7 @@ export class GameSession {
    * @throws {Error} - Throws an error if the current round or the hakem index is invalid.
    */
   public CheckIfRoundHasWinnerSoFar() {
-    if (!this.currentRound || !this.currentRound.hakemIndex) {
+    if (!this.currentRound || this.currentRound.hakemIndex === undefined) {
       throw new Error('Invalid round operation.');
     }
 

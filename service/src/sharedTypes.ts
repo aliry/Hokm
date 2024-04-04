@@ -52,7 +52,7 @@ export interface Action {
 }
 
 export interface PlayerState {
-  id: string;
+  id?: string;
   name: string;
   teamCode: string;
   cards?: Card[];
