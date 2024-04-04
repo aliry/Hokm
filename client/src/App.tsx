@@ -21,23 +21,24 @@ const sampleCards = [
 
 function App() {
   return (
-    <div style={{ margin: 50, display: "flex", flexDirection: "column" }}>
-      <div style={{ flex: 0 }}>
-        <PlayingTable
-          activeUser="Player 1"
-          partner="Player 2"
-          opponent1="Player 3"
-          opponent2="Player 4"
-          activeUserCard='clubs_2'
-          partnerCard='spades_9'
-          opponent1Card='diamonds_ace'
-          opponent2Card='spades_king'
-        />
-      </div>
-      <div style={{ flex: 1 }} >
-        <CardHand cards={sampleCards} />
-      </div>
-    </div>
+    // <div style={{ margin: 50, display: "flex", flexDirection: "column" }}>
+    //   <div style={{ flex: 0 }}>
+    //     <PlayingTable
+    //       activeUser="Player 1"
+    //       partner="Player 2"
+    //       opponent1="Player 3"
+    //       opponent2="Player 4"
+    //       activeUserCard='clubs_2'
+    //       partnerCard='spades_9'
+    //       opponent1Card='diamonds_ace'
+    //       opponent2Card='spades_king'
+    //     />
+    //   </div>
+    //   <div style={{ flex: 1 }} >
+    //     <CardHand cards={sampleCards} />
+    //   </div>
+    // </div>
+    <MainContainer />
   );
 }
 
