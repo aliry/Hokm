@@ -249,15 +249,18 @@ export class GameSession {
     return this.players[playerIndex];
   }
 
-
   /**
    * Checks if a trick is currently in process.
    * @returns {boolean} True if a trick is in process, false otherwise.
    */
   public IsATrickInProcess(): boolean {
     if (this.currentRound?.tricks && this.currentRound?.tricks.length > 0) {
-      const lastTrick = this.currentRound.tricks[this.currentRound.tricks.length - 1];
-      return lastTrick.items.length > 0 && lastTrick.items.length < this.players.length;
+      const lastTrick =
+        this.currentRound.tricks[this.currentRound.tricks.length - 1];
+      return (
+        lastTrick.items.length > 0 &&
+        lastTrick.items.length < this.players.length
+      );
     }
     return false;
   }
@@ -372,6 +375,9 @@ export class GameSession {
         score: this.currentRound.score,
         winnerTeam: this.currentRound.winnerTeam
       });
+      // remove all remaining cards from players hands
+      this.players.forEach((p) => p.removeAllCards());
+
       this.currentRound = undefined;
     }
   }

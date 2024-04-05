@@ -56,6 +56,10 @@ export class Player implements IPlayer {
     }
   }
 
+  public removeAllCards() {
+    this._cards = [];
+  }
+
   public hasCard(card: Card): boolean {
     return this._cards.some(
       (c) => c.value === card.value && c.suit === card.suit
