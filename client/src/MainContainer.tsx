@@ -8,7 +8,7 @@ import {
   GameSessionState,
   ServerEventPayload
 } from './sharedTypes';
-import { PlayerCardPanel } from './PlayerCardPanel';
+import { PlayerCardPanel } from './components/PlayerCardPanel';
 import { SaveLoadPanel } from './saveLoadPanel';
 
 const serverURL = 'http://localhost:3001';
@@ -70,7 +70,6 @@ export const MainContainer = () => {
   };
 
   const handleCreateGame = () => {
-    console.log('Join Game');
     axios
       .post(`${serverURL}/create-game`, { managerName: playerName })
       .then((response) => {

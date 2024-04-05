@@ -1,22 +1,22 @@
 import React from 'react';
 import { MainContainer } from './MainContainer';
-import CardHand from './CardHand';
-import PlayingTable from './PlayingTable';
+import CardHand from './components/CardHand';
+import PlayingTable from './components/PlayingTable';
 
 const sampleCards = [
-  "clubs_2",
-  "hearts_5",
-  "spades_9",
-  "diamonds_king",
-  "clubs_10",
-  "hearts_jack",
-  "spades_queen",
-  "diamonds_ace",
-  "clubs_7",
-  "hearts_3",
-  "spades_king",
-  "diamonds_2",
-  "clubs_ace",
+  'clubs_2',
+  'hearts_5',
+  'spades_9',
+  'diamonds_king',
+  'clubs_10',
+  'hearts_jack',
+  'spades_queen',
+  'diamonds_ace',
+  'clubs_7',
+  'hearts_3',
+  'spades_king',
+  'diamonds_2',
+  'clubs_ace'
 ];
 
 function App() {
@@ -41,6 +41,5 @@ function App() {
     <MainContainer />
   );
 }
-
 
 export default App;

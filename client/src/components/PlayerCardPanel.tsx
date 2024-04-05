@@ -1,6 +1,6 @@
 import { FC } from 'react';
-import { GameAction } from './constants';
-import { Card } from './sharedTypes';
+import { GameAction } from '../constants';
+import { Card } from '../sharedTypes';
 
 export interface PlayerCardProps {
   emitAction: (action: GameAction, data: any) => void;
