@@ -1,6 +1,5 @@
 import { GameSession } from './gameSession';
 import { DecryptGameState, EncryptGameSession } from './gameSessionIO';
-import { GameSessionState } from './sharedTypes';
 
 const MAX_CONCURRENT_GAMES = 100;
 
@@ -101,14 +100,15 @@ export class GameSessionManager {
     const currentGameState = session.GetState();
 
     // check if we are not in middle of a trick
-    if ()
+    if (session.IsATrickInProcess()) {
+      throw new Error('Cannot save game state in middle of a trick');
+    }
 
-
-      // Encrypt the game state using the player's name as the password.
-      const encryptedGameState = EncryptGameSession(
-        currentGameState,
-        playerName
-      );
+    // Encrypt the game state using the player's name as the password.
+    const encryptedGameState = EncryptGameSession(
+      currentGameState,
+      playerName
+    );
 
     return encryptedGameState;
   }
