@@ -1,50 +1,30 @@
 import React from 'react';
-import { useCreateGame, useJoinGame } from './gameState/gameHooks';
+import {
+  useCreateGame,
+  useJoinGame,
+  useSetTrumpSuit,
+  useStartNewRound
+} from './gameState/gameHooks';
 import { useAtom } from 'jotai';
-import { gameInitStateAtom, gameStateAtom } from './gameState/gameState';
+import {
+  errorAtom,
+  gameInitStateAtom,
+  gameStateAtom
+} from './gameState/gameState';
+import { PlayerCardPanel } from './components/PlayerCardPanel';
 
 export const MainContainer = () => {
   const [trumpSuit, setTrumpSuit] = React.useState<string>('');
-
+  const [errorMessage] = useAtom(errorAtom);
   const [gameState] = useAtom(gameStateAtom);
   const [gameInitState, setGameInitState] = useAtom(gameInitStateAtom);
-  const { sessionId, teamCodes } = gameInitState;
+  const { sessionId, teamCodes, playerName, teamCode } = gameInitState;
 
-  const joinGame = useJoinGame(
-    gameInitState.playerName,
-    gameInitState.teamCode
-  );
+  const joinGame = useJoinGame(playerName, teamCode);
   const handleCreateGame = useCreateGame();
-  // const handleSelectTrumpSuit = () => {
-  //   if (!socket || !trumpSuit) {
-  //     return;
-  //   }
-  //   emitAction(GameAction.SelectTrumpSuit, { trumpSuit });
-  // };
+  const selectTrumpSuit = useSetTrumpSuit();
+  const handleStartNewRound = useStartNewRound();
 
-  // const setLoadedGameState = (data: {
-  //   sessionId: string;
-  //   teamCodes: string[];
-  //   teamCode: string;
-  // }) => {
-  //   if (!socketRef.current) {
-  //     console.log('Socket is not connected');
-  //     return;
-  //   }
-
-  //   setSessionId(data.sessionId);
-  //   setTeamCodes(data.teamCodes);
-  //   setTeamCode(data.teamCode);
-
-  //   joinGame(data.teamCode, playerName);
-  // };
-
-  // const handleStartNewRound = () => {
-  //   if (!socketRef.current) {
-  //     return;
-  //   }
-  //   emitAction(GameAction.StartNewRound, {});
-  // };
   return (
     <div style={{ display: 'flex', gap: 10 }}>
       <div style={{ border: '1px black solid', flex: 0 }}>
@@ -52,7 +32,7 @@ export const MainContainer = () => {
           <label>Player Name:</label>
           <input
             type="text"
-            value={gameInitState.playerName}
+            value={playerName}
             onChange={(e) =>
               setGameInitState({ ...gameInitState, playerName: e.target.value })
             }
@@ -75,7 +55,7 @@ export const MainContainer = () => {
           <label>Team Code:</label>
           <input
             type="text"
-            value={gameInitState.teamCode}
+            value={teamCode}
             onChange={(e) =>
               setGameInitState({ ...gameInitState, teamCode: e.target.value })
             }
@@ -97,31 +77,29 @@ export const MainContainer = () => {
             onChange={(e) => setTrumpSuit(e.target.value)}
           />
           <div>
-            {/* <button onClick={handleSelectTrumpSuit}>Select Trump Suit</button> */}
+            <button onClick={() => selectTrumpSuit(trumpSuit)}>
+              Select Trump Suit
+            </button>
           </div>
         </div>
         <div style={{ border: '1px black dashed', padding: 10 }}>
-          {/* <button onClick={handleStartNewRound}>Start New Round</button> */}
+          <button onClick={handleStartNewRound}>Start New Round</button>
         </div>
-        {/* <PlayerCardPanel emitAction={emitAction} cards={cards} /> */}
+        <PlayerCardPanel />
       </div>
       <div style={{ flex: 1 }}>
-        {/* <textarea
+        <textarea
           rows={40}
           cols={150}
-          value={payloads
-            .map((p) => JSON.stringify([p], null, 2))
-            .join('\n===========\n')}
+          value={JSON.stringify(gameState, null, 2)}
           style={{ color: 'blue' }}
         />
         <textarea
           rows={10}
           cols={100}
-          value={errors
-            .map((err) => JSON.stringify(err, null, 2))
-            .join('\n===========\n')}
+          value={errorMessage}
           style={{ color: 'red' }}
-        /> */}
+        />
         {/* <SaveLoadPanel
           serverURL={serverURL}
           sessionId={sessionId || gameState?.sessionId || ''}

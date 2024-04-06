@@ -1,18 +1,15 @@
-import { FC } from 'react';
-import { GameAction } from '../constants';
-import { Card } from '../sharedTypes';
+import { useAtom } from 'jotai';
+import { usePlayCard } from '../gameState/gameHooks';
+import { cardsAtom } from '../gameState/gameState';
 
-export interface PlayerCardProps {
-  emitAction: (action: GameAction, data: any) => void;
-  cards: Card[];
-}
-
-export const PlayerCardPanel: FC<PlayerCardProps> = ({ cards, emitAction }) => {
+export const PlayerCardPanel = () => {
+  const [cards] = useAtom(cardsAtom);
+  const playCard = usePlayCard();
   return (
     <div>
       {cards.map((card, index) => (
         <div key={index}>
-          <button onClick={() => emitAction(GameAction.PlayCard, { card })}>
+          <button onClick={() => playCard(card)}>
             {card.value} of {card.suit}
           </button>
         </div>

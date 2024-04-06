@@ -9,7 +9,7 @@ import {
 } from './gameState';
 import { Socket, io } from 'socket.io-client';
 import { GameAction, GameEvent, SocketEvents } from '../constants';
-import { ServerEventPayload } from '../sharedTypes';
+import { Card, ServerEventPayload } from '../sharedTypes';
 const serverURL = 'http://localhost:3001';
 
 export const useSocketRef = () => {
@@ -133,4 +133,49 @@ export const useSocketEvents = (socket: Socket | null) => {
   }, [handleSocketEvents, socket]);
 
   return handleSocketEvents;
+};
+
+export const useSetTrumpSuit = () => {
+  const socket = useSocketRef();
+  const emitAction = useEmitAction(socket);
+  const setTrumpSuit = useCallback(
+    (trumpSuit: string) => {
+      if (!socket || !trumpSuit) {
+        return;
+      }
+      emitAction(GameAction.SelectTrumpSuit, { trumpSuit });
+    },
+    [emitAction, socket]
+  );
+
+  return setTrumpSuit;
+};
+
+export const usePlayCard = () => {
+  const socket = useSocketRef();
+  const emitAction = useEmitAction(socket);
+  const playCard = useCallback(
+    (card: Card) => {
+      if (!socket || !card) {
+        return;
+      }
+      emitAction(GameAction.PlayCard, { card });
+    },
+    [emitAction, socket]
+  );
+
+  return playCard;
+};
+
+export const useStartNewRound = () => {
+  const socket = useSocketRef();
+  const emitAction = useEmitAction(socket);
+  const startNewRound = useCallback(() => {
+    if (!socket) {
+      return;
+    }
+    emitAction(GameAction.StartNewRound, {});
+  }, [emitAction, socket]);
+
+  return startNewRound;
 };
