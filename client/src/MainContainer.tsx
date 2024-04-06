@@ -1,146 +1,50 @@
-import { GameAction, GameEvent, SocketEvents } from './constants';
-import React, { useCallback, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { Socket, io } from 'socket.io-client';
-import {
-  Card,
-  ClientActionPayload,
-  GameSessionState,
-  ServerEventPayload
-} from './sharedTypes';
-import { PlayerCardPanel } from './components/PlayerCardPanel';
-import { SaveLoadPanel } from './saveLoadPanel';
-
-const serverURL = 'http://localhost:3001';
+import React from 'react';
+import { useCreateGame, useJoinGame } from './gameState/gameHooks';
+import { useAtom } from 'jotai';
+import { gameInitStateAtom, gameStateAtom } from './gameState/gameState';
 
 export const MainContainer = () => {
-  const [playerName, setPlayerName] = React.useState<string>('');
-  const [teamCodes, setTeamCodes] = React.useState<string[]>([]);
-  const [sessionId, setSessionId] = React.useState<string>('');
-  const [teamCode, setTeamCode] = React.useState<string>('');
-  const [errors, setErrors] = React.useState<ServerEventPayload[]>([]);
-  const [payloads, setPayloads] = React.useState<ServerEventPayload[]>([]);
   const [trumpSuit, setTrumpSuit] = React.useState<string>('');
-  const [cards, setCards] = React.useState<Card[]>([]);
-  const [gameState, setGameState] = React.useState<GameSessionState>();
-  const socketRef = useRef<Socket | null>(null);
 
-  const emitAction = (action: GameAction, data: any) => {
-    if (!socketRef.current) {
-      return;
-    }
-    const payload: ClientActionPayload = { action, data };
-    socketRef.current.emit(SocketEvents.ClientAction, payload);
-  };
+  const [gameState] = useAtom(gameStateAtom);
+  const [gameInitState, setGameInitState] = useAtom(gameInitStateAtom);
+  const { sessionId, teamCodes } = gameInitState;
 
-  useEffect(() => {
-    if (!socketRef.current) {
-      socketRef.current = io(serverURL, {
-        transports: ['websocket']
-      });
+  const joinGame = useJoinGame(
+    gameInitState.playerName,
+    gameInitState.teamCode
+  );
+  const handleCreateGame = useCreateGame();
+  // const handleSelectTrumpSuit = () => {
+  //   if (!socket || !trumpSuit) {
+  //     return;
+  //   }
+  //   emitAction(GameAction.SelectTrumpSuit, { trumpSuit });
+  // };
 
-      socketRef.current.on('connect_error', (err: { message: any }) => {
-        console.log(`connect_error due to ${err.message}`);
-      });
+  // const setLoadedGameState = (data: {
+  //   sessionId: string;
+  //   teamCodes: string[];
+  //   teamCode: string;
+  // }) => {
+  //   if (!socketRef.current) {
+  //     console.log('Socket is not connected');
+  //     return;
+  //   }
 
-      return () => {
-        if (socketRef.current) {
-          socketRef.current.off('connect_error');
-          socketRef.current.off(SocketEvents.ServerEvent);
-          socketRef.current.disconnect();
-          socketRef.current = null;
-        }
-      };
-    }
-  }, []);
+  //   setSessionId(data.sessionId);
+  //   setTeamCodes(data.teamCodes);
+  //   setTeamCode(data.teamCode);
 
-  const joinGame = (
-    _teamCode: string = teamCode,
-    _playerName: string = playerName
-  ) => {
-    if (!socketRef.current || !_teamCode || !_playerName) {
-      return;
-    }
+  //   joinGame(data.teamCode, playerName);
+  // };
 
-    handleSocketEvents();
-    emitAction(GameAction.JoinGame, {
-      teamCode: _teamCode,
-      playerName: _playerName
-    });
-  };
-
-  const handleCreateGame = () => {
-    axios
-      .post(`${serverURL}/create-game`, { managerName: playerName })
-      .then((response) => {
-        console.log(response);
-        setSessionId(response.data.sessionId);
-        setTeamCodes(response.data.teamCodes);
-        setTeamCode(response.data.teamCodes[0]);
-
-        joinGame(response.data.teamCodes[0], playerName);
-      })
-      .catch((error) => {
-        console.error(error);
-        setErrors((prevErrors) => [...prevErrors, error.message]);
-      });
-  };
-
-  const handleSocketEvents = useCallback(() => {
-    socketRef.current?.on(
-      SocketEvents.ServerEvent,
-      (payload: ServerEventPayload) => {
-        console.log(payload);
-        if (payload.event === GameEvent.Error) {
-          setErrors((prevErrors) => [...prevErrors, payload]);
-        } else {
-          setPayloads((prevStates) => [...prevStates, payload]);
-          if (payload.gameState) {
-            const cards = payload.gameState.players.find(
-              (player) => player.id === socketRef.current?.id
-            )?.cards;
-            if (cards) {
-              setCards(cards);
-            }
-            setGameState(payload.gameState);
-          }
-        }
-      }
-    );
-  }, []);
-
-  const handleJoinGame = () => joinGame();
-
-  const handleSelectTrumpSuit = () => {
-    if (!socketRef.current || !trumpSuit) {
-      return;
-    }
-    emitAction(GameAction.SelectTrumpSuit, { trumpSuit });
-  };
-
-  const setLoadedGameState = (data: {
-    sessionId: string;
-    teamCodes: string[];
-    teamCode: string;
-  }) => {
-    if (!socketRef.current) {
-      console.log('Socket is not connected');
-      return;
-    }
-
-    setSessionId(data.sessionId);
-    setTeamCodes(data.teamCodes);
-    setTeamCode(data.teamCode);
-
-    joinGame(data.teamCode, playerName);
-  };
-
-  const handleStartNewRound = () => {
-    if (!socketRef.current) {
-      return;
-    }
-    emitAction(GameAction.StartNewRound, {});
-  };
+  // const handleStartNewRound = () => {
+  //   if (!socketRef.current) {
+  //     return;
+  //   }
+  //   emitAction(GameAction.StartNewRound, {});
+  // };
   return (
     <div style={{ display: 'flex', gap: 10 }}>
       <div style={{ border: '1px black solid', flex: 0 }}>
@@ -148,8 +52,10 @@ export const MainContainer = () => {
           <label>Player Name:</label>
           <input
             type="text"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
+            value={gameInitState.playerName}
+            onChange={(e) =>
+              setGameInitState({ ...gameInitState, playerName: e.target.value })
+            }
           />
         </div>
         <div style={{ border: '1px black dashed', padding: 5 }}>
@@ -169,13 +75,15 @@ export const MainContainer = () => {
           <label>Team Code:</label>
           <input
             type="text"
-            value={teamCode}
-            onChange={(e) => setTeamCode(e.target.value)}
+            value={gameInitState.teamCode}
+            onChange={(e) =>
+              setGameInitState({ ...gameInitState, teamCode: e.target.value })
+            }
           />
           <div>
             <button
               style={{ padding: 10, margin: 5, color: 'green' }}
-              onClick={handleJoinGame}
+              onClick={() => joinGame()}
             >
               Join Game
             </button>
@@ -189,16 +97,16 @@ export const MainContainer = () => {
             onChange={(e) => setTrumpSuit(e.target.value)}
           />
           <div>
-            <button onClick={handleSelectTrumpSuit}>Select Trump Suit</button>
+            {/* <button onClick={handleSelectTrumpSuit}>Select Trump Suit</button> */}
           </div>
         </div>
         <div style={{ border: '1px black dashed', padding: 10 }}>
-          <button onClick={handleStartNewRound}>Start New Round</button>
+          {/* <button onClick={handleStartNewRound}>Start New Round</button> */}
         </div>
-        <PlayerCardPanel emitAction={emitAction} cards={cards} />
+        {/* <PlayerCardPanel emitAction={emitAction} cards={cards} /> */}
       </div>
       <div style={{ flex: 1 }}>
-        <textarea
+        {/* <textarea
           rows={40}
           cols={150}
           value={payloads
@@ -213,14 +121,14 @@ export const MainContainer = () => {
             .map((err) => JSON.stringify(err, null, 2))
             .join('\n===========\n')}
           style={{ color: 'red' }}
-        />
-        <SaveLoadPanel
+        /> */}
+        {/* <SaveLoadPanel
           serverURL={serverURL}
           sessionId={sessionId || gameState?.sessionId || ''}
           socketId={socketRef.current?.id || ''}
           playerName={playerName}
           setLoadedGameState={setLoadedGameState}
-        />
+        /> */}
       </div>
       <div style={{ flex: 1 }}>
         {teamCodes?.length === 2 && (

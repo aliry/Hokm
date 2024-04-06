@@ -12,27 +12,6 @@ import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { ServerEventPayload } from '../sharedTypes';
 const serverURL = 'http://localhost:3001';
 
-export const useCreateGame = (playerName: string) => {
-  const [, setGameState] = useAtom(gameInitStateAtom);
-  const [, setError] = useAtom(errorAtom);
-  const handleCreateGame = useCallback(() => {
-    axios
-      .post(`${serverURL}/create-game`, { managerName: playerName })
-      .then((response) => {
-        setGameState({
-          sessionId: response.data.sessionId,
-          teamCodes: response.data.teamCodes,
-          teamCode: response.data.teamCodes[0]
-        });
-      })
-      .catch((error) => {
-        setError(error.message);
-      });
-  }, [playerName, setError, setGameState]);
-
-  return handleCreateGame;
-};
-
 export const useSocketRef = () => {
   const socketRef = useRef<Socket | null>(null);
 
@@ -75,31 +54,61 @@ export const useEmitAction = (socketRef: Socket | null) => {
   return emitAction;
 };
 
-export const useJoinGame = (socketRef: Socket | null) => {
-  const [, setGameState] = useAtom(gameInitStateAtom);
-  const emitAction = useEmitAction(socketRef);
+export const useJoinGame = (playerName: string, teamCode: string) => {
+  const socket = useSocketRef();
+  const emitAction = useEmitAction(socket);
+  const handleSocketEvents = useSocketEvents(socket);
   const joinGame = useCallback(
-    (teamCode: string, playerName: string) => {
-      if (!socketRef || !teamCode || !playerName) {
+    (newTeamCode?: string) => {
+      if (!socket || !playerName) {
         return;
       }
-
-      setGameState((prev) => ({ ...prev, teamCode }));
-      emitAction(GameAction.JoinGame, { teamCode, playerName });
+      handleSocketEvents?.();
+      emitAction(GameAction.JoinGame, {
+        teamCode: teamCode || newTeamCode,
+        playerName
+      });
     },
-    [emitAction, setGameState, socketRef]
+    [emitAction, handleSocketEvents, playerName, socket, teamCode]
   );
 
   return joinGame;
 };
 
-export const useSocketEvents = (socket: Socket) => {
+export const useCreateGame = () => {
+  const [gameInitState, setGameState] = useAtom(gameInitStateAtom);
+  const [, setError] = useAtom(errorAtom);
+  const { playerName, teamCode } = gameInitState;
+  const joinGame = useJoinGame(playerName, teamCode);
+  const handleCreateGame = useCallback(() => {
+    const { playerName } = gameInitState;
+    axios
+      .post(`${serverURL}/create-game`, { managerName: playerName })
+      .then((response) => {
+        setGameState({
+          playerName,
+          sessionId: response.data.sessionId,
+          teamCodes: response.data.teamCodes,
+          teamCode: response.data.teamCodes[0]
+        });
+
+        joinGame(response.data.teamCodes[0]);
+      })
+      .catch((error) => {
+        setError(error.message);
+      });
+  }, [gameInitState, joinGame, setGameState, setError]);
+
+  return handleCreateGame;
+};
+
+export const useSocketEvents = (socket: Socket | null) => {
   const [, setErrors] = useAtom(errorAtom);
   const [, setCards] = useAtom(cardsAtom);
   const [, setGameState] = useAtom(gameStateAtom);
 
   const handleSocketEvents = useCallback(() => {
-    socket.on(SocketEvents.ServerEvent, (payload: ServerEventPayload) => {
+    socket?.on(SocketEvents.ServerEvent, (payload: ServerEventPayload) => {
       console.log(payload);
       if (payload.event === GameEvent.Error) {
         setErrors(payload.data);
@@ -118,13 +127,10 @@ export const useSocketEvents = (socket: Socket) => {
   }, [setCards, setErrors, setGameState, socket]);
 
   useEffect(() => {
-    handleSocketEvents();
     return () => {
-      if (socket) {
-        socket.off(SocketEvents.ServerEvent);
-      }
+      socket?.off(SocketEvents.ServerEvent);
     };
   }, [handleSocketEvents, socket]);
 
-  return null;
+  return handleSocketEvents;
 };
