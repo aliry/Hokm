@@ -14,6 +14,7 @@ import {
   trumpSuitAtom
 } from './gameState/gameState';
 import { PlayerCardPanel } from './components/PlayerCardPanel';
+import { SaveLoadPanel } from './saveLoadPanel';
 
 export const MainContainer = () => {
   const [trumpSuiteFromState] = useAtom(trumpSuitAtom);

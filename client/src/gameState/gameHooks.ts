@@ -10,7 +10,8 @@ import {
 import { Socket, io } from 'socket.io-client';
 import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { Card, ServerEventPayload } from '../sharedTypes';
-const serverURL = 'http://localhost:3001';
+const serverURL =
+  process.env.REACT_APP_GAME_SERVER_URL || 'http://localhost:3001';
 let socketConnectionInProgress = false;
 
 export const useSocket = () => {

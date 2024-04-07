@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { FC } from 'react';
+const serverURL =
+  process.env.REACT_APP_GAME_SERVER_URL || 'http://localhost:3001';
 
 export interface SaveLoadPanelProps {
-  serverURL: string;
   sessionId: string;
   socketId: string;
   playerName: string;
@@ -14,7 +15,6 @@ export interface SaveLoadPanelProps {
 }
 
 export const SaveLoadPanel: FC<SaveLoadPanelProps> = ({
-  serverURL,
   sessionId,
   socketId,
   playerName,
