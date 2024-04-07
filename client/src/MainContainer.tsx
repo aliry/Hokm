@@ -9,12 +9,14 @@ import { useAtom } from 'jotai';
 import {
   errorAtom,
   gameInitStateAtom,
-  gameStateAtom
+  gameStateAtom,
+  trumpSuitAtom
 } from './gameState/gameState';
 import { PlayerCardPanel } from './components/PlayerCardPanel';
 
 export const MainContainer = () => {
-  const [trumpSuit, setTrumpSuit] = React.useState<string>('');
+  const [trumpSuiteFromState] = useAtom(trumpSuitAtom);
+  const [trumpSuit, setTrumpSuit] = React.useState<string>(trumpSuiteFromState);
   const [errorMessage] = useAtom(errorAtom);
   const [gameState] = useAtom(gameStateAtom);
   const [gameInitState, setGameInitState] = useAtom(gameInitStateAtom);
@@ -74,10 +76,14 @@ export const MainContainer = () => {
           <input
             type="text"
             value={trumpSuit}
+            readOnly={!!trumpSuiteFromState}
             onChange={(e) => setTrumpSuit(e.target.value)}
           />
           <div>
-            <button onClick={() => selectTrumpSuit(trumpSuit)}>
+            <button
+              disabled={!!trumpSuiteFromState}
+              onClick={() => selectTrumpSuit(trumpSuit)}
+            >
               Select Trump Suit
             </button>
           </div>

@@ -1,40 +1,54 @@
 import axios from 'axios';
 import { useCallback, useEffect, useRef } from 'react';
 import { useAtom } from 'jotai';
-import {
-  cardsAtom,
-  errorAtom,
-  gameInitStateAtom,
-  gameStateAtom
-} from './gameState';
+import { errorAtom, gameInitStateAtom, gameStateAtom } from './gameState';
 import { Socket, io } from 'socket.io-client';
 import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { Card, ServerEventPayload } from '../sharedTypes';
 const serverURL = 'http://localhost:3001';
+let socketConnectionInProgress = false;
 
 export const useSocketRef = () => {
   const socketRef = useRef<Socket | null>(null);
+  const [, setGameInitState] = useAtom(gameInitStateAtom);
+  const [, setError] = useAtom(errorAtom);
 
   useEffect(() => {
-    if (!socketRef.current) {
+    if (!socketRef.current && !socketConnectionInProgress) {
+      socketConnectionInProgress = true;
       socketRef.current = io(serverURL, {
         transports: ['websocket']
       });
 
+      socketRef.current.on('connect', () => {
+        const socketId = socketRef.current?.id;
+        socketConnectionInProgress = false;
+        if (!socketId) {
+          setError('Socket id not found');
+          return;
+        }
+        setGameInitState((prev) => ({
+          ...prev,
+          socketId
+        }));
+      });
+
       socketRef.current.on('connect_error', (err: { message: any }) => {
+        socketConnectionInProgress = false;
         console.log(`connect_error due to ${err.message}`);
       });
 
       return () => {
-        if (socketRef.current) {
+        if (socketRef.current && socketRef.current.connected) {
           socketRef.current.off('connect_error');
+          socketRef.current.off('connect');
           socketRef.current.off(SocketEvents.ServerEvent);
           socketRef.current.disconnect();
           socketRef.current = null;
         }
       };
     }
-  }, []);
+  }, [setError, setGameInitState]);
 
   return socketRef.current;
 };
@@ -85,13 +99,13 @@ export const useCreateGame = () => {
     axios
       .post(`${serverURL}/create-game`, { managerName: playerName })
       .then((response) => {
-        setGameState({
+        setGameState((prev) => ({
           playerName,
+          socketId: prev.socketId,
           sessionId: response.data.sessionId,
           teamCodes: response.data.teamCodes,
           teamCode: response.data.teamCodes[0]
-        });
-
+        }));
         joinGame(response.data.teamCodes[0]);
       })
       .catch((error) => {
@@ -104,7 +118,6 @@ export const useCreateGame = () => {
 
 export const useSocketEvents = (socket: Socket | null) => {
   const [, setErrors] = useAtom(errorAtom);
-  const [, setCards] = useAtom(cardsAtom);
   const [, setGameState] = useAtom(gameStateAtom);
 
   const handleSocketEvents = useCallback(() => {
@@ -112,19 +125,13 @@ export const useSocketEvents = (socket: Socket | null) => {
       console.log(payload);
       if (payload.event === GameEvent.Error) {
         setErrors(payload.data);
+      } else if (payload.gameState) {
+        setGameState(payload.gameState);
       } else {
-        if (payload.gameState) {
-          const cards = payload.gameState.players.find(
-            (player) => player.id === socket.id
-          )?.cards;
-          if (cards) {
-            setCards(cards);
-          }
-          setGameState(payload.gameState);
-        }
+        setErrors('Invalid server event');
       }
     });
-  }, [setCards, setErrors, setGameState, socket]);
+  }, [setErrors, setGameState, socket]);
 
   useEffect(() => {
     return () => {
@@ -170,12 +177,8 @@ export const usePlayCard = () => {
 export const useStartNewRound = () => {
   const socket = useSocketRef();
   const emitAction = useEmitAction(socket);
-  const startNewRound = useCallback(() => {
-    if (!socket) {
-      return;
-    }
-    emitAction(GameAction.StartNewRound, {});
-  }, [emitAction, socket]);
-
-  return startNewRound;
+  return useCallback(
+    () => emitAction(GameAction.StartNewRound, {}),
+    [emitAction]
+  );
 };
