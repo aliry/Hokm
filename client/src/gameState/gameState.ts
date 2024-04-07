@@ -1,5 +1,6 @@
 import { atom } from 'jotai';
 import { Card, GameSessionState } from '../sharedTypes';
+import { Socket } from 'socket.io-client';
 
 interface InitialState {
   playerName: string;
@@ -8,6 +9,9 @@ interface InitialState {
   teamCodes: string[];
   teamCode: string;
 }
+
+export const socketAtom = atom<Socket | null>(null);
+
 export const gameInitStateAtom = atom<InitialState>({
   playerName: '',
   socketId: '',

@@ -3,6 +3,7 @@ import {
   useCreateGame,
   useJoinGame,
   useSetTrumpSuit,
+  useSocket,
   useStartNewRound
 } from './gameState/gameHooks';
 import { useAtom } from 'jotai';
@@ -22,10 +23,13 @@ export const MainContainer = () => {
   const [gameInitState, setGameInitState] = useAtom(gameInitStateAtom);
   const { sessionId, teamCodes, playerName, teamCode } = gameInitState;
 
+  useSocket();
   const joinGame = useJoinGame(playerName, teamCode);
   const handleCreateGame = useCreateGame();
   const selectTrumpSuit = useSetTrumpSuit();
   const handleStartNewRound = useStartNewRound();
+
+  if (!gameInitState.socketId) return <div>Connecting...</div>;
 
   return (
     <div style={{ display: 'flex', gap: 10 }}>

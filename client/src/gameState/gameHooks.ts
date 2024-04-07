@@ -1,27 +1,31 @@
 import axios from 'axios';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { errorAtom, gameInitStateAtom, gameStateAtom } from './gameState';
+import {
+  errorAtom,
+  gameInitStateAtom,
+  gameStateAtom,
+  socketAtom
+} from './gameState';
 import { Socket, io } from 'socket.io-client';
 import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { Card, ServerEventPayload } from '../sharedTypes';
 const serverURL = 'http://localhost:3001';
 let socketConnectionInProgress = false;
 
-export const useSocketRef = () => {
-  const socketRef = useRef<Socket | null>(null);
+export const useSocket = () => {
+  const [socket, setSocket] = useAtom(socketAtom);
   const [, setGameInitState] = useAtom(gameInitStateAtom);
   const [, setError] = useAtom(errorAtom);
 
   useEffect(() => {
-    if (!socketRef.current && !socketConnectionInProgress) {
+    if (!socket && !socketConnectionInProgress) {
       socketConnectionInProgress = true;
-      socketRef.current = io(serverURL, {
-        transports: ['websocket']
-      });
+      const _socket = io(serverURL, { transports: ['websocket'] });
+      setSocket(_socket);
 
-      socketRef.current.on('connect', () => {
-        const socketId = socketRef.current?.id;
+      _socket.on('connect', () => {
+        const socketId = _socket.id;
         socketConnectionInProgress = false;
         if (!socketId) {
           setError('Socket id not found');
@@ -33,24 +37,22 @@ export const useSocketRef = () => {
         }));
       });
 
-      socketRef.current.on('connect_error', (err: { message: any }) => {
+      _socket.on('connect_error', (err: { message: any }) => {
         socketConnectionInProgress = false;
         console.log(`connect_error due to ${err.message}`);
       });
 
       return () => {
-        if (socketRef.current && socketRef.current.connected) {
-          socketRef.current.off('connect_error');
-          socketRef.current.off('connect');
-          socketRef.current.off(SocketEvents.ServerEvent);
-          socketRef.current.disconnect();
-          socketRef.current = null;
+        if (_socket && _socket.connected) {
+          _socket.off('connect_error');
+          _socket.off('connect');
+          _socket.off(SocketEvents.ServerEvent);
+          _socket.disconnect();
+          setSocket(null);
         }
       };
     }
-  }, [setError, setGameInitState]);
-
-  return socketRef.current;
+  }, [setError, setGameInitState, setSocket, socket]);
 };
 
 export const useEmitAction = (socketRef: Socket | null) => {
@@ -69,7 +71,7 @@ export const useEmitAction = (socketRef: Socket | null) => {
 };
 
 export const useJoinGame = (playerName: string, teamCode: string) => {
-  const socket = useSocketRef();
+  const [socket] = useAtom(socketAtom);
   const emitAction = useEmitAction(socket);
   const handleSocketEvents = useSocketEvents(socket);
   const joinGame = useCallback(
@@ -143,7 +145,7 @@ export const useSocketEvents = (socket: Socket | null) => {
 };
 
 export const useSetTrumpSuit = () => {
-  const socket = useSocketRef();
+  const [socket] = useAtom(socketAtom);
   const emitAction = useEmitAction(socket);
   const setTrumpSuit = useCallback(
     (trumpSuit: string) => {
@@ -159,7 +161,7 @@ export const useSetTrumpSuit = () => {
 };
 
 export const usePlayCard = () => {
-  const socket = useSocketRef();
+  const [socket] = useAtom(socketAtom);
   const emitAction = useEmitAction(socket);
   const playCard = useCallback(
     (card: Card) => {
@@ -175,7 +177,7 @@ export const usePlayCard = () => {
 };
 
 export const useStartNewRound = () => {
-  const socket = useSocketRef();
+  const [socket] = useAtom(socketAtom);
   const emitAction = useEmitAction(socket);
   return useCallback(
     () => emitAction(GameAction.StartNewRound, {}),
