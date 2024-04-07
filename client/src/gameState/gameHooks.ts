@@ -119,6 +119,90 @@ export const useCreateGame = () => {
   return handleCreateGame;
 };
 
+export const useLoadGame = () => {
+  const [gameInitState, setGameState] = useAtom(gameInitStateAtom);
+  const [, setError] = useAtom(errorAtom);
+  const { playerName, socketId } = gameInitState;
+  const loadGame = useCallback(() => {
+    if (!playerName) {
+      setError('Player name is required to load game');
+      return;
+    }
+
+    if (!socketId) {
+      setError('Socket ID is required to load game');
+      return;
+    }
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.hokm';
+    fileInput.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const gameState = e.target?.result as string;
+        axios
+          .post(`${serverURL}/game-state`, {
+            gameState,
+            playerName
+          })
+          .then((response) => {
+            setGameState((prev) => ({
+              ...prev,
+              sessionId: response.data.sessionId,
+              teamCodes: response.data.teamCodes,
+              teamCode: response.data.teamCodes[0]
+            }));
+          })
+          .catch((error) => {
+            setError(error.message);
+          });
+      };
+      reader.readAsText(file);
+    };
+    fileInput.click();
+  }, [playerName, socketId, setError, setGameState]);
+
+  return loadGame;
+};
+
+export const useSaveGame = () => {
+  const [gameInitState] = useAtom(gameInitStateAtom);
+  const { socketId, sessionId } = gameInitState;
+  const downloadString = (text: string) => {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.download = 'game-state.hokm';
+    a.href = URL.createObjectURL(blob);
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(a.href);
+    document.body.removeChild(a);
+  };
+  const saveGame = useCallback(() => {
+    axios
+      .get(`${serverURL}/game-state`, {
+        params: {
+          sessionId,
+          socketId
+        }
+      })
+      .then((response) => {
+        downloadString(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [sessionId, socketId]);
+
+  return saveGame;
+};
+
 export const useSocketEvents = (socket: Socket | null) => {
   const [, setErrors] = useAtom(errorAtom);
   const [, setGameState] = useAtom(gameStateAtom);

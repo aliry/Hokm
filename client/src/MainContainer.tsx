@@ -111,13 +111,7 @@ export const MainContainer = () => {
           value={errorMessage}
           style={{ color: 'red' }}
         />
-        {/* <SaveLoadPanel
-          serverURL={serverURL}
-          sessionId={sessionId || gameState?.sessionId || ''}
-          socketId={socketRef.current?.id || ''}
-          playerName={playerName}
-          setLoadedGameState={setLoadedGameState}
-        /> */}
+        <SaveLoadPanel />
       </div>
       <div style={{ flex: 1 }}>
         {teamCodes?.length === 2 && (
