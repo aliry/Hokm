@@ -314,8 +314,8 @@ export class GameEngine {
     if (hakemIndex === undefined) {
       // Assign a random player as the hakem.
       hakemIndex = Math.floor(Math.random() * session.Players.length);
-      session.SetHakemPlayerIndex(hakemIndex);
     }
+    session.SetHakemPlayerIndex(hakemIndex);
 
     if (session.Deck && session.Hakem && session.Hakem.id) {
       const hakemCards = session.Deck.splice(0, 5);

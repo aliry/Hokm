@@ -5,7 +5,6 @@ import { Socket } from 'socket.io-client';
 interface InitialState {
   playerName: string;
   socketId: string;
-  sessionId: string;
   teamCodes: string[];
   teamCode: string;
 }
@@ -15,7 +14,6 @@ export const socketAtom = atom<Socket | null>(null);
 export const gameInitStateAtom = atom<InitialState>({
   playerName: '',
   socketId: '',
-  sessionId: '',
   teamCodes: [],
   teamCode: ''
 });

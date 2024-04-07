@@ -22,7 +22,7 @@ export const MainContainer = () => {
   const [errorMessage] = useAtom(errorAtom);
   const [gameState] = useAtom(gameStateAtom);
   const [gameInitState, setGameInitState] = useAtom(gameInitStateAtom);
-  const { sessionId, teamCodes, playerName, teamCode } = gameInitState;
+  const { teamCodes, playerName, teamCode } = gameInitState;
 
   useSocket();
   const joinGame = useJoinGame(playerName, teamCode);
@@ -128,11 +128,7 @@ export const MainContainer = () => {
         )}
         <div>
           <label>Session ID:</label>
-          <input
-            type="text"
-            value={sessionId || gameState?.sessionId}
-            readOnly
-          />
+          <input type="text" value={gameState?.sessionId} readOnly />
         </div>
         {gameState && (
           <div>

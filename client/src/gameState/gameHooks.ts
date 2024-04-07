@@ -93,7 +93,7 @@ export const useJoinGame = (playerName: string, teamCode: string) => {
 };
 
 export const useCreateGame = () => {
-  const [gameInitState, setGameState] = useAtom(gameInitStateAtom);
+  const [gameInitState, setGameInitState] = useAtom(gameInitStateAtom);
   const [, setError] = useAtom(errorAtom);
   const { playerName, teamCode } = gameInitState;
   const joinGame = useJoinGame(playerName, teamCode);
@@ -102,10 +102,9 @@ export const useCreateGame = () => {
     axios
       .post(`${serverURL}/create-game`, { managerName: playerName })
       .then((response) => {
-        setGameState((prev) => ({
+        setGameInitState((prev) => ({
           playerName,
           socketId: prev.socketId,
-          sessionId: response.data.sessionId,
           teamCodes: response.data.teamCodes,
           teamCode: response.data.teamCodes[0]
         }));
@@ -114,15 +113,16 @@ export const useCreateGame = () => {
       .catch((error) => {
         setError(error.message);
       });
-  }, [gameInitState, joinGame, setGameState, setError]);
+  }, [gameInitState, joinGame, setGameInitState, setError]);
 
   return handleCreateGame;
 };
 
 export const useLoadGame = () => {
-  const [gameInitState, setGameState] = useAtom(gameInitStateAtom);
+  const [gameInitState, setGameInitState] = useAtom(gameInitStateAtom);
   const [, setError] = useAtom(errorAtom);
-  const { playerName, socketId } = gameInitState;
+  const { playerName, socketId, teamCode } = gameInitState;
+  const joinGame = useJoinGame(playerName, teamCode);
   const loadGame = useCallback(() => {
     if (!playerName) {
       setError('Player name is required to load game');
@@ -152,12 +152,12 @@ export const useLoadGame = () => {
             playerName
           })
           .then((response) => {
-            setGameState((prev) => ({
+            setGameInitState((prev) => ({
               ...prev,
-              sessionId: response.data.sessionId,
               teamCodes: response.data.teamCodes,
-              teamCode: response.data.teamCodes[0]
+              teamCode: response.data.teamCode
             }));
+            joinGame(response.data.teamCode);
           })
           .catch((error) => {
             setError(error.message);
@@ -166,14 +166,16 @@ export const useLoadGame = () => {
       reader.readAsText(file);
     };
     fileInput.click();
-  }, [playerName, socketId, setError, setGameState]);
+  }, [playerName, socketId, setError, setGameInitState, joinGame]);
 
   return loadGame;
 };
 
 export const useSaveGame = () => {
   const [gameInitState] = useAtom(gameInitStateAtom);
-  const { socketId, sessionId } = gameInitState;
+  const [gameState] = useAtom(gameStateAtom);
+  const { socketId } = gameInitState;
+  const { sessionId } = gameState || {};
   const downloadString = (text: string) => {
     const blob = new Blob([text], { type: 'text/plain' });
     const a = document.createElement('a');

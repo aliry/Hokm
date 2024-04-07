@@ -1,5 +1,6 @@
 import { GameSession } from './gameSession';
 import { DecryptGameState, EncryptGameSession } from './gameSessionIO';
+import { GameState } from './sharedTypes';
 
 const MAX_CONCURRENT_GAMES = 100;
 
@@ -16,12 +17,7 @@ export class GameSessionManager {
    * @returns The created game session.
    */
   public createGameSession(managerName: string): GameSession {
-    if (Object.keys(this.gameSessions).length >= MAX_CONCURRENT_GAMES) {
-      throw new Error(
-        'Game server reached maximum capacity. Please try again later.'
-      );
-    }
-
+    this.checkServerCapacity();
     const session = new GameSession(managerName);
     this.gameSessions[session.SessionId] = session;
     session.on('sessionDestroyed', () => {
@@ -105,10 +101,7 @@ export class GameSessionManager {
     }
 
     // Encrypt the game state using the player's name as the password.
-    const encryptedGameState = EncryptGameSession(
-      currentGameState,
-      playerName
-    );
+    const encryptedGameState = EncryptGameSession(currentGameState, playerName);
 
     return encryptedGameState;
   }
@@ -121,11 +114,31 @@ export class GameSessionManager {
     const gameState = DecryptGameState(encryptedGameState, playerName);
 
     // Player loading the game state becomes the manager.
-    const session = this.createGameSession(playerName);
-
-    // Load the game state into the session.
-    session.LoadState(gameState);
+    const session = this.createGameSessionByState(playerName, gameState);
 
     return session;
+  }
+
+  private createGameSessionByState(
+    playerName: string,
+    state: GameState
+  ): GameSession {
+    this.checkServerCapacity();
+    const session = new GameSession(playerName);
+    session.LoadState(state);
+    this.gameSessions[session.SessionId] = session;
+    session.on('sessionDestroyed', () => {
+      this.removeGameSession(session.SessionId);
+    });
+
+    return session;
+  }
+
+  private checkServerCapacity() {
+    if (Object.keys(this.gameSessions).length >= MAX_CONCURRENT_GAMES) {
+      throw new Error(
+        'Game server reached maximum capacity. Please try again later.'
+      );
+    }
   }
 }
