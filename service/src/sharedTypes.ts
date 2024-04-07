@@ -35,6 +35,10 @@ export interface Round {
    * The team that won the round.
    */
   winnerTeam?: string;
+  /**
+   * The tricks played in the round.
+   */
+  tricks: Trick[];
 }
 
 /**
@@ -63,7 +67,7 @@ interface GameStateBase {
   hakem?: PlayerState;
   scores: { [teamCode: string]: number };
   currentPlayer?: PlayerState;
-  roundHistory: Round[];
+  roundHistory: Omit<Round, 'tricks'>[];
 }
 
 export interface GameSessionState extends GameStateBase {
@@ -75,7 +79,7 @@ export interface GameState extends GameStateBase {
   players: IPlayer[];
   manager: PlayerState;
   deck?: Card[];
-  currentRound?: Round & { tricks: Trick[] };
+  currentRound?: Round;
   currentPlayerIndex?: number;
   createdDateTime: string;
 }
