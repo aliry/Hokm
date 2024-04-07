@@ -1,9 +1,19 @@
 import React, { CSSProperties } from 'react';
+import { Card } from '../sharedTypes';
 interface CardProps {
-  card: string;
+  card: Card;
   style: CSSProperties;
 }
 
-export const Card: React.FC<CardProps> = ({ card, style }) => (
-  <img src={`/images/cards/${card}.svg`} alt={card} className="card" style={style} />
-);
+export const PlayingCard: React.FC<CardProps> = ({ card, style }) => {
+  const cardName = `${card.suit}_${card.value}`;
+
+  return (
+    <img
+      src={`/images/cards/${cardName}.svg`}
+      alt={cardName}
+      className="card"
+      style={style}
+    />
+  );
+};
