@@ -84,7 +84,7 @@ export class GameEngine {
       throw new Error('One or more players are not connected.');
     }
 
-    if (session.CurrentRound) {
+    if (session.CurrentRound?.winnerTeam === undefined) {
       throw new Error('Round has already started.');
     }
 

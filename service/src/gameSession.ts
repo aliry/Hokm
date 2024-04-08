@@ -378,8 +378,6 @@ export class GameSession {
       });
       // remove all remaining cards from players hands
       this.players.forEach((p) => p.removeAllCards());
-
-      this.currentRound = undefined;
     }
   }
 
