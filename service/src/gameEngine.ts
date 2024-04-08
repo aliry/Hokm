@@ -2,7 +2,7 @@ import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { GameSession } from './gameSession';
 import { CardValues, GameEvent, SocketEvents, Suits } from './constants';
-import { Card, Round, ServerEventPayload } from './sharedTypes';
+import { Card, Round, RoundBase, ServerEventPayload } from './sharedTypes';
 import { GameConfigs } from './gameConfigs';
 
 /*
@@ -90,7 +90,7 @@ export class GameEngine {
 
     // If there is previously selected hakem, then we need to see if their team is the hakem again.
     // If Hakem team lost the last round, then the hakem should be passed to the next player in the opposite team.
-    let lastRound: Round | undefined;
+    let lastRound: RoundBase | undefined;
     let hakemIndex: number | undefined;
     if (session.RoundHistory.length > 0) {
       lastRound = session.RoundHistory[session.RoundHistory.length - 1];

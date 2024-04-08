@@ -6,6 +6,7 @@ import {
   GameState,
   PlayerState,
   Round,
+  RoundBase,
   Trick
 } from './sharedTypes';
 import { CardValues, Suits } from './constants';
@@ -26,7 +27,7 @@ export class GameSession {
   private currentRound?: Round & { tricks: Trick[] };
   private scores: { [teamCode: string]: number };
   private currentPlayerIndex?: number;
-  private roundHistory: Omit<Round, 'tricks'>[];
+  private roundHistory: RoundBase[];
   private createdDateTime: Date;
   private sessionInactiveTimeout?: NodeJS.Timeout;
   private eventListeners: { [event: string]: Function[] } = {};
@@ -352,7 +353,7 @@ export class GameSession {
    * Get the round history in the game session.
    * @returns {Round[]} The round history.
    */
-  public get RoundHistory(): Omit<Round, 'tricks'>[] {
+  public get RoundHistory(): RoundBase[] {
     return this.roundHistory;
   }
 

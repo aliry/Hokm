@@ -1,6 +1,7 @@
 .card-hand {
+  flex: 1;
   display: flex;
-  justify-content: center;
+  justify-content:space-around;
   position: relative;
   min-height: 200px;
   perspective: 1000px;

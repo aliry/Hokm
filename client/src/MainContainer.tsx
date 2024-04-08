@@ -8,6 +8,7 @@ import { SidePanel } from './oldComponents/sidePanel';
 import { StatePanel } from './oldComponents/statePanel';
 import { RightPanel } from './oldComponents/rightPanel';
 import PlayingTable from './components/PlayingTable';
+import CardHand from './components/CardHand';
 
 export const MainContainer = () => {
   const [gameInitState] = useAtom(gameInitStateAtom);
@@ -23,8 +24,11 @@ export const MainContainer = () => {
         <PlayerCardPanel />
         <SaveLoadPanel />
       </div>
-      <StatePanel />
-      {/* <PlayingTable /> */}
+      {/* <StatePanel /> */}
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <PlayingTable />
+        <CardHand />
+      </div>
       <RightPanel />
     </div>
   );

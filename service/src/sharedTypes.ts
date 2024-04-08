@@ -18,7 +18,7 @@ export interface IPlayer {
 /**
  * Represents a round in the game.
  */
-export interface Round {
+export interface RoundBase {
   /**
    * The index of the hakem in the players array.
    */
@@ -35,6 +35,12 @@ export interface Round {
    * The team that won the round.
    */
   winnerTeam?: string;
+}
+
+/**
+ * Represents a round in the game including the tricks played.
+ */
+export interface Round extends RoundBase {
   /**
    * The tricks played in the round.
    */
@@ -67,7 +73,7 @@ interface GameStateBase {
   hakem?: PlayerState;
   scores: { [teamCode: string]: number };
   currentPlayer?: PlayerState;
-  roundHistory: Omit<Round, 'tricks'>[];
+  roundHistory: RoundBase[];
 }
 
 export interface GameSessionState extends GameStateBase {
