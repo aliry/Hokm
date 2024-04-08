@@ -112,3 +112,9 @@ export const currentPlayerAtom = atom<PlayerState | undefined>((get) => {
   const gameState = get(gameStateAtom);
   return gameState?.currentPlayer;
 });
+
+export const isCurrentPlayerTurnAtom = atom<boolean>((get) => {
+  const currentPlayer = get(currentPlayerAtom);
+  const { socketId } = get(gameInitStateAtom);
+  return currentPlayer?.id === socketId;
+});

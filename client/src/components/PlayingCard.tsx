@@ -3,9 +3,10 @@ import { Card } from '../sharedTypes';
 interface CardProps {
   card: Card;
   style: CSSProperties;
+  onClick?: () => void;
 }
 
-export const PlayingCard: React.FC<CardProps> = ({ card, style }) => {
+export const PlayingCard: React.FC<CardProps> = ({ card, style, onClick }) => {
   const cardName = `${card.suit}_${card.value}`;
 
   return (
@@ -14,6 +15,7 @@ export const PlayingCard: React.FC<CardProps> = ({ card, style }) => {
       alt={cardName}
       className="card"
       style={style}
+      onClick={() => onClick && onClick()}
     />
   );
 };
