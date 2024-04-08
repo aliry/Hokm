@@ -215,7 +215,10 @@ export const useSocketEvents = (socket: Socket | null) => {
       if (payload.event === GameEvent.Error) {
         setErrors(payload.data);
       } else if (payload.gameState) {
-        setGameState(payload.gameState);
+        setGameState((prevGameState) => ({
+          ...prevGameState,
+          ...payload.gameState
+        }));
       } else {
         setErrors('Invalid server event');
       }

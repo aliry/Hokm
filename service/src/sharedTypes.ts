@@ -65,6 +65,7 @@ export interface PlayerState {
   id?: string;
   name: string;
   teamCode: string;
+  connected: boolean;
   cards?: Card[];
 }
 

@@ -74,7 +74,8 @@ export class Player implements IPlayer {
     return {
       id: this._id,
       name: this._name,
-      teamCode: this._teamCode
+      teamCode: this._teamCode,
+      connected: this.connected
     };
   }
 

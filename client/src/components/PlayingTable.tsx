@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties, useCallback, useMemo } from 'react';
 import './PlayingTable.css';
 import { useAtom } from 'jotai';
 import {
@@ -7,6 +7,7 @@ import {
   opponentTeamPlayersAtom,
   playerPlayedCardAtom
 } from '../gameState/gameState';
+import { PlayerState } from '../sharedTypes';
 
 const PlayingTable = () => {
   const [myTeamPlayers] = useAtom(myTeamPlayersAtom);
@@ -14,21 +15,27 @@ const PlayingTable = () => {
   const [playerPlayedCard] = useAtom(playerPlayedCardAtom);
   const [currentPlayer] = useAtom(currentPlayerAtom);
 
-  const getStyle = (playerId?: string) => {
-    if (playerId && currentPlayer?.id && currentPlayer.id === playerId) {
-      return {
-        border: '2px solid red'
-      };
-    }
-    return {};
-  };
+  const getStyle = useCallback(
+    (player?: PlayerState) => {
+      const style: CSSProperties = {};
 
+      // highlight the current player
+      if (player?.id && currentPlayer?.id && currentPlayer.id === player.id) {
+        style.border = '2px solid red';
+      }
+      // gray out background color when any player is not connected
+      if (player?.connected) {
+        style.backgroundColor = 'rgb(176, 235, 28)';
+      } else {
+        style.backgroundColor = 'rgb(200, 200, 200)';
+      }
+      return style;
+    },
+    [currentPlayer]
+  );
   return (
     <div className="playing-table">
-      <div
-        className="player partner"
-        style={getStyle(myTeamPlayers?.partner.id)}
-      >
+      <div className="player partner" style={getStyle(myTeamPlayers?.partner)}>
         {myTeamPlayers?.partner.name}
         {playerPlayedCard?.partnerCard && (
           <img
@@ -39,7 +46,7 @@ const PlayingTable = () => {
       </div>
       <div
         className="player opponent opponent1"
-        style={getStyle(opponentTeamPlayers?.player1.id)}
+        style={getStyle(opponentTeamPlayers?.player1)}
       >
         {opponentTeamPlayers?.player1.name}
         {playerPlayedCard?.opponent1Card && (
@@ -51,7 +58,7 @@ const PlayingTable = () => {
       </div>
       <div
         className="player opponent opponent2"
-        style={getStyle(opponentTeamPlayers?.player2.id)}
+        style={getStyle(opponentTeamPlayers?.player2)}
       >
         {opponentTeamPlayers?.player2.name}
         {playerPlayedCard?.opponent2Card && (
@@ -61,10 +68,7 @@ const PlayingTable = () => {
           />
         )}
       </div>
-      <div
-        className="player active-user"
-        style={getStyle(myTeamPlayers?.me.id)}
-      >
+      <div className="player active-user" style={getStyle(myTeamPlayers?.me)}>
         <div className="username">
           {myTeamPlayers?.me.name}
           {playerPlayedCard?.myCard && (
