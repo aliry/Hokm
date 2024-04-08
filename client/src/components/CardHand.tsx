@@ -14,6 +14,10 @@ const CardHand = () => {
 
   const totalCards = myCards.length;
 
+  useEffect(() => {
+    setSelectedCard(null);
+  }, [myCards]);
+
   // Adjust these values as needed
   const maxArc = 30; // maximum arc degree when many cards
   const minDistance = 5; // minimum distance in degrees between cards

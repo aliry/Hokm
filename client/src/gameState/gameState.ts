@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
 import { Card, GameSessionState, PlayerState } from '../sharedTypes';
 import { Socket } from 'socket.io-client';
+import { CardValues, Suits } from '../constants';
 
 interface InitialState {
   playerName: string;
@@ -26,10 +27,19 @@ export const cardsAtom = atom<Card[]>((get) => {
   const gameState = get(gameStateAtom);
   const { socketId } = get(gameInitStateAtom);
   if (!gameState) return [];
-  const cards = gameState.players.find(
-    (player) => player.id === socketId
-  )?.cards;
-  return cards || [];
+  let cards = gameState.players.find((player) => player.id === socketId)?.cards;
+  if (!cards) return [];
+  if (cards.length < 3) return cards;
+  // order cards by suit and value when there are more than 3 cards
+  cards = [...cards]; // Create a copy of the array
+  cards = cards.sort((a, b) => {
+    if (a.suit === b.suit) {
+      return CardValues.indexOf(a.value) - CardValues.indexOf(b.value);
+    }
+    return Suits.indexOf(a.suit) - Suits.indexOf(b.suit);
+  });
+
+  return cards;
 });
 
 export const trumpSuitAtom = atom<string>((get) => {
@@ -117,4 +127,10 @@ export const isCurrentPlayerTurnAtom = atom<boolean>((get) => {
   const currentPlayer = get(currentPlayerAtom);
   const { socketId } = get(gameInitStateAtom);
   return currentPlayer?.id === socketId;
+});
+
+export const hakemPlayerAtom = atom<PlayerState | null>((get) => {
+  const gameState = get(gameStateAtom);
+  if (gameState?.currentRound?.hakemIndex === undefined) return null;
+  return gameState?.players[gameState?.currentRound?.hakemIndex] || null;
 });

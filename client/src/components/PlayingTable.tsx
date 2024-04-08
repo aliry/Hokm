@@ -35,50 +35,60 @@ const PlayingTable = () => {
   );
   return (
     <div className="playing-table">
-      <div className="player partner" style={getStyle(myTeamPlayers?.partner)}>
-        {myTeamPlayers?.partner.name}
-        {playerPlayedCard?.partnerCard && (
-          <img
-            src={`/images/cards/${playerPlayedCard.partnerCard.suit}_${playerPlayedCard.partnerCard.value}.svg`}
-            alt="partner's card"
-          />
-        )}
-      </div>
-      <div
-        className="player opponent opponent1"
-        style={getStyle(opponentTeamPlayers?.player1)}
-      >
-        {opponentTeamPlayers?.player1.name}
-        {playerPlayedCard?.opponent1Card && (
-          <img
-            src={`/images/cards/${playerPlayedCard.opponent1Card.suit}_${playerPlayedCard.opponent1Card.value}.svg`}
-            alt="opponent1's card"
-          />
-        )}
-      </div>
-      <div
-        className="player opponent opponent2"
-        style={getStyle(opponentTeamPlayers?.player2)}
-      >
-        {opponentTeamPlayers?.player2.name}
-        {playerPlayedCard?.opponent2Card && (
-          <img
-            src={`/images/cards/${playerPlayedCard.opponent2Card.suit}_${playerPlayedCard.opponent2Card.value}.svg`}
-            alt="opponent2's card"
-          />
-        )}
-      </div>
-      <div className="player active-user" style={getStyle(myTeamPlayers?.me)}>
-        <div className="username">
-          {myTeamPlayers?.me.name}
-          {playerPlayedCard?.myCard && (
-            <img
-              src={`/images/cards/${playerPlayedCard.myCard.suit}_${playerPlayedCard.myCard.value}.svg`}
-              alt="active user's card"
-            />
-          )}
+      {myTeamPlayers && (
+        <div>
+          <div
+            className="player partner"
+            style={getStyle(myTeamPlayers?.partner)}
+          >
+            {myTeamPlayers?.partner.name}
+            {playerPlayedCard?.partnerCard && (
+              <img
+                src={`/images/cards/${playerPlayedCard.partnerCard.suit}_${playerPlayedCard.partnerCard.value}.svg`}
+                alt="partner's card"
+              />
+            )}
+          </div>
+          <div
+            className="player opponent opponent1"
+            style={getStyle(opponentTeamPlayers?.player1)}
+          >
+            {opponentTeamPlayers?.player1.name}
+            {playerPlayedCard?.opponent1Card && (
+              <img
+                src={`/images/cards/${playerPlayedCard.opponent1Card.suit}_${playerPlayedCard.opponent1Card.value}.svg`}
+                alt="opponent1's card"
+              />
+            )}
+          </div>
+          <div
+            className="player opponent opponent2"
+            style={getStyle(opponentTeamPlayers?.player2)}
+          >
+            {opponentTeamPlayers?.player2.name}
+            {playerPlayedCard?.opponent2Card && (
+              <img
+                src={`/images/cards/${playerPlayedCard.opponent2Card.suit}_${playerPlayedCard.opponent2Card.value}.svg`}
+                alt="opponent2's card"
+              />
+            )}
+          </div>
+          <div
+            className="player active-user"
+            style={getStyle(myTeamPlayers?.me)}
+          >
+            <div className="username">
+              {myTeamPlayers?.me.name}
+              {playerPlayedCard?.myCard && (
+                <img
+                  src={`/images/cards/${playerPlayedCard.myCard.suit}_${playerPlayedCard.myCard.value}.svg`}
+                  alt="active user's card"
+                />
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -10,6 +10,7 @@ import {
 import { Socket, io } from 'socket.io-client';
 import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { Card, ServerEventPayload } from '../sharedTypes';
+import { produce } from 'immer';
 const serverURL =
   process.env.REACT_APP_GAME_SERVER_URL || 'http://localhost:3001';
 let socketConnectionInProgress = false;
@@ -215,10 +216,14 @@ export const useSocketEvents = (socket: Socket | null) => {
       if (payload.event === GameEvent.Error) {
         setErrors(payload.data);
       } else if (payload.gameState) {
-        setGameState((prevGameState) => ({
-          ...prevGameState,
-          ...payload.gameState
-        }));
+        setGameState((prevGameState) => {
+          if (!prevGameState) {
+            return payload.gameState;
+          }
+          return produce(prevGameState, (draft) => {
+            Object.assign(draft, payload.gameState);
+          });
+        });
       } else {
         setErrors('Invalid server event');
       }
