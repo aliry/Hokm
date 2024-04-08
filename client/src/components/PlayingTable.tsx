@@ -2,6 +2,7 @@ import React from 'react';
 import './PlayingTable.css';
 import { useAtom } from 'jotai';
 import {
+  currentPlayerAtom,
   myTeamPlayersAtom,
   opponentTeamPlayersAtom,
   playerPlayedCardAtom
@@ -11,10 +12,23 @@ const PlayingTable = () => {
   const [myTeamPlayers] = useAtom(myTeamPlayersAtom);
   const [opponentTeamPlayers] = useAtom(opponentTeamPlayersAtom);
   const [playerPlayedCard] = useAtom(playerPlayedCardAtom);
+  const [currentPlayer] = useAtom(currentPlayerAtom);
+
+  const getStyle = (playerId?: string) => {
+    if (playerId && currentPlayer?.id && currentPlayer.id === playerId) {
+      return {
+        border: '2px solid red'
+      };
+    }
+    return {};
+  };
 
   return (
     <div className="playing-table">
-      <div className="player partner">
+      <div
+        className="player partner"
+        style={getStyle(myTeamPlayers?.partner.id)}
+      >
         {myTeamPlayers?.partner.name}
         {playerPlayedCard?.partnerCard && (
           <img
@@ -23,7 +37,10 @@ const PlayingTable = () => {
           />
         )}
       </div>
-      <div className="player opponent opponent1">
+      <div
+        className="player opponent opponent1"
+        style={getStyle(opponentTeamPlayers?.player1.id)}
+      >
         {opponentTeamPlayers?.player1.name}
         {playerPlayedCard?.opponent1Card && (
           <img
@@ -32,7 +49,10 @@ const PlayingTable = () => {
           />
         )}
       </div>
-      <div className="player opponent opponent2">
+      <div
+        className="player opponent opponent2"
+        style={getStyle(opponentTeamPlayers?.player2.id)}
+      >
         {opponentTeamPlayers?.player2.name}
         {playerPlayedCard?.opponent2Card && (
           <img
@@ -41,7 +61,10 @@ const PlayingTable = () => {
           />
         )}
       </div>
-      <div className="player active-user">
+      <div
+        className="player active-user"
+        style={getStyle(myTeamPlayers?.me.id)}
+      >
         <div className="username">
           {myTeamPlayers?.me.name}
           {playerPlayedCard?.myCard && (

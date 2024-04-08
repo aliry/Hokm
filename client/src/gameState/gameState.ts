@@ -107,3 +107,8 @@ export const playerPlayedCardAtom = atom<{
 
   return { myCard, partnerCard, opponent1Card, opponent2Card };
 });
+
+export const currentPlayerAtom = atom<PlayerState | undefined>((get) => {
+  const gameState = get(gameStateAtom);
+  return gameState?.currentPlayer;
+});
