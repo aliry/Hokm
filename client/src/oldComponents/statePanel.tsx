@@ -1,5 +1,5 @@
 import { useAtom } from 'jotai';
-import { errorAtom, gameStateAtom } from './gameState/gameState';
+import { errorAtom, gameStateAtom } from '../gameState/gameState';
 
 export const StatePanel = () => {
   const [errorMessage] = useAtom(errorAtom);

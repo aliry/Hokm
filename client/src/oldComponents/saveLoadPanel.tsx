@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useLoadGame, useSaveGame } from './gameState/gameHooks';
+import { useLoadGame, useSaveGame } from '../gameState/gameHooks';
 
 export const SaveLoadPanel: FC = () => {
   const saveGame = useSaveGame();

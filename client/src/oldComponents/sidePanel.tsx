@@ -4,8 +4,8 @@ import {
   useJoinGame,
   useSetTrumpSuit,
   useStartNewRound
-} from './gameState/gameHooks';
-import { gameInitStateAtom, trumpSuitAtom } from './gameState/gameState';
+} from '../gameState/gameHooks';
+import { gameInitStateAtom, trumpSuitAtom } from '../gameState/gameState';
 import { useState } from 'react';
 
 export const SidePanel = () => {

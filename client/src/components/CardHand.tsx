@@ -1,6 +1,6 @@
 import React from 'react';
 import './CardHand.css';
-import { PlayingCard } from './Card';
+import { PlayingCard } from './PlayingCard';
 import { useAtom } from 'jotai';
 import { cardsAtom } from '../gameState/gameState';
 

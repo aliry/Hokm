@@ -1,5 +1,5 @@
 import { useAtom } from 'jotai';
-import { gameStateAtom, gameInitStateAtom } from './gameState/gameState';
+import { gameStateAtom, gameInitStateAtom } from '../gameState/gameState';
 
 export const RightPanel = () => {
   const [gameState] = useAtom(gameStateAtom);

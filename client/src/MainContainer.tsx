@@ -2,11 +2,11 @@ import React from 'react';
 import { useSocket } from './gameState/gameHooks';
 import { useAtom } from 'jotai';
 import { gameInitStateAtom } from './gameState/gameState';
-import { PlayerCardPanel } from './components/PlayerCardPanel';
-import { SaveLoadPanel } from './saveLoadPanel';
-import { SidePanel } from './sidePanel';
-import { StatePanel } from './statePanel';
-import { RightPanel } from './rightPanel';
+import { PlayerCardPanel } from './oldComponents/PlayerCardPanel';
+import { SaveLoadPanel } from './oldComponents/saveLoadPanel';
+import { SidePanel } from './oldComponents/sidePanel';
+import { StatePanel } from './oldComponents/statePanel';
+import { RightPanel } from './oldComponents/rightPanel';
 import PlayingTable from './components/PlayingTable';
 
 export const MainContainer = () => {
