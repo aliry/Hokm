@@ -27,13 +27,13 @@
   transform: translate(-50%, 10%);
 }
 
-.opponent1 {
+.left-player {
   left: 0;
   top: 50%;
   transform: translate(2%, -50%);
 }
 
-.opponent2 {
+.right-player {
   right: 0;
   top: 50%;
   transform: translate(-2%, -50%);
@@ -66,14 +66,14 @@
   width: 80px;
 }
 
-.opponent1 img {
+.left-player img {
   right: -120px;
   top: 50%;
   transform: translateY(-50%);
   width: 80px;
 }
 
-.opponent2 img {
+.right-player img {
   left: -120px;
   top: 50%;
   transform: translateY(-50%);

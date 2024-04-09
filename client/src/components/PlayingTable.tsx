@@ -3,17 +3,63 @@ import './PlayingTable.css';
 import { useAtom } from 'jotai';
 import {
   currentPlayerAtom,
-  myTeamPlayersAtom,
-  opponentTeamPlayersAtom,
-  playerPlayedCardAtom
+  gameStateAtom,
+  currentTrickPlayedCardsAtom,
+  socketAtom
 } from '../gameState/gameState';
 import { PlayerState } from '../sharedTypes';
 
 const PlayingTable = () => {
-  const [myTeamPlayers] = useAtom(myTeamPlayersAtom);
-  const [opponentTeamPlayers] = useAtom(opponentTeamPlayersAtom);
-  const [playerPlayedCard] = useAtom(playerPlayedCardAtom);
+  const [gameState] = useAtom(gameStateAtom);
+  const [socket] = useAtom(socketAtom);
+
+  const [currentTrickPlayedCards] = useAtom(currentTrickPlayedCardsAtom);
   const [currentPlayer] = useAtom(currentPlayerAtom);
+
+  const myPlayerIndex = useMemo(
+    () => gameState?.players.findIndex((player) => player.id === socket?.id),
+    [gameState, socket]
+  );
+
+  const partnerPlayerIndex = useMemo(
+    () => (myPlayerIndex !== undefined ? (myPlayerIndex + 2) % 4 : undefined),
+    [myPlayerIndex]
+  );
+
+  const previousPlayerIndex = useMemo(
+    () => (myPlayerIndex !== undefined ? (myPlayerIndex + 3) % 4 : undefined),
+    [myPlayerIndex]
+  );
+
+  const nextPlayerIndex = useMemo(
+    () => (myPlayerIndex !== undefined ? (myPlayerIndex + 1) % 4 : undefined),
+    [myPlayerIndex]
+  );
+
+  console.log('myPlayerIndex', myPlayerIndex);
+  console.log('partnerPlayerIndex', partnerPlayerIndex);
+  console.log('previousPlayerIndex', previousPlayerIndex);
+  console.log('nextPlayerIndex', nextPlayerIndex);
+
+  const myPlayer = useMemo(() => {
+    if (myPlayerIndex === undefined) return undefined;
+    return gameState?.players[myPlayerIndex];
+  }, [gameState, myPlayerIndex]);
+
+  const partnerPlayer = useMemo(() => {
+    if (partnerPlayerIndex === undefined) return undefined;
+    return gameState?.players[partnerPlayerIndex];
+  }, [gameState, partnerPlayerIndex]);
+
+  const nextPlayer = useMemo(() => {
+    if (nextPlayerIndex === undefined) return undefined;
+    return gameState?.players[nextPlayerIndex];
+  }, [gameState, nextPlayerIndex]);
+
+  const previousPlayer = useMemo(() => {
+    if (previousPlayerIndex === undefined) return undefined;
+    return gameState?.players[previousPlayerIndex];
+  }, [gameState, previousPlayerIndex]);
 
   const getStyle = useCallback(
     (player?: PlayerState) => {
@@ -33,60 +79,80 @@ const PlayingTable = () => {
     },
     [currentPlayer]
   );
+
+  const myPlayedCard =
+    myPlayerIndex !== undefined ? currentTrickPlayedCards[myPlayerIndex] : null;
+  const partnerPlayedCard =
+    partnerPlayerIndex !== undefined
+      ? currentTrickPlayedCards[partnerPlayerIndex]
+      : null;
+  const nextPlayerPlayedCard =
+    nextPlayerIndex !== undefined
+      ? currentTrickPlayedCards[nextPlayerIndex]
+      : null;
+  const previousPlayerPlayedCard =
+    previousPlayerIndex !== undefined
+      ? currentTrickPlayedCards[previousPlayerIndex]
+      : null;
+
+  const bottomPlayer = (
+    <div className="player active-user" style={getStyle(myPlayer)}>
+      <div className="username">
+        {myPlayer?.name}
+        {myPlayedCard && (
+          <img
+            src={`/images/cards/${myPlayedCard.suit}_${myPlayedCard.value}.svg`}
+            alt="active user's card"
+          />
+        )}
+      </div>
+    </div>
+  );
+
+  const topPlayer = (
+    <div className="player partner" style={getStyle(partnerPlayer)}>
+      {partnerPlayer?.name}
+      {partnerPlayedCard && (
+        <img
+          src={`/images/cards/${partnerPlayedCard.suit}_${partnerPlayedCard.value}.svg`}
+          alt="partner's card"
+        />
+      )}
+    </div>
+  );
+
+  const rightPlayerElement = (
+    <div className={`player right-player`} style={getStyle(nextPlayer)}>
+      {nextPlayer?.name}
+      {nextPlayerPlayedCard && (
+        <img
+          src={`/images/cards/${nextPlayerPlayedCard.suit}_${nextPlayerPlayedCard.value}.svg`}
+          alt="opponent1's card"
+        />
+      )}
+    </div>
+  );
+
+  const leftPlayerElement = (
+    <div className={`player left-player`} style={getStyle(previousPlayer)}>
+      {previousPlayer?.name}
+      {previousPlayerPlayedCard && (
+        <img
+          src={`/images/cards/${previousPlayerPlayedCard.suit}_${previousPlayerPlayedCard.value}.svg`}
+          alt="opponent2's card"
+        />
+      )}
+    </div>
+  );
+
   return (
     <div className="playing-table">
-      {myTeamPlayers && (
+      {myPlayer && (
         <div>
-          <div
-            className="player partner"
-            style={getStyle(myTeamPlayers?.partner)}
-          >
-            {myTeamPlayers?.partner.name}
-            {playerPlayedCard?.partnerCard && (
-              <img
-                src={`/images/cards/${playerPlayedCard.partnerCard.suit}_${playerPlayedCard.partnerCard.value}.svg`}
-                alt="partner's card"
-              />
-            )}
-          </div>
-          <div
-            className="player opponent opponent1"
-            style={getStyle(opponentTeamPlayers?.player1)}
-          >
-            {opponentTeamPlayers?.player1.name}
-            {playerPlayedCard?.opponent1Card && (
-              <img
-                src={`/images/cards/${playerPlayedCard.opponent1Card.suit}_${playerPlayedCard.opponent1Card.value}.svg`}
-                alt="opponent1's card"
-              />
-            )}
-          </div>
-          <div
-            className="player opponent opponent2"
-            style={getStyle(opponentTeamPlayers?.player2)}
-          >
-            {opponentTeamPlayers?.player2.name}
-            {playerPlayedCard?.opponent2Card && (
-              <img
-                src={`/images/cards/${playerPlayedCard.opponent2Card.suit}_${playerPlayedCard.opponent2Card.value}.svg`}
-                alt="opponent2's card"
-              />
-            )}
-          </div>
-          <div
-            className="player active-user"
-            style={getStyle(myTeamPlayers?.me)}
-          >
-            <div className="username">
-              {myTeamPlayers?.me.name}
-              {playerPlayedCard?.myCard && (
-                <img
-                  src={`/images/cards/${playerPlayedCard.myCard.suit}_${playerPlayedCard.myCard.value}.svg`}
-                  alt="active user's card"
-                />
-              )}
-            </div>
-          </div>
+          {topPlayer}
+          {rightPlayerElement}
+          {leftPlayerElement}
+          {bottomPlayer}
         </div>
       )}
     </div>
