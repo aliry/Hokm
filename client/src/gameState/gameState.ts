@@ -53,10 +53,11 @@ export const trumpSuitAtom = atom<string>((get) => {
  */
 export const currentTrickPlayedCardsAtom = atom<Array<Card | null>>((get) => {
   const gameState = get(gameStateAtom);
-  if (!gameState?.currentRound) return [];
-  const tricks = gameState.currentRound.tricks;
-  const currentTrickItems = tricks[tricks.length - 1].items;
   const cards: (Card | null)[] = [null, null, null, null];
+  if (!gameState?.currentRound) return cards;
+  const tricks = gameState.currentRound.tricks;
+  const currentTrickItems = tricks[tricks.length - 1]?.items;
+  if (!currentTrickItems) return cards;
   currentTrickItems.forEach((item) => {
     cards[item.playerIndex] = item.card;
   });
