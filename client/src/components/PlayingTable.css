@@ -53,36 +53,52 @@
   margin-top: 10px;
 }
 
-.player img {
+.player-card {
   width: 50px;
   height: auto;
   position: absolute;
 }
 
-.partner img {
+.active-user-card {
+  top: -150px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+}
+
+.partner-card {
   top: 100px;
   left: 50%;
   transform: translateX(-50%);
   width: 80px;
 }
 
-.left-player img {
+.left-player-card {
   right: -120px;
   top: 50%;
   transform: translateY(-50%);
   width: 80px;
 }
 
-.right-player img {
+.right-player-card {
   left: -120px;
   top: 50%;
   transform: translateY(-50%);
   width: 80px;
 }
 
-.active-user img {
-  top: -150px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
+.player-name-container{
+  display: flex;
+  flex-direction: row;
+  column-gap: 10px;
+
+}
+
+.player-name {
+  font-size: 20px;
+  font-weight: semi-bold;
+}
+
+.player-name-container .trump-suit-icon {
+  width: 32px;
 }

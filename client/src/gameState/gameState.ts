@@ -23,6 +23,17 @@ export const errorAtom = atom<string>('');
 
 export const gameStateAtom = atom<GameSessionState | null>(null);
 
+export const myPlayerAtom = atom<PlayerState | null>((get) => {
+  const gameState = get(gameStateAtom);
+  const { socketId } = get(gameInitStateAtom);
+  return gameState?.players.find((player) => player.id === socketId) || null;
+});
+
+export const playersAtom = atom<PlayerState[] | null>((get) => {
+  const gameState = get(gameStateAtom);
+  return gameState?.players || null;
+});
+
 export const cardsAtom = atom<Card[]>((get) => {
   const gameState = get(gameStateAtom);
   const { socketId } = get(gameInitStateAtom);

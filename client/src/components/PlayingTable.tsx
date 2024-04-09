@@ -1,24 +1,28 @@
-import React, { CSSProperties, useCallback, useMemo } from 'react';
+import { CSSProperties, useCallback, useMemo } from 'react';
 import './PlayingTable.css';
 import { useAtom } from 'jotai';
 import {
   currentPlayerAtom,
-  gameStateAtom,
   currentTrickPlayedCardsAtom,
-  socketAtom
+  trumpSuitAtom,
+  myPlayerAtom,
+  playersAtom,
+  hakemPlayerAtom
 } from '../gameState/gameState';
 import { PlayerState } from '../sharedTypes';
 
 const PlayingTable = () => {
-  const [gameState] = useAtom(gameStateAtom);
-  const [socket] = useAtom(socketAtom);
+  const [myPlayer] = useAtom(myPlayerAtom);
+  const [players] = useAtom(playersAtom);
+  const [trumpSuit] = useAtom(trumpSuitAtom);
+  const [hakemPlayer] = useAtom(hakemPlayerAtom);
 
   const [currentTrickPlayedCards] = useAtom(currentTrickPlayedCardsAtom);
   const [currentPlayer] = useAtom(currentPlayerAtom);
 
   const myPlayerIndex = useMemo(
-    () => gameState?.players.findIndex((player) => player.id === socket?.id),
-    [gameState, socket]
+    () => players?.findIndex((player) => player.id === myPlayer?.id),
+    [players, myPlayer]
   );
 
   const partnerPlayerIndex = useMemo(
@@ -36,33 +40,23 @@ const PlayingTable = () => {
     [myPlayerIndex]
   );
 
-  console.log('myPlayerIndex', myPlayerIndex);
-  console.log('partnerPlayerIndex', partnerPlayerIndex);
-  console.log('previousPlayerIndex', previousPlayerIndex);
-  console.log('nextPlayerIndex', nextPlayerIndex);
-
-  const myPlayer = useMemo(() => {
-    if (myPlayerIndex === undefined) return undefined;
-    return gameState?.players[myPlayerIndex];
-  }, [gameState, myPlayerIndex]);
-
   const partnerPlayer = useMemo(() => {
     if (partnerPlayerIndex === undefined) return undefined;
-    return gameState?.players[partnerPlayerIndex];
-  }, [gameState, partnerPlayerIndex]);
+    return players?.[partnerPlayerIndex];
+  }, [players, partnerPlayerIndex]);
 
   const nextPlayer = useMemo(() => {
     if (nextPlayerIndex === undefined) return undefined;
-    return gameState?.players[nextPlayerIndex];
-  }, [gameState, nextPlayerIndex]);
+    return players?.[nextPlayerIndex];
+  }, [players, nextPlayerIndex]);
 
   const previousPlayer = useMemo(() => {
     if (previousPlayerIndex === undefined) return undefined;
-    return gameState?.players[previousPlayerIndex];
-  }, [gameState, previousPlayerIndex]);
+    return players?.[previousPlayerIndex];
+  }, [players, previousPlayerIndex]);
 
   const getStyle = useCallback(
-    (player?: PlayerState) => {
+    (player?: PlayerState | null) => {
       const style: CSSProperties = {};
 
       // highlight the current player
@@ -78,6 +72,30 @@ const PlayingTable = () => {
       return style;
     },
     [currentPlayer]
+  );
+
+  const trumpSuitIcon = useMemo(() => {
+    if (!trumpSuit) return null;
+    return (
+      <img
+        className="trump-suit-icon"
+        src={`/images/icons/${trumpSuit}.svg`}
+        alt="trump suit"
+      />
+    );
+  }, [trumpSuit]);
+
+  const getPlayerNameElement = useCallback(
+    (player?: PlayerState | null) => {
+      if (!player) return null;
+      return (
+        <div className="player-name-container">
+          <div className="player-name">{player.name}</div>
+          {hakemPlayer?.id === player.id ? trumpSuitIcon : null}
+        </div>
+      );
+    },
+    [hakemPlayer, trumpSuitIcon]
   );
 
   const myPlayedCard =
@@ -98,9 +116,10 @@ const PlayingTable = () => {
   const bottomPlayer = (
     <div className="player active-user" style={getStyle(myPlayer)}>
       <div className="username">
-        {myPlayer?.name}
+        {getPlayerNameElement(myPlayer)}
         {myPlayedCard && (
           <img
+            className="player-card active-user-card"
             src={`/images/cards/${myPlayedCard.suit}_${myPlayedCard.value}.svg`}
             alt="active user's card"
           />
@@ -111,9 +130,10 @@ const PlayingTable = () => {
 
   const topPlayer = (
     <div className="player partner" style={getStyle(partnerPlayer)}>
-      {partnerPlayer?.name}
+      {getPlayerNameElement(partnerPlayer)}
       {partnerPlayedCard && (
         <img
+          className="player-card partner-card"
           src={`/images/cards/${partnerPlayedCard.suit}_${partnerPlayedCard.value}.svg`}
           alt="partner's card"
         />
@@ -123,9 +143,10 @@ const PlayingTable = () => {
 
   const rightPlayerElement = (
     <div className={`player right-player`} style={getStyle(nextPlayer)}>
-      {nextPlayer?.name}
+      {getPlayerNameElement(nextPlayer)}
       {nextPlayerPlayedCard && (
         <img
+          className="player-card right-player-card"
           src={`/images/cards/${nextPlayerPlayedCard.suit}_${nextPlayerPlayedCard.value}.svg`}
           alt="opponent1's card"
         />
@@ -135,9 +156,10 @@ const PlayingTable = () => {
 
   const leftPlayerElement = (
     <div className={`player left-player`} style={getStyle(previousPlayer)}>
-      {previousPlayer?.name}
+      {getPlayerNameElement(previousPlayer)}
       {previousPlayerPlayedCard && (
         <img
+          className="player-card left-player-card"
           src={`/images/cards/${previousPlayerPlayedCard.suit}_${previousPlayerPlayedCard.value}.svg`}
           alt="opponent2's card"
         />
