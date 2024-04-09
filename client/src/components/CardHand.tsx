@@ -1,18 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './CardHand.css';
 import { PlayingCard } from './PlayingCard';
 import { useAtom } from 'jotai';
-import { cardsAtom, isCurrentPlayerTurnAtom } from '../gameState/gameState';
+import {
+  cardsAtom,
+  isCurrentPlayerTurnAtom,
+  trumpSuitAtom
+} from '../gameState/gameState';
 import { Card } from '../sharedTypes';
-import { usePlayCard } from '../gameState/gameHooks';
+import { usePlayCard, useSetTrumpSuit } from '../gameState/gameHooks';
 
 const CardHand = () => {
   const playCard = usePlayCard();
   const [myCards] = useAtom(cardsAtom);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isCurrentPlayerTurn] = useAtom(isCurrentPlayerTurnAtom);
+  const [trumpSuit] = useAtom(trumpSuitAtom);
+  const selectTrumpSuit = useSetTrumpSuit();
 
   const totalCards = myCards.length;
+  const isTrumpSuitSelectionMode = useMemo(
+    () => myCards.length === 5 && !trumpSuit,
+    [myCards, trumpSuit]
+  );
 
   useEffect(() => {
     setSelectedCard(null);
@@ -34,7 +44,12 @@ const CardHand = () => {
   const handleCardSelect = (card: Card) => {
     if (!isCurrentPlayerTurn) return;
     setSelectedCard(card);
-    playCard(card);
+
+    if (isTrumpSuitSelectionMode) {
+      selectTrumpSuit(card.suit);
+    } else {
+      playCard(card);
+    }
   };
 
   return (
