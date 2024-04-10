@@ -1,14 +1,12 @@
-import React from 'react';
-import { useSocket } from './gameState/gameHooks';
+import { useSocket } from '../gameState/gameHooks';
 import { useAtom } from 'jotai';
-import { gameInitStateAtom } from './gameState/gameState';
-import { PlayerCardPanel } from './oldComponents/PlayerCardPanel';
-import { SaveLoadPanel } from './oldComponents/saveLoadPanel';
-import { SidePanel } from './oldComponents/sidePanel';
-import { StatePanel } from './oldComponents/statePanel';
-import { RightPanel } from './oldComponents/rightPanel';
-import PlayingTable from './components/PlayingTable';
-import CardHand from './components/CardHand';
+import { gameInitStateAtom } from '../gameState/gameState';
+import { PlayerCardPanel } from './PlayerCardPanel';
+import { SaveLoadPanel } from './saveLoadPanel';
+import { SidePanel } from './sidePanel';
+import { RightPanel } from './rightPanel';
+import PlayingTable from '../components/PlayingTable';
+import CardHand from '../components/CardHand';
 
 export const MainContainer = () => {
   const [gameInitState] = useAtom(gameInitStateAtom);
@@ -24,7 +22,6 @@ export const MainContainer = () => {
         <PlayerCardPanel />
         <SaveLoadPanel />
       </div>
-      {/* <StatePanel /> */}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <PlayingTable />
         <CardHand />
