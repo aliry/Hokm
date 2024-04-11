@@ -12,7 +12,7 @@ interface InitialState {
 
 export const socketAtom = atom<Socket | null>(null);
 
-export const gameInitStateAtom = atom<InitialState>({
+export const appStateAtom = atom<InitialState>({
   playerName: '',
   socketId: '',
   teamCodes: [],
@@ -25,7 +25,7 @@ export const gameStateAtom = atom<GameSessionState | null>(null);
 
 export const myPlayerAtom = atom<PlayerState | null>((get) => {
   const gameState = get(gameStateAtom);
-  const { socketId } = get(gameInitStateAtom);
+  const { socketId } = get(appStateAtom);
   return gameState?.players.find((player) => player.id === socketId) || null;
 });
 
@@ -36,7 +36,7 @@ export const playersAtom = atom<PlayerState[] | null>((get) => {
 
 export const cardsAtom = atom<Card[]>((get) => {
   const gameState = get(gameStateAtom);
-  const { socketId } = get(gameInitStateAtom);
+  const { socketId } = get(appStateAtom);
   if (!gameState) return [];
   let cards = gameState.players.find((player) => player.id === socketId)?.cards;
   if (!cards) return [];
@@ -83,7 +83,7 @@ export const currentPlayerAtom = atom<PlayerState | undefined>((get) => {
 
 export const isCurrentPlayerTurnAtom = atom<boolean>((get) => {
   const currentPlayer = get(currentPlayerAtom);
-  const { socketId } = get(gameInitStateAtom);
+  const { socketId } = get(appStateAtom);
   return currentPlayer?.id === socketId;
 });
 

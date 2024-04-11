@@ -3,7 +3,7 @@ import { useCallback, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import {
   errorAtom,
-  gameInitStateAtom,
+  appStateAtom,
   gameStateAtom,
   socketAtom
 } from './gameState';
@@ -17,7 +17,7 @@ let socketConnectionInProgress = false;
 
 export const useSocket = () => {
   const [socket, setSocket] = useAtom(socketAtom);
-  const [, setGameInitState] = useAtom(gameInitStateAtom);
+  const [, setAppState] = useAtom(appStateAtom);
   const [, setError] = useAtom(errorAtom);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export const useSocket = () => {
           setError('Socket id not found');
           return;
         }
-        setGameInitState((prev) => ({
+        setAppState((prev) => ({
           ...prev,
           socketId
         }));
@@ -54,7 +54,7 @@ export const useSocket = () => {
         }
       };
     }
-  }, [setError, setGameInitState, setSocket, socket]);
+  }, [setError, setAppState, setSocket, socket]);
 };
 
 export const useEmitAction = (socketRef: Socket | null) => {
@@ -94,16 +94,16 @@ export const useJoinGame = (playerName: string, teamCode: string) => {
 };
 
 export const useCreateGame = () => {
-  const [gameInitState, setGameInitState] = useAtom(gameInitStateAtom);
+  const [appState, setAppState] = useAtom(appStateAtom);
   const [, setError] = useAtom(errorAtom);
-  const { playerName, teamCode } = gameInitState;
+  const { playerName, teamCode } = appState;
   const joinGame = useJoinGame(playerName, teamCode);
   const handleCreateGame = useCallback(() => {
-    const { playerName } = gameInitState;
+    const { playerName } = appState;
     axios
       .post(`${serverURL}/create-game`, { managerName: playerName })
       .then((response) => {
-        setGameInitState((prev) => ({
+        setAppState((prev) => ({
           playerName,
           socketId: prev.socketId,
           teamCodes: response.data.teamCodes,
@@ -114,15 +114,15 @@ export const useCreateGame = () => {
       .catch((error) => {
         setError(error.message);
       });
-  }, [gameInitState, joinGame, setGameInitState, setError]);
+  }, [appState, joinGame, setAppState, setError]);
 
   return handleCreateGame;
 };
 
 export const useLoadGame = () => {
-  const [gameInitState, setGameInitState] = useAtom(gameInitStateAtom);
+  const [appState, setAppState] = useAtom(appStateAtom);
   const [, setError] = useAtom(errorAtom);
-  const { playerName, socketId, teamCode } = gameInitState;
+  const { playerName, socketId, teamCode } = appState;
   const joinGame = useJoinGame(playerName, teamCode);
   const loadGame = useCallback(() => {
     if (!playerName) {
@@ -153,7 +153,7 @@ export const useLoadGame = () => {
             playerName
           })
           .then((response) => {
-            setGameInitState((prev) => ({
+            setAppState((prev) => ({
               ...prev,
               teamCodes: response.data.teamCodes,
               teamCode: response.data.teamCode
@@ -167,15 +167,15 @@ export const useLoadGame = () => {
       reader.readAsText(file);
     };
     fileInput.click();
-  }, [playerName, socketId, setError, setGameInitState, joinGame]);
+  }, [playerName, socketId, setError, setAppState, joinGame]);
 
   return loadGame;
 };
 
 export const useSaveGame = () => {
-  const [gameInitState] = useAtom(gameInitStateAtom);
+  const [appState] = useAtom(appStateAtom);
   const [gameState] = useAtom(gameStateAtom);
-  const { socketId } = gameInitState;
+  const { socketId } = appState;
   const { sessionId } = gameState || {};
   const downloadString = (text: string) => {
     const blob = new Blob([text], { type: 'text/plain' });

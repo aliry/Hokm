@@ -1,6 +1,6 @@
 import { useSocket } from '../gameState/gameHooks';
 import { useAtom } from 'jotai';
-import { gameInitStateAtom } from '../gameState/gameState';
+import { appStateAtom } from '../gameState/gameState';
 import { PlayerCardPanel } from './PlayerCardPanel';
 import { SaveLoadPanel } from './saveLoadPanel';
 import { SidePanel } from './sidePanel';
@@ -9,11 +9,11 @@ import PlayingTable from '../components/PlayingTable';
 import CardHand from '../components/CardHand';
 
 export const MainContainer = () => {
-  const [gameInitState] = useAtom(gameInitStateAtom);
+  const [appState] = useAtom(appStateAtom);
 
   useSocket();
 
-  if (!gameInitState.socketId) return <div>Connecting...</div>;
+  if (!appState.socketId) return <div>Connecting...</div>;
 
   return (
     <div style={{ display: 'flex', gap: 10 }}>

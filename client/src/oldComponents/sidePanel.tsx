@@ -5,14 +5,14 @@ import {
   useSetTrumpSuit,
   useStartNewRound
 } from '../gameState/gameHooks';
-import { gameInitStateAtom, trumpSuitAtom } from '../gameState/gameState';
+import { appStateAtom, trumpSuitAtom } from '../gameState/gameState';
 import { useState } from 'react';
 
 export const SidePanel = () => {
   const [trumpSuiteFromState] = useAtom(trumpSuitAtom);
   const [trumpSuit, setTrumpSuit] = useState<string>(trumpSuiteFromState);
-  const [gameInitState, setGameInitState] = useAtom(gameInitStateAtom);
-  const { playerName, teamCode } = gameInitState;
+  const [appState, setAppState] = useAtom(appStateAtom);
+  const { playerName, teamCode } = appState;
   const joinGame = useJoinGame(playerName, teamCode);
   const handleCreateGame = useCreateGame();
   const selectTrumpSuit = useSetTrumpSuit();
@@ -26,7 +26,7 @@ export const SidePanel = () => {
           type="text"
           value={playerName}
           onChange={(e) =>
-            setGameInitState({ ...gameInitState, playerName: e.target.value })
+            setAppState({ ...appState, playerName: e.target.value })
           }
         />
       </div>
@@ -49,7 +49,7 @@ export const SidePanel = () => {
           type="text"
           value={teamCode}
           onChange={(e) =>
-            setGameInitState({ ...gameInitState, teamCode: e.target.value })
+            setAppState({ ...appState, teamCode: e.target.value })
           }
         />
         <div>

@@ -1,10 +1,10 @@
 import { useAtom } from 'jotai';
-import { gameStateAtom, gameInitStateAtom } from '../gameState/gameState';
+import { gameStateAtom, appStateAtom } from '../gameState/gameState';
 
 export const RightPanel = () => {
   const [gameState] = useAtom(gameStateAtom);
-  const [gameInitState] = useAtom(gameInitStateAtom);
-  const { teamCodes } = gameInitState;
+  const [appState] = useAtom(appStateAtom);
+  const { teamCodes } = appState;
 
   return (
     <div style={{ flex: 1 }}>
