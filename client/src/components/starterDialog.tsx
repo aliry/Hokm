@@ -5,20 +5,26 @@ import DialogContentText from '@mui/material/DialogContentText';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { useAtom } from 'jotai';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { appStateAtom } from '../gameState/gameState';
 import { useCreateGame, useJoinGame } from '../gameState/gameHooks';
 import Divider from '@mui/material/Divider';
 import Container from '@mui/material/Container';
 
-export const PlayerNameDialog = () => {
+export const StarterDialog = () => {
   const [appState, setAppState] = useAtom(appStateAtom);
   const [open, setOpen] = useState<boolean>(!appState.playerName);
   const [newPlayerName, setPlayerName] = useState<string>('');
-  const [newTeamCode, setTeamCode] = useState<string>('');
+  const [newTeamCode, setTeamCode] = useState<string>(appState.teamCode);
   const joinGame = useJoinGame();
   const [joinWithTeamCode, setJoinWithTeamCode] = useState<boolean>(false);
   const createGame = useCreateGame();
+
+  useEffect(() => {
+    if (appState.teamCode !== '') {
+      setJoinWithTeamCode(true);
+    }
+  }, [appState.teamCode]);
 
   const handleClose = useCallback(() => {
     if (newPlayerName.trim()) {
@@ -51,6 +57,7 @@ export const PlayerNameDialog = () => {
   const handleJoinGame = useCallback(() => {
     if (newTeamCode.trim() && newPlayerName.trim()) {
       joinGame(newPlayerName, newTeamCode);
+      setOpen(false);
     }
   }, [joinGame, newTeamCode, newPlayerName]);
 
@@ -104,11 +111,14 @@ export const PlayerNameDialog = () => {
           type="text"
           fullWidth
           value={newTeamCode}
+          InputProps={{
+            disabled: appState.teamCode !== ''
+          }}
           onChange={handleTeamCodeChange}
         />
         <Container sx={{ display: 'flex', justifyContent: 'center' }}>
           <Button onClick={handleJoinGame} variant="contained">
-            Join
+            Join Game
           </Button>
         </Container>
       </>
@@ -118,7 +128,8 @@ export const PlayerNameDialog = () => {
       newTeamCode,
       handlePlayerNameChange,
       handleTeamCodeChange,
-      handleJoinGame
+      handleJoinGame,
+      appState.teamCode
     ]
   );
 

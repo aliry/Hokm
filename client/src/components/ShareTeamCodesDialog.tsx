@@ -9,6 +9,7 @@ import { useAtom } from 'jotai';
 import { useState } from 'react';
 import { appStateAtom } from '../gameState/gameState';
 import { useTeamLinks } from '../hooks/useTeamLinks';
+import { Divider } from '@mui/material';
 
 export const ShareTeamCodesDialog = () => {
   const [appState] = useAtom(appStateAtom);
@@ -52,6 +53,32 @@ export const ShareTeamCodesDialog = () => {
           type="text"
           fullWidth
           value={teamLinks.opponentTeamLink}
+          InputProps={{
+            readOnly: true
+          }}
+        />
+        <Divider sx={{ m: 1 }} />
+        <DialogContentText>
+          Or, you can simply share the team codes
+        </DialogContentText>
+        <TextField
+          margin="normal"
+          id="name"
+          label="Your Team Code"
+          type="text"
+          value={appState.teamCodes[0]}
+          onFocus={(e) => e.target.select()}
+          InputProps={{
+            readOnly: true
+          }}
+        />
+        <TextField
+          margin="normal"
+          id="name"
+          label="Opponent Team Code"
+          type="text"
+          value={appState.teamCodes[1]}
+          onFocus={(e) => e.target.select()}
           InputProps={{
             readOnly: true
           }}
