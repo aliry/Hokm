@@ -28,7 +28,7 @@ export const GameAppBar = () => {
     []
   );
 
-  const navItems = ['New game', 'Join game'];
+  const navItems = ['Save game', 'Load game'];
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       {appLogo}

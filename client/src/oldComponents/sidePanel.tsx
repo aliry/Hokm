@@ -13,7 +13,7 @@ export const SidePanel = () => {
   const [trumpSuit, setTrumpSuit] = useState<string>(trumpSuiteFromState);
   const [appState, setAppState] = useAtom(appStateAtom);
   const { playerName, teamCode } = appState;
-  const joinGame = useJoinGame(playerName, teamCode);
+  const joinGame = useJoinGame();
   const handleCreateGame = useCreateGame();
   const selectTrumpSuit = useSetTrumpSuit();
   const handleStartNewRound = useStartNewRound();
@@ -38,7 +38,7 @@ export const SidePanel = () => {
             color: 'darkGreen',
             fontWeight: 'bold'
           }}
-          onClick={handleCreateGame}
+          onClick={() => handleCreateGame()}
         >
           Create Game
         </button>

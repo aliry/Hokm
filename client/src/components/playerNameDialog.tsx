@@ -3,36 +3,64 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import TextField from '@mui/material/TextField';
-import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import { useAtom } from 'jotai';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { appStateAtom } from '../gameState/gameState';
+import { useCreateGame, useJoinGame } from '../gameState/gameHooks';
+import Divider from '@mui/material/Divider';
+import Container from '@mui/material/Container';
 
 export const PlayerNameDialog = () => {
   const [appState, setAppState] = useAtom(appStateAtom);
   const [open, setOpen] = useState<boolean>(!appState.playerName);
-  const [playerName, setPlayerName] = useState<string>('');
+  const [newPlayerName, setPlayerName] = useState<string>('');
+  const [newTeamCode, setTeamCode] = useState<string>('');
+  const joinGame = useJoinGame();
+  const [joinWithTeamCode, setJoinWithTeamCode] = useState<boolean>(false);
+  const createGame = useCreateGame();
 
-  const handleClose = () => {
-    if (playerName.trim()) {
-      setAppState((prev) => ({ ...prev, playerName }));
-      setOpen(false);
+  const handleClose = useCallback(() => {
+    if (newPlayerName.trim()) {
+      setAppState((prev) => ({ ...prev, playerName: newPlayerName }));
     }
-  };
+  }, [newPlayerName, setAppState]);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPlayerName(event.target.value);
-  };
+  const handlePlayerNameChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setPlayerName(event.target.value);
+    },
+    []
+  );
 
-  return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="playerName-dialog-title"
-    >
-      <DialogTitle id="playerName-dialog-title">Enter Player Name</DialogTitle>
-      <DialogContent>
+  const handleTeamCodeChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setTeamCode(event.target.value);
+    },
+    []
+  );
+
+  const handleCreateGame = useCallback(() => {
+    if (!newPlayerName.trim()) {
+      return;
+    }
+    createGame(newPlayerName);
+    setOpen(false);
+  }, [createGame, newPlayerName]);
+
+  const handleJoinGame = useCallback(() => {
+    if (newTeamCode.trim() && newPlayerName.trim()) {
+      joinGame(newPlayerName, newTeamCode);
+    }
+  }, [joinGame, newTeamCode, newPlayerName]);
+
+  const dialogTitle = joinWithTeamCode
+    ? 'Join an existing game'
+    : 'Enter Player Name';
+
+  const getPlayerName = useMemo(
+    () => (
+      <>
         <DialogContentText>
           To start playing, please enter your name.
         </DialogContentText>
@@ -43,15 +71,78 @@ export const PlayerNameDialog = () => {
           label="Player Name"
           type="text"
           fullWidth
-          value={playerName}
-          onChange={handleInputChange}
+          value={newPlayerName}
+          onChange={handlePlayerNameChange}
         />
+        <Container sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Button onClick={handleCreateGame} variant="contained">
+            Create New Game
+          </Button>
+        </Container>
+      </>
+    ),
+    [newPlayerName, handlePlayerNameChange, handleCreateGame]
+  );
+
+  const getTeamCode = useMemo(
+    () => (
+      <>
+        <TextField
+          autoFocus
+          margin="dense"
+          id="playerName"
+          label="Player Name"
+          type="text"
+          fullWidth
+          value={newPlayerName}
+          onChange={handlePlayerNameChange}
+        />
+        <TextField
+          margin="dense"
+          id="teamCode"
+          label="Team Code"
+          type="text"
+          fullWidth
+          value={newTeamCode}
+          onChange={handleTeamCodeChange}
+        />
+        <Container sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Button onClick={handleJoinGame} variant="contained">
+            Join
+          </Button>
+        </Container>
+      </>
+    ),
+    [
+      newPlayerName,
+      newTeamCode,
+      handlePlayerNameChange,
+      handleTeamCodeChange,
+      handleJoinGame
+    ]
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="playerName-dialog-title"
+    >
+      <DialogTitle id="playerName-dialog-title">{dialogTitle}</DialogTitle>
+      <DialogContent>
+        {joinWithTeamCode ? getTeamCode : getPlayerName}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          Confirm
-        </Button>
-      </DialogActions>
+      {!joinWithTeamCode && (
+        <DialogContent>
+          <Divider />
+          <Button
+            onClick={() => setJoinWithTeamCode(true)}
+            sx={{ textTransform: 'none' }}
+          >
+            Join an existing game with team code
+          </Button>
+        </DialogContent>
+      )}
     </Dialog>
   );
 };

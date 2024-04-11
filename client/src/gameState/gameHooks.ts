@@ -72,19 +72,23 @@ export const useEmitAction = (socketRef: Socket | null) => {
   return emitAction;
 };
 
-export const useJoinGame = (playerName: string, teamCode: string) => {
+export const useJoinGame = () => {
   const [socket] = useAtom(socketAtom);
+  const [appState] = useAtom(appStateAtom);
+  const { playerName, teamCode } = appState;
   const emitAction = useEmitAction(socket);
   const handleSocketEvents = useSocketEvents(socket);
   const joinGame = useCallback(
-    (newTeamCode?: string) => {
-      if (!socket || !playerName) {
+    (newPlayerName?: string, newTeamCode?: string) => {
+      newPlayerName = newPlayerName || playerName;
+      newTeamCode = newTeamCode || teamCode;
+      if (!socket || !newPlayerName || !newTeamCode) {
         return;
       }
       handleSocketEvents?.();
       emitAction(GameAction.JoinGame, {
-        teamCode: teamCode || newTeamCode,
-        playerName
+        teamCode: newTeamCode,
+        playerName: newPlayerName
       });
     },
     [emitAction, handleSocketEvents, playerName, socket, teamCode]
@@ -96,25 +100,28 @@ export const useJoinGame = (playerName: string, teamCode: string) => {
 export const useCreateGame = () => {
   const [appState, setAppState] = useAtom(appStateAtom);
   const [, setError] = useAtom(errorAtom);
-  const { playerName, teamCode } = appState;
-  const joinGame = useJoinGame(playerName, teamCode);
-  const handleCreateGame = useCallback(() => {
-    const { playerName } = appState;
-    axios
-      .post(`${serverURL}/create-game`, { managerName: playerName })
-      .then((response) => {
-        setAppState((prev) => ({
-          playerName,
-          socketId: prev.socketId,
-          teamCodes: response.data.teamCodes,
-          teamCode: response.data.teamCodes[0]
-        }));
-        joinGame(response.data.teamCodes[0]);
-      })
-      .catch((error) => {
-        setError(error.message);
-      });
-  }, [appState, joinGame, setAppState, setError]);
+  const joinGame = useJoinGame();
+  const handleCreateGame = useCallback(
+    (newPlayerName?: string) => {
+      const playerName = newPlayerName || appState.playerName;
+      axios
+        .post(`${serverURL}/create-game`, { managerName: playerName })
+        .then((response) => {
+          setAppState((prev) => ({
+            playerName,
+            socketId: prev.socketId,
+            teamCodes: response.data.teamCodes,
+            teamCode: response.data.teamCodes[0],
+            gameStarted: false
+          }));
+          joinGame(playerName, response.data.teamCodes[0]);
+        })
+        .catch((error) => {
+          setError(error.message);
+        });
+    },
+    [appState, joinGame, setAppState, setError]
+  );
 
   return handleCreateGame;
 };
@@ -122,8 +129,8 @@ export const useCreateGame = () => {
 export const useLoadGame = () => {
   const [appState, setAppState] = useAtom(appStateAtom);
   const [, setError] = useAtom(errorAtom);
-  const { playerName, socketId, teamCode } = appState;
-  const joinGame = useJoinGame(playerName, teamCode);
+  const { playerName, socketId } = appState;
+  const joinGame = useJoinGame();
   const loadGame = useCallback(() => {
     if (!playerName) {
       setError('Player name is required to load game');
@@ -209,6 +216,7 @@ export const useSaveGame = () => {
 export const useSocketEvents = (socket: Socket | null) => {
   const [, setErrors] = useAtom(errorAtom);
   const [, setGameState] = useAtom(gameStateAtom);
+  const [, setAppState] = useAtom(appStateAtom);
 
   const handleSocketEvents = useCallback(() => {
     socket?.on(SocketEvents.ServerEvent, (payload: ServerEventPayload) => {
@@ -224,11 +232,20 @@ export const useSocketEvents = (socket: Socket | null) => {
             Object.assign(draft, payload.gameState);
           });
         });
+        if (
+          payload.gameState?.currentRound ||
+          payload.gameState?.roundHistory?.length > 0
+        ) {
+          setAppState((prev) => ({
+            ...prev,
+            gameStarted: true
+          }));
+        }
       } else {
         setErrors('Invalid server event');
       }
     });
-  }, [setErrors, setGameState, socket]);
+  }, [setAppState, setErrors, setGameState, socket]);
 
   useEffect(() => {
     return () => {
