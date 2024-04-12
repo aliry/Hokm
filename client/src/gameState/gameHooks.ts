@@ -57,32 +57,33 @@ export const useSocket = () => {
   }, [setError, setAppState, setSocket, socket]);
 };
 
-export const useEmitAction = (socketRef: Socket | null) => {
+export const useEmitAction = () => {
+  const [socket] = useAtom(socketAtom);
   const emitAction = useCallback(
     (action: string, data: any) => {
-      if (!socketRef) {
+      if (!socket) {
+        console.log('tried to emit action without socket');
         return;
       }
       const payload = { action, data };
-      socketRef.emit(SocketEvents.ClientAction, payload);
+      socket.emit(SocketEvents.ClientAction, payload);
     },
-    [socketRef]
+    [socket]
   );
 
   return emitAction;
 };
 
 export const useJoinGame = () => {
-  const [socket] = useAtom(socketAtom);
   const [appState] = useAtom(appStateAtom);
   const { playerName, teamCode } = appState;
-  const emitAction = useEmitAction(socket);
-  const handleSocketEvents = useSocketEvents(socket);
+  const emitAction = useEmitAction();
+  const handleSocketEvents = useSocketEvents();
   const joinGame = useCallback(
     (newPlayerName?: string, newTeamCode?: string) => {
       newPlayerName = newPlayerName || playerName;
       newTeamCode = newTeamCode || teamCode;
-      if (!socket || !newPlayerName || !newTeamCode) {
+      if (!newPlayerName || !newTeamCode) {
         return;
       }
       handleSocketEvents?.();
@@ -91,7 +92,7 @@ export const useJoinGame = () => {
         playerName: newPlayerName
       });
     },
-    [emitAction, handleSocketEvents, playerName, socket, teamCode]
+    [emitAction, handleSocketEvents, playerName, teamCode]
   );
 
   return joinGame;
@@ -213,13 +214,18 @@ export const useSaveGame = () => {
   return saveGame;
 };
 
-export const useSocketEvents = (socket: Socket | null) => {
+export const useSocketEvents = () => {
   const [, setErrors] = useAtom(errorAtom);
+  const [socket] = useAtom(socketAtom);
   const [, setGameState] = useAtom(gameStateAtom);
   const [, setAppState] = useAtom(appStateAtom);
 
   const handleSocketEvents = useCallback(() => {
-    socket?.on(SocketEvents.ServerEvent, (payload: ServerEventPayload) => {
+    if (!socket) {
+      console.log('tried to handle socket events without socket');
+      return;
+    }
+    socket.on(SocketEvents.ServerEvent, (payload: ServerEventPayload) => {
       console.log(payload);
       if (payload.event === GameEvent.Error) {
         setErrors(payload.data);
@@ -257,40 +263,37 @@ export const useSocketEvents = (socket: Socket | null) => {
 };
 
 export const useSetTrumpSuit = () => {
-  const [socket] = useAtom(socketAtom);
-  const emitAction = useEmitAction(socket);
+  const emitAction = useEmitAction();
   const setTrumpSuit = useCallback(
     (trumpSuit: string) => {
-      if (!socket || !trumpSuit) {
+      if (!trumpSuit) {
         return;
       }
       emitAction(GameAction.SelectTrumpSuit, { trumpSuit });
     },
-    [emitAction, socket]
+    [emitAction]
   );
 
   return setTrumpSuit;
 };
 
 export const usePlayCard = () => {
-  const [socket] = useAtom(socketAtom);
-  const emitAction = useEmitAction(socket);
+  const emitAction = useEmitAction();
   const playCard = useCallback(
     (card: Card) => {
-      if (!socket || !card) {
+      if (!card) {
         return;
       }
       emitAction(GameAction.PlayCard, { card });
     },
-    [emitAction, socket]
+    [emitAction]
   );
 
   return playCard;
 };
 
 export const useStartNewRound = () => {
-  const [socket] = useAtom(socketAtom);
-  const emitAction = useEmitAction(socket);
+  const emitAction = useEmitAction();
   return useCallback(
     () => emitAction(GameAction.StartNewRound, {}),
     [emitAction]

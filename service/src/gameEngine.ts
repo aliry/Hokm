@@ -42,11 +42,9 @@ export class GameEngine {
         !player.connected
     );
 
-    let isReconnecting = false;
     if (playerIndex !== -1) {
       // Reconnect the player.
       session.ReconnectPlayer(playerIndex, socket.id);
-      isReconnecting = true;
     } else {
       session.AddPlayer(playerName, teamCode, socket.id);
     }
@@ -54,7 +52,7 @@ export class GameEngine {
     // Join the socket to the room named after the session ID.
     socket.join(session.SessionId);
 
-    if (!isReconnecting) {
+    if (session.CurrentRound === undefined && session.RoundHistory.length === 0) {
       // Once all teams are full, we can start the game and select the hakem.
       const allTeamsFull = session.TeamCodes.every(
         (code) =>
