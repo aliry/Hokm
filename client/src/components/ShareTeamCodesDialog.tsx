@@ -3,33 +3,28 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import TextField from '@mui/material/TextField';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
 import { useAtom } from 'jotai';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { appStateAtom } from '../gameState/gameState';
 import { useTeamLinks } from '../hooks/useTeamLinks';
-import { Divider } from '@mui/material';
+import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 
 export const ShareTeamCodesDialog = () => {
   const [appState] = useAtom(appStateAtom);
-  const [open, setOpen] = useState<boolean>(true);
+  const [open, setOpen] = useState<boolean>(false);
   const teamLinks = useTeamLinks();
 
-  const handleClose = () => {
-    setOpen(false);
-  };
+  useEffect(() => {
+    setOpen(!appState.gameStarted);
+  }, [appState.gameStarted]);
 
   if (appState.teamCodes.length !== 2) {
     return null;
   }
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="playerName-dialog-title"
-    >
+    <Dialog open={open} aria-labelledby="playerName-dialog-title">
       <DialogTitle id="playerName-dialog-title">Links</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -83,12 +78,10 @@ export const ShareTeamCodesDialog = () => {
             readOnly: true
           }}
         />
+        <Box sx={{ color: 'red', mt: 3 }}>
+          Waiting for other players to join ...
+        </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          Close
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };

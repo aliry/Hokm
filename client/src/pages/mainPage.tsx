@@ -31,12 +31,8 @@ export function MainPage() {
   return (
     <Box sx={{ display: 'flex' }}>
       <GameAppBar />
-      {!appState.gameStarted && (
-        <>
-          <StarterDialog />
-          <ShareTeamCodesDialog />
-        </>
-      )}
+      <StarterDialog />
+      <ShareTeamCodesDialog />
       <Container sx={{ my: 10 }}>
         <GameStateBoard />
         <PlayingTable />

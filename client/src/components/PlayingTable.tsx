@@ -10,6 +10,7 @@ import {
   hakemPlayerAtom
 } from '../gameState/gameState';
 import { PlayerState } from '../sharedTypes';
+import { DisabledPlayerColor, Team1Color, Team2Color } from '../gameConfigs';
 
 const PlayingTable = () => {
   const [myPlayer] = useAtom(myPlayerAtom);
@@ -61,17 +62,22 @@ const PlayingTable = () => {
 
       // highlight the current player
       if (player?.id && currentPlayer?.id && currentPlayer.id === player.id) {
-        style.border = '2px solid red';
+        style.border = '3px solid orangeRed';
       }
       // gray out background color when any player is not connected
       if (player?.connected) {
-        style.backgroundColor = 'rgb(176, 235, 28)';
+        const team1Code = players?.[0].teamCode;
+        if (player.teamCode === team1Code) {
+          style.backgroundColor = Team1Color;
+        } else {
+          style.backgroundColor = Team2Color;
+        }
       } else {
-        style.backgroundColor = 'rgb(200, 200, 200)';
+        style.backgroundColor = DisabledPlayerColor;
       }
       return style;
     },
-    [currentPlayer]
+    [currentPlayer, players]
   );
 
   const trumpSuitIcon = useMemo(() => {
