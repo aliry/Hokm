@@ -48,7 +48,9 @@ const CardHand = () => {
     if (isTrumpSuitSelectionMode) {
       selectTrumpSuit(card.suit);
     } else {
-      playCard(card);
+      setTimeout(() => {
+        playCard(card);
+      }, 500);
     }
   };
 
@@ -57,9 +59,7 @@ const CardHand = () => {
       {myCards.map((card, i) => {
         const rotation = 180 - (arcStart + i * distanceBetweenCards);
         const isSelected = selectedCard === card;
-        const transform = `rotate(${rotation}deg) translateX(${
-          radius + (isSelected ? -200 : 0)
-        }px) rotate(-${rotation}deg)`;
+        const transform = `rotate(${rotation}deg) translateX(${radius}px) rotate(-${rotation}deg)`;
         return (
           <PlayingCard
             card={card}
@@ -67,7 +67,7 @@ const CardHand = () => {
             style={{
               transform,
               position: 'absolute',
-              transition: isSelected ? 'transform 2s, opacity 2s' : undefined,
+              transition: isSelected ? 'transform 1s, opacity 1s' : undefined,
               opacity: isSelected ? 0 : 1,
               zIndex: isSelected ? 100 : 1
             }}

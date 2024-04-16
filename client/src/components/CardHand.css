@@ -10,17 +10,13 @@
 .card {
   position: absolute;
   width: 100px;
-  /* adjust as needed */
   height: 150px;
-  /* adjust as needed */
   transition: transform 0.5s, opacity 0.5s;
-  /* transition for the opacity and transform */
   transform-origin: bottom center;
 }
 
 .card-selected {
-  transform: translateY(-200%) !important;
-  /* move the card up and out of the hand */
-  opacity: 0;
-  /* fade the card out */
+    transform: translateY(-200%) !important;
+  /* transform: translateY(-200%) !important; */
+  opacity: 0.2;
 }
