@@ -7,7 +7,7 @@ import {
   gameStateAtom,
   socketAtom
 } from './gameState';
-import { Socket, io } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { Card, ServerEventPayload } from '../sharedTypes';
 import { produce } from 'immer';
