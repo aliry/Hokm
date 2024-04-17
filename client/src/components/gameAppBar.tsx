@@ -12,12 +12,15 @@ import { useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Button from '@mui/material/Button';
+import { useLoadGame, useSaveGame } from '../gameState/gameHooks';
 
 const drawerWidth = 240;
 const appName = 'HOKM';
 
 export const GameAppBar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const saveGame = useSaveGame();
+  const loadGame = useLoadGame();
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
@@ -28,7 +31,16 @@ export const GameAppBar = () => {
     []
   );
 
-  const navItems = ['Save game', 'Load game'];
+  const navItems = [
+    {
+      text: 'Save game',
+      onClick: saveGame
+    },
+    {
+      text: 'Load game',
+      onClick: loadGame
+    }
+  ];
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       {appLogo}
@@ -38,9 +50,9 @@ export const GameAppBar = () => {
       <Divider />
       <List>
         {navItems.map((item) => (
-          <ListItem key={item} disablePadding>
+          <ListItem key={item.text} disablePadding>
             <ListItemButton sx={{ textAlign: 'center' }}>
-              <ListItemText primary={item} />
+              <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
         ))}
@@ -71,8 +83,8 @@ export const GameAppBar = () => {
           </Typography>
           <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
             {navItems.map((item) => (
-              <Button key={item} sx={{ color: '#fff' }}>
-                {item}
+              <Button key={item.text} sx={{ color: '#fff' }} onClick={item.onClick}>
+                {item.text}
               </Button>
             ))}
           </Box>

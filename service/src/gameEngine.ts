@@ -11,9 +11,11 @@ import { GameConfigs } from './gameConfigs';
  */
 export class GameEngine {
   private gameSessionManager: GameSessionManager;
+  private emitNextState: (session: GameSession) => void;
 
-  constructor(gameSessionManager: GameSessionManager) {
+  constructor(gameSessionManager: GameSessionManager, emitNextState: (session: GameSession) => void) {
     this.gameSessionManager = gameSessionManager;
+    this.emitNextState = emitNextState;
   }
 
   /**
@@ -210,7 +212,10 @@ export class GameEngine {
       session.CurrentRound.tricks[currentTrickIndex].items.length ===
       session.Players.length
     ) {
-      this.endTrick(session);
+      setTimeout(() => {
+        this.endTrick(session);
+        this.emitNextState(session);
+      }, GameConfigs.roundStartTimeout);
     } else {
       // Move to the next player.
       session.CurrentPlayerIndex =
@@ -243,6 +248,14 @@ export class GameEngine {
       throw new Error('Session not found');
     }
     return session;
+  }
+
+  /**
+   * Register a callback to emits the next game state to all players in the game session.
+   * @param session - The game session.
+   */
+  public RegisterEmitNextState(callback: (session: GameSession) => void) {
+    this.emitNextState = callback;
   }
 
   /**

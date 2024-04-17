@@ -242,8 +242,10 @@ export const useSocketEvents = () => {
           payload.gameState?.currentRound ||
           payload.gameState?.roundHistory?.length > 0
         ) {
+          // All players have joined and the game has started
           setAppState((prev) => ({
             ...prev,
+            teamCodes: Object.keys(payload.gameState.scores),
             gameStarted: true
           }));
         }

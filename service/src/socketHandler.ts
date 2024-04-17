@@ -11,7 +11,7 @@ export class SocketHandler {
 
   constructor(io: SocketIOServer, gameSessionManager: GameSessionManager) {
     this._io = io;
-    this.gameEngine = new GameEngine(gameSessionManager);
+    this.gameEngine = new GameEngine(gameSessionManager, this.emitNextState.bind(this));
   }
 
   public handleConnection(socket: Socket): void {
@@ -44,7 +44,7 @@ export class SocketHandler {
               break;
           }
         }
-        this.emitNextState(session, GameEvent.GameState);
+        this.emitNextState(session);
       } catch (error: any) {
         this.emitError(socket, error.message);
       }
@@ -67,12 +67,12 @@ export class SocketHandler {
     socket.emit(SocketEvents.ServerEvent, payLoad);
   }
 
-  private emitNextState(session: GameSession, event: GameEvent) {
+  private emitNextState(session: GameSession) {
     const playerIds = session.Players.map((player) => player.id || '');
     playerIds.forEach((playerId) => {
       if (playerId) {
         const payLoad: ServerEventPayload = {
-          event,
+          event: GameEvent.GameState,
           gameState: session.GetStateForBroadcast(playerId)
         };
         this._io.to(playerId).emit(SocketEvents.ServerEvent, payLoad);
