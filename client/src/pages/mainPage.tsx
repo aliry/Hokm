@@ -10,6 +10,7 @@ import { StarterDialog } from '../components/starterDialog';
 import { GameStateBoard } from '../components/GameStateBoard';
 import { ShareTeamCodesDialog } from '../components/ShareTeamCodesDialog';
 import { RoundEndDialog } from '../components/roundEndDialog';
+import { GameAlert } from '../components/gameAlert';
 
 export function MainPage() {
   const [appState, setAppState] = useAtom(appStateAtom);
@@ -31,6 +32,7 @@ export function MainPage() {
 
   return (
     <Box sx={{ display: 'flex' }}>
+      <GameAlert />
       <GameAppBar />
       <StarterDialog />
       <ShareTeamCodesDialog />

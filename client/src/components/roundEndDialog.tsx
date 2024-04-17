@@ -3,11 +3,13 @@ import { useAtom } from "jotai";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { appStateAtom, gameStateAtom } from "../gameState/gameState";
 import { Team1Color, Team2Color } from "../gameConfigs";
+import { useStartNewRound } from "../gameState/gameHooks";
 
 export const RoundEndDialog = () => {
   const [gameState] = useAtom(gameStateAtom);
   const [appState] = useAtom(appStateAtom);
   const [open, setOpen] = useState<boolean>(false);
+  const handleStartNewRound = useStartNewRound();
 
   const handleClose = useCallback(() => {
     setOpen(false);
@@ -31,7 +33,7 @@ export const RoundEndDialog = () => {
       </Container>
       <Container>
         <DialogActions>
-          <Button onClick={handleClose} color="primary" variant="outlined" >Start Next Round</Button>
+          <Button onClick={handleStartNewRound} color="primary" variant="outlined" >Start Next Round</Button>
         </DialogActions>
       </Container>
     </Dialog >

@@ -9,6 +9,8 @@ import {
 } from '../gameState/gameState';
 import { Card } from '../sharedTypes';
 import { usePlayCard, useSetTrumpSuit } from '../gameState/gameHooks';
+import Box from '@mui/material/Box';
+import { Container } from '@mui/material';
 
 const CardHand = () => {
   const playCard = usePlayCard();
@@ -55,27 +57,32 @@ const CardHand = () => {
   };
 
   return (
-    <div className="card-hand" style={{ top: (radius - 20) * -1 }}>
-      {myCards.map((card, i) => {
-        const rotation = 180 - (arcStart + i * distanceBetweenCards);
-        const isSelected = selectedCard === card;
-        const transform = `rotate(${rotation}deg) translateX(${radius}px) rotate(-${rotation}deg)`;
-        return (
-          <PlayingCard
-            card={card}
-            key={i}
-            style={{
-              transform,
-              position: 'absolute',
-              transition: isSelected ? 'transform 1s, opacity 1s' : undefined,
-              opacity: isSelected ? 0 : 1,
-              zIndex: isSelected ? 100 : 1
-            }}
-            onClick={() => handleCardSelect(card)}
-          />
-        );
-      })}
-    </div>
+    <Box className="cards-hand-container">
+      <div className="card-hand" style={{ top: (radius - 20) * -1 }}>
+        {myCards.map((card, i) => {
+          const rotation = 180 - (arcStart + i * distanceBetweenCards);
+          const isSelected = selectedCard === card;
+          const transform = `rotate(${rotation}deg) translateX(${radius}px) rotate(-${rotation}deg)`;
+          return (
+            <PlayingCard
+              card={card}
+              key={i}
+              style={{
+                transform,
+                position: 'absolute',
+                transition: isSelected ? 'transform 1s, opacity 1s' : undefined,
+                opacity: isSelected ? 0 : 1,
+                zIndex: isSelected ? 100 : 1
+              }}
+              onClick={() => handleCardSelect(card)}
+            />
+          );
+        })}
+      </div>
+      <Box sx={{ textAlign: 'center', color: 'red' }}>
+        {isTrumpSuitSelectionMode ? 'Select Trump Suit' : ''}
+      </Box>
+    </Box>
   );
 };
 

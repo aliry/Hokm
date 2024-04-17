@@ -233,6 +233,13 @@ export const useSocketEvents = () => {
       const { gameState } = payload
       if (payload.event === GameEvent.Error) {
         setErrors(payload.error);
+        // Restore the previous game state in case of an error
+        setGameState(prevGameState => {
+          if (!prevGameState) {
+            return null;
+          }
+          return { ...prevGameState }
+        })
       } else if (gameState) {
         setGameState((prevGameState) => {
           if (!prevGameState) {
@@ -254,6 +261,7 @@ export const useSocketEvents = () => {
             showTeamCodeDialog
           }));
         }
+        setErrors('');
       } else {
         setErrors('Invalid server event');
       }
