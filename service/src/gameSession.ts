@@ -12,6 +12,7 @@ import {
 import { CardValues, Suits } from './constants';
 import { Player } from './player';
 import { GameConfigs } from './gameConfigs';
+import debounce from 'debounce';
 
 export type CustomEvents = 'sessionDestroyed';
 
@@ -76,7 +77,7 @@ export class GameSession {
     }, GameConfigs.managerJoinTimeout);
 
     // Automatically destroy the game session if session is inactive for 10 minutes
-    this.SessionHadActivity();
+    this.sessionHadActivity();
   }
 
   /**
@@ -106,6 +107,8 @@ export class GameSession {
         state.players[playerIndex].cards = this.players[playerIndex].cards;
       }
     }
+
+    this.sessionHadActivity();
 
     return state;
   }
@@ -147,9 +150,6 @@ export class GameSession {
     this.players.forEach((player) => {
       player.connected = false;
     });
-
-    // Automatically destroy the game session if session is inactive for 10 minutes
-    this.SessionHadActivity();
   }
 
   /**
@@ -392,19 +392,6 @@ export class GameSession {
   }
 
   /**
-   * Reset the session inactive timeout.
-   */
-  public SessionHadActivity(): void {
-    // If the game session has been inactive for 10 minutes, destroy it
-    if (this.sessionInactiveTimeout) {
-      clearTimeout(this.sessionInactiveTimeout);
-    }
-    this.sessionInactiveTimeout = setTimeout(() => {
-      this.triggerEvent('sessionDestroyed', { sessionId: this.sessionId });
-    }, GameConfigs.sessionInactivityTimeout);
-  }
-
-  /**
    * Sets the value of the Hakem property.
    * @param {number} playerIndex - The index of the player to set as the Hakem.
    */
@@ -521,6 +508,19 @@ export class GameSession {
     this.eventListeners = {};
   }
   //#endregion
+
+  /**
+ * Reset the session inactive timeout.
+ */
+  private sessionHadActivity = debounce(() => {
+    // If the game session has been inactive for 10 minutes, destroy it
+    if (this.sessionInactiveTimeout) {
+      clearTimeout(this.sessionInactiveTimeout);
+    }
+    this.sessionInactiveTimeout = setTimeout(() => {
+      this.triggerEvent('sessionDestroyed', { sessionId: this.sessionId });
+    }, GameConfigs.sessionInactivityTimeout);
+  }, 1000);
 
   /**
    * Trigger an event to all registered event listeners.
