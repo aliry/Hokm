@@ -27,7 +27,7 @@ export const RoundEndDialog = () => {
       <DialogTitle>Round Ended</DialogTitle>
       <Container>
         <DialogContent sx={{ backgroundColor: winnerTeamColor }}>
-          <DialogContentText sx={{ textAlign: "center" }}>Winner team</DialogContentText>
+          <DialogContentText sx={{ textAlign: "center" }}>Winner</DialogContentText>
           <DialogContentText sx={{ fontWeight: "bold", textAlign: "center", fontSize: "2em" }}> Team {winnerTeamNumber}</DialogContentText>
         </DialogContent>
       </Container>
