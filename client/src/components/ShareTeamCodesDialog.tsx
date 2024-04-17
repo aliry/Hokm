@@ -9,7 +9,8 @@ import { appStateAtom, gameStateAtom } from '../gameState/gameState';
 import { useTeamLinks } from '../hooks/useTeamLinks';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
-import { Button, DialogActions } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
 
 export const ShareTeamCodesDialog = () => {
   const [appState, setAppState] = useAtom(appStateAtom);
@@ -30,6 +31,18 @@ export const ShareTeamCodesDialog = () => {
   return (
     <Dialog open={open} aria-labelledby="playerName-dialog-title">
       <DialogTitle id="playerName-dialog-title">Invite Your Friends</DialogTitle>
+      {!somePlayerHasNotJoined && <IconButton
+        aria-label="close"
+        onClick={handleClose}
+        sx={{
+          position: 'absolute',
+          right: 8,
+          top: 8,
+          color: (theme) => theme.palette.grey[500],
+        }}
+      >
+        <CloseIcon />
+      </IconButton>}
       <DialogContent>
         <DialogContentText>
           Share these links with your friends to start playing.
@@ -86,9 +99,6 @@ export const ShareTeamCodesDialog = () => {
           Waiting for other players to join ...
         </Box>}
       </DialogContent>
-      {!somePlayerHasNotJoined && <DialogActions>
-        <Button onClick={handleClose}>Close</Button>
-      </DialogActions>}
     </Dialog>
   );
 };

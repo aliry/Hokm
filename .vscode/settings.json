@@ -7,5 +7,6 @@
     "immer",
     "Shelem",
     "uuidv"
-  ]
+  ],
+  "sarif-viewer.connectToGithubCodeScanning": "off"
 }

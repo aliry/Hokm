@@ -455,7 +455,6 @@ export class GameSession {
       throw new Error('Invalid round operation.');
     }
 
-    const maxTricks = Math.abs(52 / this.players.length);
     const hakemTeamCode = this.players[this.currentRound.hakemIndex].teamCode;
     const otherTeamCode =
       hakemTeamCode === this.teamCodes[0]
@@ -464,33 +463,23 @@ export class GameSession {
     let hakemTeamTricks = this.currentRound.score[hakemTeamCode];
     let otherTeamTricks = this.currentRound.score[otherTeamCode];
 
-    if (
-      this.currentRound.tricks.length < maxTricks &&
-      (hakemTeamTricks === 0 || otherTeamTricks === 0)
-    ) {
-      // if round is not ended (less than 13 tricks) and one of the teams has not won any tricks, there is a chance for the other team to win all tricks (Kap or Kot)
-      return false;
-    }
-
-    if (hakemTeamTricks === maxTricks) {
-      this.scores[hakemTeamCode] += GameConfigs.kotScore;
-      this.currentRound.winnerTeam = hakemTeamCode;
-      return true;
-    }
-
-    if (otherTeamTricks === maxTricks) {
-      this.scores[otherTeamCode] += GameConfigs.hakemKotScore;
-      this.currentRound.winnerTeam = otherTeamCode;
-      return true;
-    }
-
     if (hakemTeamTricks >= 7) {
+      if (otherTeamTricks === 0) {
+        this.scores[hakemTeamCode] += GameConfigs.kotScore;
+        this.currentRound.winnerTeam = hakemTeamCode;
+        return true;
+      }
       this.scores[hakemTeamCode] += 1;
       this.currentRound.winnerTeam = hakemTeamCode;
       return true;
     }
 
     if (otherTeamTricks >= 7) {
+      if (hakemTeamTricks === 0) {
+        this.scores[otherTeamCode] += GameConfigs.hakemKotScore;
+        this.currentRound.winnerTeam = otherTeamCode;
+        return true;
+      }
       this.scores[otherTeamCode] += 1;
       this.currentRound.winnerTeam = otherTeamCode;
       return true;
