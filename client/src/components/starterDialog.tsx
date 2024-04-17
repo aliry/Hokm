@@ -7,9 +7,10 @@ import Button from '@mui/material/Button';
 import { useAtom } from 'jotai';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { appStateAtom } from '../gameState/gameState';
-import { useCreateGame, useJoinGame } from '../gameState/gameHooks';
+import { useCreateGame, useJoinGame, useLoadGame } from '../gameState/gameHooks';
 import Divider from '@mui/material/Divider';
 import Container from '@mui/material/Container';
+import Box from '@mui/material/Box';
 
 export const StarterDialog = () => {
   const [appState, setAppState] = useAtom(appStateAtom);
@@ -19,6 +20,11 @@ export const StarterDialog = () => {
   const joinGame = useJoinGame();
   const [joinWithTeamCode, setJoinWithTeamCode] = useState<boolean>(false);
   const createGame = useCreateGame();
+  const loadGame = useLoadGame();
+
+  useEffect(() => {
+    setOpen(!appState.playerName);
+  }, [appState.playerName]);
 
   useEffect(() => {
     if (appState.teamCode !== '') {
@@ -61,6 +67,11 @@ export const StarterDialog = () => {
     }
   }, [joinGame, newTeamCode, newPlayerName]);
 
+  const handleLoadGame = useCallback(() => {
+    setAppState((prev) => ({ ...prev, playerName: newPlayerName }));
+    loadGame(newPlayerName)
+  }, [loadGame, newPlayerName, setAppState]);
+
   const dialogTitle = joinWithTeamCode
     ? 'Join an existing game'
     : 'Enter Player Name';
@@ -82,13 +93,29 @@ export const StarterDialog = () => {
           onChange={handlePlayerNameChange}
         />
         <Container sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button onClick={handleCreateGame} variant="contained">
-            Create New Game
-          </Button>
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Button
+              onClick={handleCreateGame}
+              onKeyUp={(e) => {
+                if (e.key === 'Enter') {
+                  handleCreateGame();
+                }
+              }}
+              variant="contained"
+            >
+              Create New Game
+            </Button>
+            <Button
+              onClick={handleLoadGame}
+              sx={{ textTransform: 'none' }}
+            >
+              Load game
+            </Button>
+          </Box>
         </Container>
       </>
     ),
-    [newPlayerName, handlePlayerNameChange, handleCreateGame]
+    [newPlayerName, handlePlayerNameChange, handleCreateGame, handleLoadGame]
   );
 
   const getTeamCode = useMemo(
@@ -103,6 +130,11 @@ export const StarterDialog = () => {
           fullWidth
           value={newPlayerName}
           onChange={handlePlayerNameChange}
+          onKeyUp={(e) => {
+            if (e.key === 'Enter') {
+              handleJoinGame();
+            }
+          }}
         />
         <TextField
           margin="dense"

@@ -13,14 +13,19 @@ import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Button from '@mui/material/Button';
 import { useLoadGame, useSaveGame } from '../gameState/gameHooks';
+import { appStateAtom } from '../gameState/gameState';
+import { useAtom } from 'jotai';
 
 const drawerWidth = 240;
 const appName = 'HOKM';
 
 export const GameAppBar = () => {
+  const [appState, setAppState] = useAtom(appStateAtom);
   const [mobileOpen, setMobileOpen] = useState(false);
   const saveGame = useSaveGame();
   const loadGame = useLoadGame();
+
+
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
@@ -38,7 +43,14 @@ export const GameAppBar = () => {
     },
     {
       text: 'Load game',
-      onClick: loadGame
+      onClick: () => loadGame()
+    },
+    {
+      text: 'Team Codes',
+      onClick: () => {
+        setMobileOpen(false);
+        setAppState((prev) => ({ ...prev, showTeamCodeDialog: true }));
+      }
     }
   ];
   const drawer = (

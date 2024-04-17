@@ -113,7 +113,7 @@ export const useCreateGame = () => {
             socketId: prev.socketId,
             teamCodes: response.data.teamCodes,
             teamCode: response.data.teamCodes[0],
-            gameStarted: false
+            showTeamCodeDialog: true
           }));
           joinGame(playerName, response.data.teamCodes[0]);
         })
@@ -132,8 +132,9 @@ export const useLoadGame = () => {
   const [, setError] = useAtom(errorAtom);
   const { playerName, socketId } = appState;
   const joinGame = useJoinGame();
-  const loadGame = useCallback(() => {
-    if (!playerName) {
+  const loadGame = useCallback((newPlayerName?: string) => {
+    newPlayerName = newPlayerName || playerName;
+    if (!newPlayerName) {
       setError('Player name is required to load game');
       return;
     }
@@ -158,15 +159,17 @@ export const useLoadGame = () => {
         axios
           .post(`${serverURL}/game-state`, {
             gameState,
-            playerName
+            playerName: newPlayerName
           })
           .then((response) => {
             setAppState((prev) => ({
               ...prev,
+              playerName: newPlayerName || prev.playerName,
               teamCodes: response.data.teamCodes,
-              teamCode: response.data.teamCode
+              teamCode: response.data.teamCode,
+              showTeamCodeDialog: true
             }));
-            joinGame(response.data.teamCode);
+            joinGame(newPlayerName, response.data.teamCode);
           })
           .catch((error) => {
             setError(error.message);
@@ -227,26 +230,28 @@ export const useSocketEvents = () => {
     }
     socket.on(SocketEvents.ServerEvent, (payload: ServerEventPayload) => {
       console.log(payload);
+      const { gameState } = payload
       if (payload.event === GameEvent.Error) {
-        setErrors(payload.data);
-      } else if (payload.gameState) {
+        setErrors(payload.error);
+      } else if (gameState) {
         setGameState((prevGameState) => {
           if (!prevGameState) {
-            return payload.gameState;
+            return gameState;
           }
           return produce(prevGameState, (draft) => {
-            Object.assign(draft, payload.gameState);
+            Object.assign(draft, gameState);
           });
         });
         if (
-          payload.gameState?.currentRound ||
-          payload.gameState?.roundHistory?.length > 0
+          gameState?.currentRound ||
+          gameState?.roundHistory?.length > 0
         ) {
+          const showTeamCodeDialog = gameState.players.some(p => p.name === '' || !p.connected);
           // All players have joined and the game has started
           setAppState((prev) => ({
             ...prev,
-            teamCodes: Object.keys(payload.gameState.scores),
-            gameStarted: true
+            teamCodes: Object.keys(gameState.scores),
+            showTeamCodeDialog
           }));
         }
       } else {

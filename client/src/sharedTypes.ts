@@ -98,6 +98,6 @@ export interface ClientActionPayload {
 
 export interface ServerEventPayload {
   event: string;
-  data?: any;
+  error?: any;
   gameState: GameSessionState;
 }

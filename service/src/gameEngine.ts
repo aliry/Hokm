@@ -212,6 +212,8 @@ export class GameEngine {
       session.CurrentRound.tricks[currentTrickIndex].items.length ===
       session.Players.length
     ) {
+
+      // Delay the end of the trick to allow players to see the played cards.
       setTimeout(() => {
         this.endTrick(session);
         this.emitNextState(session);

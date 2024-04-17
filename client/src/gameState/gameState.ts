@@ -8,7 +8,7 @@ interface InitialState {
   socketId: string;
   teamCodes: string[];
   teamCode: string;
-  gameStarted: boolean;
+  showTeamCodeDialog: boolean;
 }
 
 export const socketAtom = atom<Socket | null>(null);
@@ -18,7 +18,7 @@ export const appStateAtom = atom<InitialState>({
   socketId: '',
   teamCodes: [],
   teamCode: '',
-  gameStarted: false
+  showTeamCodeDialog: false,
 });
 
 export const errorAtom = atom<string>('');

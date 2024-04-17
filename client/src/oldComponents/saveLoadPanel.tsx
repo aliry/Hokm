@@ -8,7 +8,7 @@ export const SaveLoadPanel: FC = () => {
   return (
     <div>
       <button onClick={saveGame}>Save Game</button>
-      <button onClick={loadGame}>Load Game</button>
+      <button onClick={() => loadGame()}>Load Game</button>
     </div>
   );
 };

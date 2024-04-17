@@ -5,27 +5,31 @@ import DialogContentText from '@mui/material/DialogContentText';
 import TextField from '@mui/material/TextField';
 import { useAtom } from 'jotai';
 import { useEffect, useState } from 'react';
-import { appStateAtom } from '../gameState/gameState';
+import { appStateAtom, gameStateAtom } from '../gameState/gameState';
 import { useTeamLinks } from '../hooks/useTeamLinks';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
+import { Button, DialogActions } from '@mui/material';
 
 export const ShareTeamCodesDialog = () => {
-  const [appState] = useAtom(appStateAtom);
+  const [appState, setAppState] = useAtom(appStateAtom);
+  const [gameState] = useAtom(gameStateAtom);
   const [open, setOpen] = useState<boolean>(false);
   const teamLinks = useTeamLinks();
 
   useEffect(() => {
-    setOpen(!appState.gameStarted);
-  }, [appState.gameStarted]);
+    setOpen(appState.showTeamCodeDialog);
+  }, [appState.showTeamCodeDialog]);
 
-  if (appState.teamCodes.length !== 2) {
-    return null;
+  const somePlayerHasNotJoined = gameState?.players.some(p => !p.connected);
+
+  const handleClose = () => {
+    setAppState((prev) => ({ ...prev, showTeamCodeDialog: false }));
   }
 
   return (
     <Dialog open={open} aria-labelledby="playerName-dialog-title">
-      <DialogTitle id="playerName-dialog-title">Links</DialogTitle>
+      <DialogTitle id="playerName-dialog-title">Invite Your Friends</DialogTitle>
       <DialogContent>
         <DialogContentText>
           Share these links with your friends to start playing.
@@ -78,10 +82,13 @@ export const ShareTeamCodesDialog = () => {
             readOnly: true
           }}
         />
-        <Box sx={{ color: 'red', mt: 3 }}>
+        {somePlayerHasNotJoined && <Box sx={{ color: 'red', mt: 3 }}>
           Waiting for other players to join ...
-        </Box>
+        </Box>}
       </DialogContent>
+      {!somePlayerHasNotJoined && <DialogActions>
+        <Button onClick={handleClose}>Close</Button>
+      </DialogActions>}
     </Dialog>
   );
 };

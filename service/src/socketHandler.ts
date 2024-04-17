@@ -4,6 +4,7 @@ import { GameEngine } from './gameEngine';
 import { GameAction, GameEvent, SocketEvents } from './constants';
 import { ClientActionPayload, ServerEventPayload } from './sharedTypes';
 import { GameSession } from './gameSession';
+import { error } from 'console';
 
 export class SocketHandler {
   private gameEngine: GameEngine;
@@ -62,7 +63,7 @@ export class SocketHandler {
   public emitError(socket: Socket, message: string): void {
     const payLoad = {
       event: GameEvent.Error,
-      data: message
+      error: message
     };
     socket.emit(SocketEvents.ServerEvent, payLoad);
   }
