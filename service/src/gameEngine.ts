@@ -115,7 +115,7 @@ export class GameEngine {
 
     // Initialize the round.
     session.StartNewRound();
-    this.selectHakem(session, lastRound?.hakemIndex);
+    this.selectHakem(session, hakemIndex);
   }
 
   /**
