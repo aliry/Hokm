@@ -113,7 +113,8 @@ export const useCreateGame = () => {
             socketId: prev.socketId,
             teamCodes: response.data.teamCodes,
             teamCode: response.data.teamCodes[0],
-            showTeamCodeDialog: true
+            showTeamCodeDialog: true,
+            sessionIsTimingOut: false
           }));
           joinGame(playerName, response.data.teamCodes[0]);
         })
@@ -262,6 +263,11 @@ export const useSocketEvents = () => {
           }));
         }
         setErrors('');
+      } else if (payload.event === GameEvent.SessionTimeout) {
+        setAppState((prev) => ({
+          ...prev,
+          sessionIsTimingOut: true
+        }));
       } else {
         setErrors('Invalid server event');
       }

@@ -1,9 +1,15 @@
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Container } from "@mui/material";
 import { useAtom } from "jotai";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { appStateAtom, gameStateAtom } from "../gameState/gameState";
 import { Team1Color, Team2Color } from "../gameConfigs";
 import { useStartNewRound } from "../gameState/gameHooks";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import Container from "@mui/material/Container";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
 
 export const RoundEndDialog = () => {
   const [gameState] = useAtom(gameStateAtom);

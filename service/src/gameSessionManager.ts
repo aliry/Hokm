@@ -6,6 +6,7 @@ const MAX_CONCURRENT_GAMES = 100;
 
 export class GameSessionManager {
   private gameSessions: { [sessionId: string]: GameSession };
+  private sessionTimeoutListeners?: (sessionId: GameSession) => void;
 
   constructor() {
     this.gameSessions = {};
@@ -23,6 +24,11 @@ export class GameSessionManager {
     session.on('sessionDestroyed', () => {
       this.removeGameSession(session.SessionId);
     });
+    if (this.sessionTimeoutListeners) {
+      session.on('sessionAboutToDestroy', () => {
+        this.sessionTimeoutListeners?.(session);
+      });
+    }
 
     return session;
   }
@@ -118,6 +124,11 @@ export class GameSessionManager {
 
     return session;
   }
+
+  public registerSessionTimeoutListener(listener: (sessionId: GameSession) => void) {
+    this.sessionTimeoutListeners = listener;
+  }
+
 
   private createGameSessionByState(
     playerName: string,

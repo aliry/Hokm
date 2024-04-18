@@ -10,7 +10,8 @@ export enum SocketEvents {
  */
 export enum GameEvent {
   Error = 'error',
-  GameState = 'game-state'
+  GameState = 'game-state',
+  SessionTimeout = 'session-timeout',
 }
 
 /**
@@ -23,7 +24,8 @@ export enum GameAction {
   JoinGame = 'join-game',
   SelectHakem = 'select-hakem',
   SelectTrumpSuit = 'select-trump-suit',
-  StartNewRound = 'start-new-round'
+  StartNewRound = 'start-new-round',
+  GameState = 'game-state',
 }
 
 export const Suits = ['hearts', 'diamonds', 'clubs', 'spades'];

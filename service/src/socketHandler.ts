@@ -4,7 +4,6 @@ import { GameEngine } from './gameEngine';
 import { GameAction, GameEvent, SocketEvents } from './constants';
 import { ClientActionPayload, ServerEventPayload } from './sharedTypes';
 import { GameSession } from './gameSession';
-import { error } from 'console';
 
 export class SocketHandler {
   private gameEngine: GameEngine;
@@ -12,7 +11,12 @@ export class SocketHandler {
 
   constructor(io: SocketIOServer, gameSessionManager: GameSessionManager) {
     this._io = io;
-    this.gameEngine = new GameEngine(gameSessionManager, this.emitNextState.bind(this));
+    this.gameEngine = new GameEngine(gameSessionManager, this.emitGameState.bind(this));
+    gameSessionManager.registerSessionTimeoutListener((session) => {
+      this._io.to(session.SessionId).emit(SocketEvents.ServerEvent, {
+        event: GameEvent.SessionTimeout
+      });
+    });
   }
 
   public handleConnection(socket: Socket): void {
@@ -37,6 +41,9 @@ export class SocketHandler {
               const { card } = data;
               this.gameEngine.PlayCard(session, socket.id, card);
               break;
+            case GameAction.GameState:
+              this.emitGameState(session);
+              break;
             case GameAction.Disconnect:
               this.gameEngine.Disconnect(session, socket.id);
               break;
@@ -45,7 +52,7 @@ export class SocketHandler {
               break;
           }
         }
-        this.emitNextState(session);
+        this.emitGameState(session);
       } catch (error: any) {
         this.emitError(socket, error.message);
       }
@@ -60,7 +67,9 @@ export class SocketHandler {
     });
   }
 
-  public emitError(socket: Socket, message: string): void {
+
+
+  private emitError(socket: Socket, message: string): void {
     const payLoad = {
       event: GameEvent.Error,
       error: message
@@ -68,7 +77,7 @@ export class SocketHandler {
     socket.emit(SocketEvents.ServerEvent, payLoad);
   }
 
-  private emitNextState(session: GameSession) {
+  private emitGameState(session: GameSession) {
     const playerIds = session.Players.map((player) => player.id || '');
     playerIds.forEach((playerId) => {
       if (playerId) {

@@ -14,7 +14,7 @@ import { Player } from './player';
 import { GameConfigs } from './gameConfigs';
 import debounce from 'debounce';
 
-export type CustomEvents = 'sessionDestroyed';
+export type CustomEvents = 'sessionDestroyed' | 'sessionAboutToDestroy';
 
 /**
  * Class representing a game session.
@@ -31,6 +31,7 @@ export class GameSession {
   private roundHistory: RoundBase[];
   private createdDateTime: Date;
   private sessionInactiveTimeout?: NodeJS.Timeout;
+  private sessionInactiveDelayTimeout?: NodeJS.Timeout;
   private eventListeners: { [event: string]: Function[] } = {};
   private numberOfPlayersJoined: { [teamCode: string]: number };
 
@@ -517,9 +518,15 @@ export class GameSession {
     if (this.sessionInactiveTimeout) {
       clearTimeout(this.sessionInactiveTimeout);
     }
+    if (this.sessionInactiveDelayTimeout) {
+      clearTimeout(this.sessionInactiveDelayTimeout);
+    }
     this.sessionInactiveTimeout = setTimeout(() => {
-      this.triggerEvent('sessionDestroyed', { sessionId: this.sessionId });
-    }, GameConfigs.sessionInactivityTimeout);
+      // Trigger an event to warn the players that the session will be destroyed
+      this.sessionInactiveDelayTimeout = setTimeout(() => {
+        this.triggerEvent('sessionDestroyed', { sessionId: this.sessionId });
+      }, GameConfigs.sessionTimeoutDelay);
+    }, GameConfigs.sessionInactivityWarningTimeout);
   }, 1000);
 
   /**
