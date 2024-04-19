@@ -222,7 +222,16 @@ export const useSocketEvents = () => {
   const [, setErrors] = useAtom(errorAtom);
   const [socket] = useAtom(socketAtom);
   const [, setGameState] = useAtom(gameStateAtom);
-  const [, setAppState] = useAtom(appStateAtom);
+  const [appState, setAppState] = useAtom(appStateAtom);
+
+  const setPreviousGameState = useCallback(() => {
+    setGameState(prevGameState => {
+      if (!prevGameState) {
+        return null;
+      }
+      return { ...prevGameState }
+    });
+  }, [setGameState]);
 
   const handleSocketEvents = useCallback(() => {
     if (!socket) {
@@ -234,13 +243,10 @@ export const useSocketEvents = () => {
       const { gameState } = payload
       if (payload.event === GameEvent.Error) {
         setErrors(payload.error);
-        // Restore the previous game state in case of an error
-        setGameState(prevGameState => {
-          if (!prevGameState) {
-            return null;
-          }
-          return { ...prevGameState }
-        })
+        setPreviousGameState();
+      } else if (payload.event === GameEvent.SessionTimeout) {
+        setAppState((prev) => ({ ...prev, sessionIsTimingOut: true }));
+        setPreviousGameState();
       } else if (gameState) {
         setGameState((prevGameState) => {
           if (!prevGameState) {
@@ -262,17 +268,19 @@ export const useSocketEvents = () => {
             showTeamCodeDialog
           }));
         }
+
+        if (appState.sessionIsTimingOut) {
+          setAppState((prev) => ({
+            ...prev,
+            sessionIsTimingOut: false
+          }));
+        }
         setErrors('');
-      } else if (payload.event === GameEvent.SessionTimeout) {
-        setAppState((prev) => ({
-          ...prev,
-          sessionIsTimingOut: true
-        }));
       } else {
         setErrors('Invalid server event');
       }
     });
-  }, [setAppState, setErrors, setGameState, socket]);
+  }, [appState.sessionIsTimingOut, setAppState, setErrors, setGameState, setPreviousGameState, socket]);
 
   useEffect(() => {
     return () => {
@@ -320,3 +328,11 @@ export const useStartNewRound = () => {
     [emitAction]
   );
 };
+
+export const useGetGameState = () => {
+  const emitAction = useEmitAction();
+  return useCallback(
+    () => emitAction(GameAction.GameState, {}),
+    [emitAction]
+  );
+}

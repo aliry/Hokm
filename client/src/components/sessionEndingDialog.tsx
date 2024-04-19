@@ -1,33 +1,26 @@
-import { useAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
-import { appStateAtom } from "../gameState/gameState";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import Container from "@mui/material/Container";
 import { Button } from "@mui/material";
+import { useGetGameState } from "../gameState/gameHooks";
 
 export const SessionEndingDialog = () => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [timer, setTimer] = useState<number>(0);
-  const [appState] = useAtom(appStateAtom);
+  const extendSession = useGetGameState();
 
   const handleClose = useCallback(() => {
     setOpen(false);
   }, []);
 
   const handleExtendSession = useCallback(() => {
-    // TODO: emit action to extend session
+    extendSession();
     setOpen(false);
-  }, []);
+  }, [extendSession]);
 
-
-  useEffect(() => {
-    setOpen(appState.sessionIsTimingOut);
-  }, [appState]);
-
-  // increment timer every second and stop after 1 min
   useEffect(() => {
     const interval = setInterval(() => {
       setTimer((prev) => prev + 1);

@@ -12,10 +12,11 @@ export class SocketHandler {
   constructor(io: SocketIOServer, gameSessionManager: GameSessionManager) {
     this._io = io;
     this.gameEngine = new GameEngine(gameSessionManager, this.emitGameState.bind(this));
-    gameSessionManager.registerSessionTimeoutListener((session) => {
-      this._io.to(session.SessionId).emit(SocketEvents.ServerEvent, {
-        event: GameEvent.SessionTimeout
-      });
+    gameSessionManager.registerSessionTimeoutListener((sessionId) => {
+      const session = gameSessionManager.getGameSession(sessionId);
+      if (session) {
+        this.emitSessionTimeout(session);
+      }
     });
   }
 
@@ -42,14 +43,13 @@ export class SocketHandler {
               this.gameEngine.PlayCard(session, socket.id, card);
               break;
             case GameAction.GameState:
-              this.emitGameState(session);
+              // Do nothing, just emit the game state
               break;
             case GameAction.Disconnect:
               this.gameEngine.Disconnect(session, socket.id);
               break;
             default:
-              this.emitError(socket, 'Invalid action');
-              break;
+              throw new Error(`Unknown action: ${action}`);
           }
         }
         this.emitGameState(session);
@@ -57,6 +57,7 @@ export class SocketHandler {
         this.emitError(socket, error.message);
       }
     });
+
     socket.on('disconnect', () => {
       try {
         const session = this.gameEngine.GetSession(socket);
@@ -67,8 +68,6 @@ export class SocketHandler {
     });
   }
 
-
-
   private emitError(socket: Socket, message: string): void {
     const payLoad = {
       event: GameEvent.Error,
@@ -78,15 +77,26 @@ export class SocketHandler {
   }
 
   private emitGameState(session: GameSession) {
-    const playerIds = session.Players.map((player) => player.id || '');
-    playerIds.forEach((playerId) => {
-      if (playerId) {
+    session.Players.forEach((player) => {
+      if (player.id) {
         const payLoad: ServerEventPayload = {
           event: GameEvent.GameState,
-          gameState: session.GetStateForBroadcast(playerId)
+          gameState: session.GetStateForBroadcast(player.id)
         };
-        this._io.to(playerId).emit(SocketEvents.ServerEvent, payLoad);
+        this._io.to(player.id).emit(SocketEvents.ServerEvent, payLoad);
+      }
+    });
+  }
+
+  private emitSessionTimeout(session: GameSession) {
+    session.Players.forEach((player) => {
+      if (player.id) {
+        const payLoad = {
+          event: GameEvent.SessionTimeout
+        };
+        this._io.to(player.id).emit(SocketEvents.ServerEvent, payLoad);
       }
     });
   }
 }
+

@@ -6,7 +6,7 @@ const MAX_CONCURRENT_GAMES = 100;
 
 export class GameSessionManager {
   private gameSessions: { [sessionId: string]: GameSession };
-  private sessionTimeoutListeners?: (sessionId: GameSession) => void;
+  private sessionTimeoutListeners?: (sessionId: string) => void;
 
   constructor() {
     this.gameSessions = {};
@@ -21,14 +21,7 @@ export class GameSessionManager {
     this.checkServerCapacity();
     const session = new GameSession(managerName);
     this.gameSessions[session.SessionId] = session;
-    session.on('sessionDestroyed', () => {
-      this.removeGameSession(session.SessionId);
-    });
-    if (this.sessionTimeoutListeners) {
-      session.on('sessionAboutToDestroy', () => {
-        this.sessionTimeoutListeners?.(session);
-      });
-    }
+    this.registerEvents(session);
 
     return session;
   }
@@ -125,7 +118,7 @@ export class GameSessionManager {
     return session;
   }
 
-  public registerSessionTimeoutListener(listener: (sessionId: GameSession) => void) {
+  public registerSessionTimeoutListener(listener: (sessionId: string) => void) {
     this.sessionTimeoutListeners = listener;
   }
 
@@ -138,9 +131,7 @@ export class GameSessionManager {
     const session = new GameSession(playerName);
     session.LoadState(state);
     this.gameSessions[session.SessionId] = session;
-    session.on('sessionDestroyed', () => {
-      this.removeGameSession(session.SessionId);
-    });
+    this.registerEvents(session);
 
     return session;
   }
@@ -150,6 +141,17 @@ export class GameSessionManager {
       throw new Error(
         'Game server reached maximum capacity. Please try again later.'
       );
+    }
+  }
+
+  private registerEvents(session: GameSession) {
+    session.on('sessionDestroyed', () => {
+      this.removeGameSession(session.SessionId);
+    });
+    if (this.sessionTimeoutListeners) {
+      session.on('sessionAboutToDestroy', () => {
+        this.sessionTimeoutListeners?.(session.SessionId);
+      });
     }
   }
 }

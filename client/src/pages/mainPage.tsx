@@ -11,6 +11,7 @@ import { GameStateBoard } from '../components/GameStateBoard';
 import { ShareTeamCodesDialog } from '../components/ShareTeamCodesDialog';
 import { RoundEndDialog } from '../components/roundEndDialog';
 import { GameAlert } from '../components/gameAlert';
+import { SessionEndingDialog } from '../components/sessionEndingDialog';
 
 export function MainPage() {
   const [appState, setAppState] = useAtom(appStateAtom);
@@ -36,6 +37,7 @@ export function MainPage() {
       <GameAppBar />
       <StarterDialog />
       <ShareTeamCodesDialog />
+      {appState.sessionIsTimingOut && <SessionEndingDialog />}
       <RoundEndDialog />
       <Container sx={{ my: 10 }}>
         <GameStateBoard />

@@ -526,6 +526,7 @@ export class GameSession {
       this.sessionInactiveDelayTimeout = setTimeout(() => {
         this.triggerEvent('sessionDestroyed', { sessionId: this.sessionId });
       }, GameConfigs.sessionTimeoutDelay);
+      this.triggerEvent('sessionAboutToDestroy', { sessionId: this.sessionId });
     }, GameConfigs.sessionInactivityWarningTimeout);
   }, 1000);
 
