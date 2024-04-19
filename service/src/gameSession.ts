@@ -77,7 +77,6 @@ export class GameSession {
       }
     }, GameConfigs.managerJoinTimeout);
 
-    // Automatically destroy the game session if session is inactive for 10 minutes
     this.sessionHadActivity();
   }
 
@@ -514,12 +513,13 @@ export class GameSession {
  * Reset the session inactive timeout.
  */
   private sessionHadActivity = debounce(() => {
-    // If the game session has been inactive for 10 minutes, destroy it
     if (this.sessionInactiveTimeout) {
       clearTimeout(this.sessionInactiveTimeout);
+      this.sessionInactiveTimeout = undefined;
     }
     if (this.sessionInactiveDelayTimeout) {
       clearTimeout(this.sessionInactiveDelayTimeout);
+      this.sessionInactiveDelayTimeout = undefined;
     }
     this.sessionInactiveTimeout = setTimeout(() => {
       // Trigger an event to warn the players that the session will be destroyed

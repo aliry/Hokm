@@ -8,16 +8,13 @@ import { GameSession } from './gameSession';
 export class SocketHandler {
   private gameEngine: GameEngine;
   private _io: SocketIOServer;
+  private _gameSessionManager: GameSessionManager;
 
   constructor(io: SocketIOServer, gameSessionManager: GameSessionManager) {
     this._io = io;
+    this._gameSessionManager = gameSessionManager;
     this.gameEngine = new GameEngine(gameSessionManager, this.emitGameState.bind(this));
-    gameSessionManager.registerSessionTimeoutListener((sessionId) => {
-      const session = gameSessionManager.getGameSession(sessionId);
-      if (session) {
-        this.emitSessionTimeout(session); //TODO: this breaks the socket.io server. need to fix
-      }
-    });
+    gameSessionManager.registerSessionTimeoutListener(this.sessionTimeoutHandler.bind(this));
   }
 
   public handleConnection(socket: Socket): void {
@@ -66,6 +63,13 @@ export class SocketHandler {
         this.emitError(socket, error.message);
       }
     });
+  }
+
+  private sessionTimeoutHandler(sessionId: string) {
+    const session = this._gameSessionManager.getGameSession(sessionId);
+    if (session) {
+      this.emitSessionTimeout(session); //TODO: this breaks the socket.io server. need to fix
+    }
   }
 
   private emitError(socket: Socket, message: string): void {
