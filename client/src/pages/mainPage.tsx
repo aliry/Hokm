@@ -37,7 +37,7 @@ export function MainPage() {
       <GameAppBar />
       <StarterDialog />
       <ShareTeamCodesDialog />
-      {appState.sessionIsTimingOut && <SessionEndingDialog />}
+      {appState.sessionTimeout && <SessionEndingDialog />}
       <RoundEndDialog />
       <Container sx={{ my: 10 }}>
         <GameStateBoard />

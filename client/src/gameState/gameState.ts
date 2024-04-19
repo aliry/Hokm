@@ -9,7 +9,7 @@ interface InitialState {
   teamCodes: string[];
   teamCode: string;
   showTeamCodeDialog: boolean;
-  sessionIsTimingOut: boolean;
+  sessionTimeout: boolean;
 }
 
 export const socketAtom = atom<Socket | null>(null);
@@ -20,7 +20,7 @@ export const appStateAtom = atom<InitialState>({
   teamCodes: [],
   teamCode: '',
   showTeamCodeDialog: false,
-  sessionIsTimingOut: false,
+  sessionTimeout: false,
 });
 
 export const errorAtom = atom<string>('');

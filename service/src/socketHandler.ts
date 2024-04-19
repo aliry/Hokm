@@ -14,7 +14,7 @@ export class SocketHandler {
     this._io = io;
     this._gameSessionManager = gameSessionManager;
     this.gameEngine = new GameEngine(gameSessionManager, this.emitGameState.bind(this));
-    gameSessionManager.registerSessionTimeoutListener(this.sessionTimeoutHandler.bind(this));
+    gameSessionManager.registerSessionTimeoutListener(this.emitSessionTimeout.bind(this));
   }
 
   public handleConnection(socket: Socket): void {
@@ -65,13 +65,6 @@ export class SocketHandler {
     });
   }
 
-  private sessionTimeoutHandler(sessionId: string) {
-    const session = this._gameSessionManager.getGameSession(sessionId);
-    if (session) {
-      this.emitSessionTimeout(session); //TODO: this breaks the socket.io server. need to fix
-    }
-  }
-
   private emitError(socket: Socket, message: string): void {
     const payLoad = {
       event: GameEvent.Error,
@@ -92,15 +85,13 @@ export class SocketHandler {
     });
   }
 
-  private emitSessionTimeout(session: GameSession) {
-    session.Players.forEach((player) => {
-      if (player.id) {
-        const payLoad = {
-          event: GameEvent.SessionTimeout
-        };
-        this._io.to(player.id).emit(SocketEvents.ServerEvent, payLoad);
-      }
-    });
+  private emitSessionTimeout(sessionId: string) {
+    const session = this._gameSessionManager.getGameSession(sessionId);
+    if (session) {
+      this._io.to(session.SessionId).emit(SocketEvents.ServerEvent, {
+        event: GameEvent.SessionTimeout
+      });
+    }
   }
 }
 

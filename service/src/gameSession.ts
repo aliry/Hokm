@@ -14,7 +14,7 @@ import { Player } from './player';
 import { GameConfigs } from './gameConfigs';
 import debounce from 'debounce';
 
-export type CustomEvents = 'sessionDestroyed' | 'sessionAboutToDestroy';
+export type CustomEvents = 'sessionDestroyed';
 
 /**
  * Class representing a game session.
@@ -522,11 +522,7 @@ export class GameSession {
       this.sessionInactiveDelayTimeout = undefined;
     }
     this.sessionInactiveTimeout = setTimeout(() => {
-      // Trigger an event to warn the players that the session will be destroyed
-      this.sessionInactiveDelayTimeout = setTimeout(() => {
-        this.triggerEvent('sessionDestroyed', { sessionId: this.sessionId });
-      }, GameConfigs.sessionTimeoutDelay);
-      this.triggerEvent('sessionAboutToDestroy', { sessionId: this.sessionId });
+      this.triggerEvent('sessionDestroyed', { sessionId: this.sessionId });
     }, GameConfigs.sessionInactivityWarningTimeout);
   }, 1000);
 

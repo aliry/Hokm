@@ -146,12 +146,8 @@ export class GameSessionManager {
 
   private registerEvents(session: GameSession) {
     session.on('sessionDestroyed', () => {
+      this.sessionTimeoutListeners?.(session.SessionId);
       this.removeGameSession(session.SessionId);
     });
-    if (this.sessionTimeoutListeners) {
-      session.on('sessionAboutToDestroy', () => {
-        this.sessionTimeoutListeners?.(session.SessionId);
-      });
-    }
   }
 }

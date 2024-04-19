@@ -114,7 +114,7 @@ export const useCreateGame = () => {
             teamCodes: response.data.teamCodes,
             teamCode: response.data.teamCodes[0],
             showTeamCodeDialog: true,
-            sessionIsTimingOut: false
+            sessionTimeout: false
           }));
           joinGame(playerName, response.data.teamCodes[0]);
         })
@@ -222,7 +222,7 @@ export const useSocketEvents = () => {
   const [, setErrors] = useAtom(errorAtom);
   const [socket] = useAtom(socketAtom);
   const [, setGameState] = useAtom(gameStateAtom);
-  const [appState, setAppState] = useAtom(appStateAtom);
+  const [, setAppState] = useAtom(appStateAtom);
 
   const setPreviousGameState = useCallback(() => {
     setGameState(prevGameState => {
@@ -245,8 +245,7 @@ export const useSocketEvents = () => {
         setErrors(payload.error);
         setPreviousGameState();
       } else if (payload.event === GameEvent.SessionTimeout) {
-        setAppState((prev) => ({ ...prev, sessionIsTimingOut: true }));
-        setPreviousGameState();
+        setAppState((prev) => ({ ...prev, sessionTimeout: true }));
       } else if (gameState) {
         setGameState((prevGameState) => {
           if (!prevGameState) {
@@ -268,19 +267,12 @@ export const useSocketEvents = () => {
             showTeamCodeDialog
           }));
         }
-
-        if (appState.sessionIsTimingOut) {
-          setAppState((prev) => ({
-            ...prev,
-            sessionIsTimingOut: false
-          }));
-        }
         setErrors('');
       } else {
         setErrors('Invalid server event');
       }
     });
-  }, [appState.sessionIsTimingOut, setAppState, setErrors, setGameState, setPreviousGameState, socket]);
+  }, [setAppState, setErrors, setGameState, setPreviousGameState, socket]);
 
   useEffect(() => {
     return () => {
@@ -328,11 +320,3 @@ export const useStartNewRound = () => {
     [emitAction]
   );
 };
-
-export const useGetGameState = () => {
-  const emitAction = useEmitAction();
-  return useCallback(
-    () => emitAction(GameAction.GameState, {}),
-    [emitAction]
-  );
-}
