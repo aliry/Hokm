@@ -15,7 +15,7 @@ export class SocketHandler {
     gameSessionManager.registerSessionTimeoutListener((sessionId) => {
       const session = gameSessionManager.getGameSession(sessionId);
       if (session) {
-        this.emitSessionTimeout(session);
+        this.emitSessionTimeout(session); //TODO: this breaks the socket.io server. need to fix
       }
     });
   }
