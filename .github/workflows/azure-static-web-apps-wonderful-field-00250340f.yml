@@ -3,7 +3,9 @@ name: Azure Static Web Apps CI/CD
 on:
   push:
     branches:
-      - master
+      - prod
+    paths:
+      - 'client/**'
 
 jobs:
   build_and_deploy_job:
