@@ -108,7 +108,8 @@ function createMockGameState(): GameState {
     hakem: {
       id: 'player-1',
       name: 'Player 1',
-      teamCode: 'A'
+      teamCode: 'A',
+      connected: true
     },
     currentRound: {
       score: {
@@ -124,14 +125,16 @@ function createMockGameState(): GameState {
     currentPlayer: {
       id: 'player-1',
       name: 'Player 1',
-      teamCode: 'A'
+      teamCode: 'A',
+      connected: true
     },
     roundHistory: [],
     teamCodes: ['A', 'B'],
     manager: {
       id: 'player-1',
       name: 'Player 1',
-      teamCode: 'A'
+      teamCode: 'A',
+      connected: true
     },
     createdDateTime: new Date().toISOString()
   };
