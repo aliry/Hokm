@@ -15,6 +15,13 @@
   transform-origin: bottom center;
 }
 
+/* Media query for mobile devices */
+@media only screen and (max-width: 600px) {
+  .card {
+      width: 80px;
+      height: 120px;
+    }
+}
 .card-selected {
     transform: translateY(-200%) !important;
   /* transform: translateY(-200%) !important; */

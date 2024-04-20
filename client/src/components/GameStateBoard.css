@@ -3,6 +3,7 @@
   flex-direction: row;
   margin-bottom: 10px;
   gap: 10px;
+  font-size: small;
 }
 
 .team-score-container {
@@ -11,3 +12,21 @@
   width: 50%;
 }
 
+.this-trick-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin:10px;
+  flex-wrap: wrap;
+}
+
+/* Media query for mobile devices */
+@media only screen and (max-width: 600px) {
+  .state-board-container {
+      gap: 5px;
+  }
+  .this-trick-container {
+    flex-direction: column;
+    align-items: start
+  }
+}

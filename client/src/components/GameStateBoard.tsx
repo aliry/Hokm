@@ -3,7 +3,11 @@ import Paper from '@mui/material/Paper';
 import { Team1Color, Team2Color } from '../gameConfigs';
 import './GameStateBoard.css';
 import { useAtom } from 'jotai';
-import { appStateAtom, gameStateAtom, playersAtom } from '../gameState/gameState';
+import {
+  appStateAtom,
+  gameStateAtom,
+  playersAtom
+} from '../gameState/gameState';
 import { FC, useState } from 'react';
 import Chip from '@mui/material/Chip';
 import { Trick } from '../sharedTypes';
@@ -27,7 +31,7 @@ const TrickChip: FC<TrickChipProps> = ({ index, trick }) => {
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     setAnchorEl(event.currentTarget);
-  }
+  };
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -38,7 +42,12 @@ const TrickChip: FC<TrickChipProps> = ({ index, trick }) => {
 
   return (
     <>
-      <Chip aria-describedby={id} sx={{ m: 0.1 }} label={`${index + 1}`} onClick={handleClick} />
+      <Chip
+        aria-describedby={id}
+        sx={{ m: 0.1 }}
+        label={`${index + 1}`}
+        onClick={handleClick}
+      />
       <Popover
         id={id}
         open={open}
@@ -46,37 +55,44 @@ const TrickChip: FC<TrickChipProps> = ({ index, trick }) => {
         onClose={handleClose}
         anchorOrigin={{
           vertical: 'bottom',
-          horizontal: 'left',
+          horizontal: 'left'
         }}
       >
-        {players && trick.items.map((item, index) => {
-          const player = players[item.playerIndex]
-          const cardName = `${item.card.suit}_${item.card.value}`;
+        {players &&
+          trick.items.map((item, index) => {
+            const player = players[item.playerIndex];
+            const cardName = `${item.card.suit}_${item.card.value}`;
 
-          return (
-            <Box key={index} sx={{ m: 2, display: "flex", flexDirection: "row", alignItems: "center", gap: 1 }} >
-              <Typography variant='h6'>
-                {player?.name}
-              </Typography>
-              <img
-                src={`/images/cards/${cardName}.svg`}
-                alt={`${item.card.suit}${item.card.value}`}
-                style={{ width: 50, height: 70 }}
-              />
-
-            </Box>
-          );
-        })}
+            return (
+              <Box
+                key={index}
+                sx={{
+                  m: 2,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <Typography variant="h6">{player?.name}</Typography>
+                <img
+                  src={`/images/cards/${cardName}.svg`}
+                  alt={`${item.card.suit}${item.card.value}`}
+                  style={{ width: 50, height: 70 }}
+                />
+              </Box>
+            );
+          })}
       </Popover>
     </>
   );
-}
+};
 
 const ScoreContainer: FC<ScoreContainerProps> = ({
   teamName,
   bgColor,
   gameScore,
-  tricks,
+  tricks
 }) => {
   const previousTricks = [];
   if (tricks && tricks.length > 0) {
@@ -94,12 +110,12 @@ const ScoreContainer: FC<ScoreContainerProps> = ({
     >
       <Chip sx={{ mt: 1, ml: 1 }} label={teamName} />
       <Box sx={{ m: 1 }}>Game score: {gameScore}</Box>
-      <Box sx={{ m: 1, display: "flex", flexDirection: "row", alignItems: "center" }}>
-        <Box>This round tricks:</Box>
-        {previousTricks}
+      <Box className="this-trick-container">
+        <Box>Round Tricks:</Box>
+        <Box>{previousTricks}</Box>
       </Box>
     </Paper>
-  )
+  );
 };
 
 export const GameStateBoard = () => {
@@ -109,19 +125,23 @@ export const GameStateBoard = () => {
   const team1code = appState.teamCodes[0];
   const team2code = appState.teamCodes[1];
 
-  const team1Tricks = gameState?.currentRound?.tricks.filter(trick => trick.winnerIndex === 0 || trick.winnerIndex === 2);
-  const team2Tricks = gameState?.currentRound?.tricks.filter(trick => trick.winnerIndex === 1 || trick.winnerIndex === 3);
+  const team1Tricks = gameState?.currentRound?.tricks.filter(
+    (trick) => trick.winnerIndex === 0 || trick.winnerIndex === 2
+  );
+  const team2Tricks = gameState?.currentRound?.tricks.filter(
+    (trick) => trick.winnerIndex === 1 || trick.winnerIndex === 3
+  );
 
   return (
     <Box className="state-board-container">
       <ScoreContainer
-        teamName='Team 1'
+        teamName="Team 1"
         bgColor={Team1Color}
         gameScore={gameState?.scores[team1code]}
         tricks={team1Tricks}
       />
       <ScoreContainer
-        teamName='Team 2'
+        teamName="Team 2"
         bgColor={Team2Color}
         gameScore={gameState?.scores[team2code]}
         tricks={team2Tricks}

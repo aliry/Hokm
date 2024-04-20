@@ -10,6 +10,7 @@ import {
 import { Card } from '../sharedTypes';
 import { usePlayCard, useSetTrumpSuit } from '../gameState/gameHooks';
 import Box from '@mui/material/Box';
+import { useIsMobile } from '../hooks/useWindowSize';
 
 const CardHand = () => {
   const playCard = usePlayCard();
@@ -18,6 +19,7 @@ const CardHand = () => {
   const [isCurrentPlayerTurn] = useAtom(isCurrentPlayerTurnAtom);
   const [trumpSuit] = useAtom(trumpSuitAtom);
   const selectTrumpSuit = useSetTrumpSuit();
+  const isMobile = useIsMobile();
 
   const totalCards = myCards.length;
   const isTrumpSuitSelectionMode = useMemo(
@@ -40,7 +42,7 @@ const CardHand = () => {
   // Adjust the arc based on distance between cards and total number of cards
   const arc = distanceBetweenCards * (totalCards - 1);
   const arcStart = (180 - arc) / 2; // rotation offset
-  const radius = 800; // change this to increase or decrease the spread
+  const radius = isMobile ? 500 : 800; // change this to increase or decrease the spread
 
   const handleCardSelect = (card: Card) => {
     if (!isCurrentPlayerTurn) return;
