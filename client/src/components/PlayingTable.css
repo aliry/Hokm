@@ -14,8 +14,8 @@
 
 .player {
   position: absolute;
-  width: 100px;
-  height: 50px;
+  width: 120px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,25 +28,25 @@
 .partner {
   top: 0;
   left: 50%;
-  transform: translate(-50%, 10%);
+  transform: translate(-50%, -20%);
 }
 
 .left-player {
   left: 0;
   top: 50%;
-  transform: translate(2%, -50%);
+  transform: translate(-30%, -50%);
 }
 
 .right-player {
   right: 0;
   top: 50%;
-  transform: translate(-2%, -50%);
+  transform: translate(30%, -50%);
 }
 
 .active-user {
   bottom: 0;
   left: 50%;
-  transform: translate(-50%, -10%);
+  transform: translate(-50%, 20%);
   flex-direction: column;
 }
 
@@ -91,14 +91,15 @@
   width: 80px;
 }
 
-.player-name-container{
+.player-name-container {
   display: flex;
   flex-direction: row;
   column-gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .player-name {
-  font-size: 12px;
   font-weight: semi-bold;
 }
 
@@ -149,7 +150,6 @@
   }
 
   .player-name {
-    font-size: 14px;
     font-weight: normal;
   }
 

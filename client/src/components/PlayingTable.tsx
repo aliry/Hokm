@@ -11,12 +11,14 @@ import {
 } from '../gameState/gameState';
 import { PlayerState } from '../sharedTypes';
 import { DisabledPlayerColor, Team1Color, Team2Color } from '../gameConfigs';
+import { useIsMobile } from '../hooks/useWindowSize';
 
 const PlayingTable = () => {
   const [myPlayer] = useAtom(myPlayerAtom);
   const [players] = useAtom(playersAtom);
   const [trumpSuit] = useAtom(trumpSuitAtom);
   const [hakemPlayer] = useAtom(hakemPlayerAtom);
+  const isMobile = useIsMobile();
 
   const [currentTrickPlayedCards] = useAtom(currentTrickPlayedCardsAtom);
   const [currentPlayer] = useAtom(currentPlayerAtom);
@@ -91,14 +93,14 @@ const PlayingTable = () => {
     );
   }, [trumpSuit]);
 
-  const getPlayerNameFontSize = useMemo((name: string) => {
+  const getPlayerNameFontSize = useMemo(() => (name: string) => {
     const nameLen = name.length;
-    if (nameLen < 5) {
-      return 18;
-    } else if (nameLen < 8) {
-      return 12;
+    if (nameLen < 6) {
+      return isMobile ? 14 : 18;
+    } else if (nameLen < 9) {
+      return isMobile ? 10 : 12;
     } else {
-      return 9;
+      return isMobile ? 7 : 9;
     }
   }, []);
 
@@ -115,7 +117,7 @@ const PlayingTable = () => {
         </div>
       );
     },
-    [hakemPlayer, trumpSuitIcon]
+    [getPlayerNameFontSize, hakemPlayer?.id, trumpSuitIcon]
   );
 
   const myPlayedCard =
