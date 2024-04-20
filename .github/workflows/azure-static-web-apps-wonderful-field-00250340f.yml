@@ -29,7 +29,7 @@ jobs:
       - name: Log REACT_APP_GAME_SERVER_URL
         run: echo "REACT_APP_GAME_SERVER_URL = $REACT_APP_GAME_SERVER_URL"
         env:
-          REACT_APP_GAME_SERVER_URL: ${{ env.REACT_APP_GAME_SERVER_URL }}
+          REACT_APP_GAME_SERVER_URL: ${{ vars.REACT_APP_GAME_SERVER_URL }}
 
       - name: Build And Deploy
         id: builddeploy
