@@ -20,7 +20,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 5px;
-  color: darkblue
+  color: darkblue;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .partner {
@@ -96,7 +98,7 @@
 }
 
 .player-name {
-  font-size: 20px;
+  font-size: 12px;
   font-weight: semi-bold;
 }
 

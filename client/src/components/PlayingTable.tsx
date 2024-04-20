@@ -91,11 +91,25 @@ const PlayingTable = () => {
     );
   }, [trumpSuit]);
 
+  const getPlayerNameFontSize = useMemo((name: string) => {
+    const nameLen = name.length;
+    if (nameLen < 5) {
+      return 18;
+    } else if (nameLen < 8) {
+      return 12;
+    } else {
+      return 9;
+    }
+  }, []);
+
   const getPlayerNameElement = useCallback(
     (player?: PlayerState | null) => {
       if (!player) return null;
       return (
-        <div className="player-name-container">
+        <div
+          className="player-name-container"
+          style={{ fontSize: getPlayerNameFontSize(player.name) }}
+        >
           <div className="player-name">{player.name}</div>
           {hakemPlayer?.id === player.id ? trumpSuitIcon : null}
         </div>

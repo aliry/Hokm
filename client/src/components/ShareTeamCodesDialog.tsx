@@ -11,6 +11,8 @@ import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 export const ShareTeamCodesDialog = () => {
   const [appState, setAppState] = useAtom(appStateAtom);
@@ -22,27 +24,42 @@ export const ShareTeamCodesDialog = () => {
     setOpen(appState.showTeamCodeDialog);
   }, [appState.showTeamCodeDialog]);
 
-  const somePlayerHasNotJoined = gameState?.players.some(p => !p.connected);
+  const somePlayerHasNotJoined = gameState?.players.some((p) => !p.connected);
 
   const handleClose = () => {
     setAppState((prev) => ({ ...prev, showTeamCodeDialog: false }));
-  }
+  };
+
+  const getCopyIcon = (value: string) => (
+    <InputAdornment position="end">
+      <IconButton
+        edge="end"
+        onClick={() => navigator.clipboard.writeText(value)}
+      >
+        <ContentCopyIcon />
+      </IconButton>
+    </InputAdornment>
+  );
 
   return (
     <Dialog open={open} aria-labelledby="playerName-dialog-title">
-      <DialogTitle id="playerName-dialog-title">Invite Your Friends</DialogTitle>
-      {!somePlayerHasNotJoined && <IconButton
-        aria-label="close"
-        onClick={handleClose}
-        sx={{
-          position: 'absolute',
-          right: 8,
-          top: 8,
-          color: (theme) => theme.palette.grey[500],
-        }}
-      >
-        <CloseIcon />
-      </IconButton>}
+      <DialogTitle id="playerName-dialog-title">
+        Invite Your Friends
+      </DialogTitle>
+      {!somePlayerHasNotJoined && (
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500]
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+      )}
       <DialogContent>
         <DialogContentText>
           Share these links with your friends to start playing.
@@ -55,7 +72,8 @@ export const ShareTeamCodesDialog = () => {
           fullWidth
           value={teamLinks.myTeamLink}
           InputProps={{
-            readOnly: true
+            readOnly: true,
+            endAdornment: getCopyIcon(teamLinks.myTeamLink)
           }}
         />
         <TextField
@@ -66,7 +84,8 @@ export const ShareTeamCodesDialog = () => {
           fullWidth
           value={teamLinks.opponentTeamLink}
           InputProps={{
-            readOnly: true
+            readOnly: true,
+            endAdornment: getCopyIcon(teamLinks.opponentTeamLink)
           }}
         />
         <Divider sx={{ m: 1 }} />
@@ -81,7 +100,8 @@ export const ShareTeamCodesDialog = () => {
           value={appState.teamCodes[0]}
           onFocus={(e) => e.target.select()}
           InputProps={{
-            readOnly: true
+            readOnly: true,
+            endAdornment: getCopyIcon(appState.teamCodes[0])
           }}
         />
         <TextField
@@ -92,12 +112,15 @@ export const ShareTeamCodesDialog = () => {
           value={appState.teamCodes[1]}
           onFocus={(e) => e.target.select()}
           InputProps={{
-            readOnly: true
+            readOnly: true,
+            endAdornment: getCopyIcon(appState.teamCodes[1])
           }}
         />
-        {somePlayerHasNotJoined && <Box sx={{ color: 'red', mt: 3 }}>
-          Waiting for other players to join ...
-        </Box>}
+        {somePlayerHasNotJoined && (
+          <Box sx={{ color: 'red', mt: 3 }}>
+            Waiting for other players to join ...
+          </Box>
+        )}
       </DialogContent>
     </Dialog>
   );
