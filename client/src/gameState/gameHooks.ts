@@ -12,7 +12,7 @@ import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { Card, ServerEventPayload } from '../sharedTypes';
 import { produce } from 'immer';
 
-// REACT_APP_GAME_SERVER_URL will be replaced by the actual server url in github workflow.
+// REACT_APP_GAME_SERVER_URL will be replaced by the actual server url in github workflow based on repo variable.
 const serverURL =
   process.env.REACT_APP_GAME_SERVER_URL || 'http://localhost:3001';
 let socketConnectionInProgress = false;
