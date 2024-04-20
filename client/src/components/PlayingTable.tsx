@@ -102,7 +102,7 @@ const PlayingTable = () => {
     } else {
       return isMobile ? 7 : 9;
     }
-  }, []);
+  }, [isMobile]);
 
   const getPlayerNameElement = useCallback(
     (player?: PlayerState | null) => {
