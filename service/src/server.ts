@@ -5,6 +5,8 @@ import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { SocketHandler } from './socketHandler';
 
+const PORT = process.env.PORT || 3001;
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -40,6 +42,11 @@ app.post('/create-game', (req, res) => {
     console.error('Error creating game session:', error);
     res.status(400).send(error.message);
   }
+});
+
+// health check
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
 });
 
 // endpoint to download the game state. params: sessionId, socketId
@@ -86,6 +93,6 @@ io.on('connection', (socket: Socket) => {
   socketHandler.handleConnection(socket);
 });
 
-httpServer.listen(3001, () => {
-  console.log('Server is running on port 3001');
+httpServer.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

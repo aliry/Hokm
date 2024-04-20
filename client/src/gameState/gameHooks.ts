@@ -11,8 +11,7 @@ import { io } from 'socket.io-client';
 import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { Card, ServerEventPayload } from '../sharedTypes';
 import { produce } from 'immer';
-const serverURL =
-  process.env.REACT_APP_GAME_SERVER_URL || 'http://localhost:3001';
+const serverURL = 'http://localhost:3001'; //'http://hokmv1.azurewebsites.net'
 let socketConnectionInProgress = false;
 
 export const useSocket = () => {
@@ -133,53 +132,56 @@ export const useLoadGame = () => {
   const [, setError] = useAtom(errorAtom);
   const { playerName, socketId } = appState;
   const joinGame = useJoinGame();
-  const loadGame = useCallback((newPlayerName?: string) => {
-    newPlayerName = newPlayerName || playerName;
-    if (!newPlayerName) {
-      setError('Player name is required to load game');
-      return;
-    }
-
-    if (!socketId) {
-      setError('Socket ID is required to load game');
-      return;
-    }
-
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.hokm';
-    fileInput.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) {
+  const loadGame = useCallback(
+    (newPlayerName?: string) => {
+      newPlayerName = newPlayerName || playerName;
+      if (!newPlayerName) {
+        setError('Player name is required to load game');
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const gameState = e.target?.result as string;
-        axios
-          .post(`${serverURL}/game-state`, {
-            gameState,
-            playerName: newPlayerName
-          })
-          .then((response) => {
-            setAppState((prev) => ({
-              ...prev,
-              playerName: newPlayerName || prev.playerName,
-              teamCodes: response.data.teamCodes,
-              teamCode: response.data.teamCode,
-              showTeamCodeDialog: true
-            }));
-            joinGame(newPlayerName, response.data.teamCode);
-          })
-          .catch((error) => {
-            setError(error.message);
-          });
+      if (!socketId) {
+        setError('Socket ID is required to load game');
+        return;
+      }
+
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = '.hokm';
+      fileInput.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (!file) {
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const gameState = e.target?.result as string;
+          axios
+            .post(`${serverURL}/game-state`, {
+              gameState,
+              playerName: newPlayerName
+            })
+            .then((response) => {
+              setAppState((prev) => ({
+                ...prev,
+                playerName: newPlayerName || prev.playerName,
+                teamCodes: response.data.teamCodes,
+                teamCode: response.data.teamCode,
+                showTeamCodeDialog: true
+              }));
+              joinGame(newPlayerName, response.data.teamCode);
+            })
+            .catch((error) => {
+              setError(error.message);
+            });
+        };
+        reader.readAsText(file);
       };
-      reader.readAsText(file);
-    };
-    fileInput.click();
-  }, [playerName, socketId, setError, setAppState, joinGame]);
+      fileInput.click();
+    },
+    [playerName, socketId, setError, setAppState, joinGame]
+  );
 
   return loadGame;
 };
@@ -225,11 +227,11 @@ export const useSocketEvents = () => {
   const [, setAppState] = useAtom(appStateAtom);
 
   const setPreviousGameState = useCallback(() => {
-    setGameState(prevGameState => {
+    setGameState((prevGameState) => {
       if (!prevGameState) {
         return null;
       }
-      return { ...prevGameState }
+      return { ...prevGameState };
     });
   }, [setGameState]);
 
@@ -240,7 +242,7 @@ export const useSocketEvents = () => {
     }
     socket.on(SocketEvents.ServerEvent, (payload: ServerEventPayload) => {
       console.log(payload);
-      const { gameState } = payload
+      const { gameState } = payload;
       if (payload.event === GameEvent.Error) {
         setErrors(payload.error);
         setPreviousGameState();
@@ -255,11 +257,10 @@ export const useSocketEvents = () => {
             Object.assign(draft, gameState);
           });
         });
-        if (
-          gameState?.currentRound ||
-          gameState?.roundHistory?.length > 0
-        ) {
-          const showTeamCodeDialog = gameState.players.some(p => p.name === '' || !p.connected);
+        if (gameState?.currentRound || gameState?.roundHistory?.length > 0) {
+          const showTeamCodeDialog = gameState.players.some(
+            (p) => p.name === '' || !p.connected
+          );
           // All players have joined and the game has started
           setAppState((prev) => ({
             ...prev,
