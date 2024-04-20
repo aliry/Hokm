@@ -12,6 +12,9 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
+    env:
+      REACT_APP_GAME_SERVER_URL: ${{ secrets.REACT_APP_GAME_SERVER_URL }}
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -38,8 +41,6 @@ jobs:
           api_location: '' # Api source code path - optional
           output_location: '/build' # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
-        env:
-          REACT_APP_GAME_SERVER_URL: ${{ env.REACT_APP_GAME_SERVER_URL }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
