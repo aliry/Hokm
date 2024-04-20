@@ -11,7 +11,8 @@ import { io } from 'socket.io-client';
 import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { Card, ServerEventPayload } from '../sharedTypes';
 import { produce } from 'immer';
-const serverURL = 'https://hokmv1.azurewebsites.net';
+const serverURL =
+  process.env.REACT_APP_GAME_SERVER_URL || 'http://localhost:3001';
 let socketConnectionInProgress = false;
 
 export const useSocket = () => {

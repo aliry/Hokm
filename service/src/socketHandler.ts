@@ -13,8 +13,13 @@ export class SocketHandler {
   constructor(io: SocketIOServer, gameSessionManager: GameSessionManager) {
     this._io = io;
     this._gameSessionManager = gameSessionManager;
-    this.gameEngine = new GameEngine(gameSessionManager, this.emitGameState.bind(this));
-    gameSessionManager.registerSessionTimeoutListener(this.emitSessionTimeout.bind(this));
+    this.gameEngine = new GameEngine(
+      gameSessionManager,
+      this.emitGameState.bind(this)
+    );
+    gameSessionManager.registerSessionTimeoutListener(
+      this.emitSessionTimeout.bind(this)
+    );
   }
 
   public handleConnection(socket: Socket): void {
@@ -59,6 +64,7 @@ export class SocketHandler {
       try {
         const session = this.gameEngine.GetSession(socket);
         this.gameEngine.Disconnect(session, socket.id);
+        this.emitGameState(session);
       } catch (error: any) {
         this.emitError(socket, error.message);
       }
@@ -94,4 +100,3 @@ export class SocketHandler {
     }
   }
 }
-
