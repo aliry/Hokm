@@ -20,12 +20,10 @@ const drawerWidth = 240;
 const appName = 'HOKM';
 
 export const GameAppBar = () => {
-  const [appState, setAppState] = useAtom(appStateAtom);
+  const [, setAppState] = useAtom(appStateAtom);
   const [mobileOpen, setMobileOpen] = useState(false);
   const saveGame = useSaveGame();
   const loadGame = useLoadGame();
-
-
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
@@ -95,7 +93,11 @@ export const GameAppBar = () => {
           </Typography>
           <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
             {navItems.map((item) => (
-              <Button key={item.text} sx={{ color: '#fff' }} onClick={item.onClick}>
+              <Button
+                key={item.text}
+                sx={{ color: '#fff' }}
+                onClick={item.onClick}
+              >
                 {item.text}
               </Button>
             ))}
