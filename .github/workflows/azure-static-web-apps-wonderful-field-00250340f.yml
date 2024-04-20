@@ -12,8 +12,6 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
-    env:
-      REACT_APP_GAME_SERVER_URL: ${{ secrets.REACT_APP_GAME_SERVER_URL }}
 
     steps:
       - uses: actions/checkout@v3
@@ -28,6 +26,11 @@ jobs:
           CI: '' # This will prevent warnings from causing the build to fail
         working-directory: ./client # Set this to the directory where your package.json is located
 
+      - name: Log REACT_APP_GAME_SERVER_URL
+        run: echo "REACT_APP_GAME_SERVER_URL = $REACT_APP_GAME_SERVER_URL"
+        env:
+          REACT_APP_GAME_SERVER_URL: ${{ secrets.REACT_APP_GAME_SERVER_URL }}
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -35,12 +38,11 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WONDERFUL_FIELD_00250340F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
           action: 'upload'
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: '/client' # App source code path
-          api_location: '' # Api source code path - optional
-          output_location: '/build' # Built app content directory - optional
-          ###### End of Repository/Build Configurations ######
+          app_location: 'client'
+          api_location: ''
+          output_location: '/build'
+        env:
+          REACT_APP_GAME_SERVER_URL: ${{ secrets.REACT_APP_GAME_SERVER_URL }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
