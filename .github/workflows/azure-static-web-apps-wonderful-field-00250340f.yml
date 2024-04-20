@@ -26,8 +26,9 @@ jobs:
           CI: '' # This will prevent warnings from causing the build to fail
         working-directory: ./client # Set this to the directory where your package.json is located
 
-      - name: Log REACT_APP_GAME_SERVER_URL
-        run: echo "REACT_APP_GAME_SERVER_URL = $REACT_APP_GAME_SERVER_URL"
+      - name: Print environment variables
+        run: |
+          echo "REACT_APP_GAME_SERVER_URL=${REACT_APP_GAME_SERVER_URL}"
         env:
           REACT_APP_GAME_SERVER_URL: ${{ vars.REACT_APP_GAME_SERVER_URL }}
 
