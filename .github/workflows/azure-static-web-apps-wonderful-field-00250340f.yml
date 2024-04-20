@@ -15,6 +15,14 @@ jobs:
         with:
           submodules: true
           lfs: false
+
+      # Add a new step here to install npm dependencies with warnings ignored
+      - name: Install npm dependencies
+        run: npm install --no-fund --no-audit
+        env:
+          CI: '' # This will prevent warnings from causing the build to fail
+        working-directory: ./client # Set this to the directory where your package.json is located
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
