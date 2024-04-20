@@ -6,7 +6,9 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node build/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "test": "jest"
+    "test": "jest",
+    "docker:build":"docker build -t hokm-app-service:v2 .",
+    "docker:run":"docker run -p 3001:3001 hokm-app-service"
   },
   "keywords": [],
   "author": "Ali Roudaki",
