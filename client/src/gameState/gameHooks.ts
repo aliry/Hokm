@@ -11,7 +11,7 @@ import { io } from 'socket.io-client';
 import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { Card, ServerEventPayload } from '../sharedTypes';
 import { produce } from 'immer';
-const serverURL = 'http://hokmv1.azurewebsites.net';
+const serverURL = 'https://hokmv1.azurewebsites.net';
 let socketConnectionInProgress = false;
 
 export const useSocket = () => {
