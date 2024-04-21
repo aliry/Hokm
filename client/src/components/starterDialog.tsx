@@ -139,6 +139,10 @@ export const StarterDialog = () => {
               handleJoinGame();
             }
           }}
+          inputProps={{
+            minLength: 3,
+            maxLength: 9
+          }}
         />
         <TextField
           margin="dense"
