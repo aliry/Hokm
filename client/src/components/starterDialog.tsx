@@ -91,6 +91,10 @@ export const StarterDialog = () => {
           fullWidth
           value={newPlayerName}
           onChange={handlePlayerNameChange}
+          inputProps={{
+            minLength: 3,
+            maxLength: 9
+          }}
         />
         <Container sx={{ display: 'flex', justifyContent: 'center' }}>
           <Box sx={{ display: "flex", flexDirection: "column" }}>

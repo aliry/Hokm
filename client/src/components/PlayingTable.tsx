@@ -95,12 +95,12 @@ const PlayingTable = () => {
 
   const getPlayerNameFontSize = useMemo(() => (name: string) => {
     const nameLen = name.length;
-    if (nameLen < 6) {
+    if (nameLen < 7) {
       return isMobile ? 14 : 18;
     } else if (nameLen < 9) {
-      return isMobile ? 10 : 12;
+      return isMobile ? 12 : 14;
     } else {
-      return isMobile ? 7 : 9;
+      return isMobile ? 10 : 12;
     }
   }, [isMobile]);
 
