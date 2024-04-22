@@ -4,12 +4,20 @@ import { createServer } from 'http';
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { SocketHandler } from './socketHandler';
+import { defaultClient as aiClient } from 'applicationinsights';
+import "./appInsight"
 
 const PORT = process.env.PORT || 3001;
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Track requests with Application Insights  
+app.use((req, res, next) => {
+  aiClient.trackNodeHttpRequest({ request: req, response: res });
+  next();
+});
 
 const httpServer = createServer(app);
 const io = new SocketIOServer(httpServer, {

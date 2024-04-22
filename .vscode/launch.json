@@ -20,11 +20,16 @@
       "name": "Service Lunch",
       "preLaunchTask": "tsc: build - tsconfig.build.json",
       "program": "${workspaceFolder}/service/src/server.ts",
-      "outFiles": ["${workspaceFolder}/service/dist/**/*.js"],
+      "outFiles": [
+        "${workspaceFolder}/service/dist/**/*.js"
+      ],
       "cwd": "${workspaceFolder}/service",
       "sourceMaps": true,
       "protocol": "inspector",
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "env": {
+        "NODE_ENV": "development"
+      }
     }
   ]
 }
