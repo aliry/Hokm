@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
 import { Card, GameSessionState, PlayerState } from '../sharedTypes';
 import { Socket } from 'socket.io-client';
-import { CardValues, Suits } from '../constants';
+import { CardValues } from '../constants';
 
 interface InitialState {
   playerName: string;
@@ -45,17 +45,62 @@ export const cardsAtom = atom<Card[]>((get) => {
   let cards = gameState.players.find((player) => player.id === socketId)?.cards;
   if (!cards) return [];
   if (cards.length < 3) return cards;
-  // order cards by suit and value when there are more than 3 cards
-  cards = [...cards]; // Create a copy of the array
-  cards = cards.sort((a, b) => {
-    if (a.suit === b.suit) {
-      return CardValues.indexOf(a.value) - CardValues.indexOf(b.value);
-    }
-    return Suits.indexOf(a.suit) - Suits.indexOf(b.suit);
-  });
 
-  return cards;
+  return sortCards([...cards])
 });
+
+/**
+ * Sorts an array of cards by their value and suit in alternating suit colors.
+ * 
+ * @param cards - An array of cards to be sorted.
+ * @returns An array of cards sorted by value and separated by suits.
+ */
+function sortCards(cards: Card[] | undefined) {
+  if (!cards) return [];
+  if (cards.length < 2) return cards; // No need to sort if there is only one card  
+
+  // Sort the cards by value
+  const sortByValue = (a: Card, b: Card) =>
+    CardValues.indexOf(a.value) - CardValues.indexOf(b.value);
+
+  // Separate the cards by suits and sort them by value
+  const hearts = cards.filter(card => card.suit === "hearts").sort(sortByValue);
+  const spades = cards.filter(card => card.suit === "spades").sort(sortByValue);
+  const diamonds = cards.filter(card => card.suit === "diamonds").sort(sortByValue);
+  const clubs = cards.filter(card => card.suit === "clubs").sort(sortByValue);
+
+  const redSuits: Card[][] = []
+  const blackSuits: Card[][] = []
+
+  // add the suits to the respective arrays if there are cards in the suit
+  if (hearts.length > 0) redSuits.push(hearts);
+  if (diamonds.length > 0) redSuits.push(diamonds);
+  if (spades.length > 0) blackSuits.push(spades);
+  if (clubs.length > 0) blackSuits.push(clubs);
+
+  const combinedCards: Card[] = [];
+
+  // if both colors have suits, we need to alternate between the colors
+  let isRedTurn = redSuits.length >= blackSuits.length;
+  while (redSuits.length > 0 && blackSuits.length > 0) {
+    if (isRedTurn) {
+      combinedCards.push(...(redSuits.pop() || []));
+    } else {
+      combinedCards.push(...(blackSuits.pop() || []));
+    }
+    isRedTurn = !isRedTurn;
+  }
+
+  // add the remaining suits
+  if (redSuits.length > 0) {
+    combinedCards.push(...redSuits.flat());
+  }
+  if (blackSuits.length > 0) {
+    combinedCards.push(...blackSuits.flat());
+  }
+
+  return combinedCards;
+}
 
 export const trumpSuitAtom = atom<string>((get) => {
   const gameState = get(gameStateAtom);
