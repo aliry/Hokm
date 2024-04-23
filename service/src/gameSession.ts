@@ -7,9 +7,11 @@ import {
   PlayerState,
   Round,
   RoundBase,
-  Trick
+  Suits,
+  Trick,
+  Values
 } from './sharedTypes';
-import { CardValues, Suits } from './constants';
+import { CardValues, SuitNames } from './constants';
 import { Player } from './player';
 import { GameConfigs } from './gameConfigs';
 import debounce from 'debounce';
@@ -565,9 +567,9 @@ export class GameSession {
    */
   private generateShuffledDeck(): Card[] {
     const deck: Card[] = [];
-    for (const suit of Suits) {
+    for (const suit of SuitNames) {
       for (const value of CardValues) {
-        deck.push({ suit, value });
+        deck.push({ suit: suit as Suits, value: value as Values });
       }
     }
 
