@@ -5,7 +5,7 @@ import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { SocketHandler } from './socketHandler';
 import { defaultClient as aiClient } from 'applicationinsights';
-import "./appInsight"
+import './appInsight';
 
 const PORT = process.env.PORT || 3001;
 
@@ -13,7 +13,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Track requests with Application Insights  
+// Track requests with Application Insights
 app.use((req, res, next) => {
   aiClient.trackNodeHttpRequest({ request: req, response: res });
   next();
@@ -50,11 +50,6 @@ app.post('/create-game', (req, res) => {
     console.error('Error creating game session:', error);
     res.status(400).send(error.message);
   }
-});
-
-// health check
-app.get('/health', (req, res) => {
-  res.status(200).send('OK');
 });
 
 // endpoint to download the game state. params: sessionId, socketId
@@ -95,6 +90,16 @@ app.post('/game-state', (req, res) => {
   } catch (error: any) {
     res.status(400).send(error.message);
   }
+});
+
+// health check
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// get version
+app.get('/version', (req, res) => {
+  res.status(200).send('0.0.1');
 });
 
 io.on('connection', (socket: Socket) => {
