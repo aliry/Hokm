@@ -11,6 +11,7 @@ import { io } from 'socket.io-client';
 import { GameAction, GameEvent, SocketEvents } from '../constants';
 import { Card, ServerEventPayload } from '../sharedTypes';
 import { produce } from 'immer';
+import { DefaultCardTheme } from '../gameConfigs';
 
 // REACT_APP_GAME_SERVER_URL will be replaced by the actual server url in github workflow based on repo variable.
 const serverURL =
@@ -116,7 +117,9 @@ export const useCreateGame = () => {
             teamCodes: response.data.teamCodes,
             teamCode: response.data.teamCodes[0],
             showTeamCodeDialog: true,
-            sessionTimeout: false
+            showCardThemeDialog: false,
+            sessionTimeout: false,
+            cardThemeName: DefaultCardTheme
           }));
           joinGame(playerName, response.data.teamCodes[0]);
         })

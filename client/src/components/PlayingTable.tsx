@@ -12,6 +12,7 @@ import {
 import { PlayerState } from '../sharedTypes';
 import { DisabledPlayerColor, Team1Color, Team2Color } from '../gameConfigs';
 import { useIsMobile } from '../hooks/useWindowSize';
+import { useCardImage } from '../hooks/useCardImage';
 
 const PlayingTable = () => {
   const [myPlayer] = useAtom(myPlayerAtom);
@@ -19,6 +20,8 @@ const PlayingTable = () => {
   const [trumpSuit] = useAtom(trumpSuitAtom);
   const [hakemPlayer] = useAtom(hakemPlayerAtom);
   const isMobile = useIsMobile();
+  const getCardImage = useCardImage();
+
 
   const [currentTrickPlayedCards] = useAtom(currentTrickPlayedCardsAtom);
   const [currentPlayer] = useAtom(currentPlayerAtom);
@@ -142,7 +145,7 @@ const PlayingTable = () => {
         {myPlayedCard && (
           <img
             className="player-card active-user-card"
-            src={`/images/cards/${myPlayedCard.suit}_${myPlayedCard.value}.svg`}
+            src={getCardImage(myPlayedCard)}
             alt="active user's card"
           />
         )}
@@ -156,7 +159,7 @@ const PlayingTable = () => {
       {partnerPlayedCard && (
         <img
           className="player-card partner-card"
-          src={`/images/cards/${partnerPlayedCard.suit}_${partnerPlayedCard.value}.svg`}
+          src={getCardImage(partnerPlayedCard)}
           alt="partner's card"
         />
       )}
@@ -169,7 +172,7 @@ const PlayingTable = () => {
       {nextPlayerPlayedCard && (
         <img
           className="player-card right-player-card"
-          src={`/images/cards/${nextPlayerPlayedCard.suit}_${nextPlayerPlayedCard.value}.svg`}
+          src={getCardImage(nextPlayerPlayedCard)}
           alt="opponent1's card"
         />
       )}
@@ -182,7 +185,7 @@ const PlayingTable = () => {
       {previousPlayerPlayedCard && (
         <img
           className="player-card left-player-card"
-          src={`/images/cards/${previousPlayerPlayedCard.suit}_${previousPlayerPlayedCard.value}.svg`}
+          src={getCardImage(previousPlayerPlayedCard)}
           alt="opponent2's card"
         />
       )}

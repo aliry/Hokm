@@ -1,5 +1,6 @@
 import React, { CSSProperties } from 'react';
 import { Card } from '../sharedTypes';
+import { useCardImage } from '../hooks/useCardImage';
 interface CardProps {
   card: Card;
   style: CSSProperties;
@@ -7,12 +8,12 @@ interface CardProps {
 }
 
 export const PlayingCard: React.FC<CardProps> = ({ card, style, onClick }) => {
-  const cardName = `${card.suit}_${card.value}`;
+  const getCardImage = useCardImage();
 
   return (
     <img
-      src={`/images/cards/${cardName}.svg`}
-      alt={cardName}
+      src={getCardImage(card)}
+      alt={`${card.suit}${card.value}`}
       className="card"
       style={style}
       onClick={() => onClick && onClick()}
