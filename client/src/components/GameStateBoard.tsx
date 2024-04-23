@@ -13,6 +13,7 @@ import Chip from '@mui/material/Chip';
 import { Trick } from '../sharedTypes';
 import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
+import { useCardImage } from '../hooks/useCardImage';
 
 interface TrickChipProps {
   index: number;
@@ -28,6 +29,7 @@ interface ScoreContainerProps {
 const TrickChip: FC<TrickChipProps> = ({ index, trick }) => {
   const [players] = useAtom(playersAtom);
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
+  const getCardImage = useCardImage();
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     setAnchorEl(event.currentTarget);
@@ -61,8 +63,6 @@ const TrickChip: FC<TrickChipProps> = ({ index, trick }) => {
         {players &&
           trick.items.map((item, index) => {
             const player = players[item.playerIndex];
-            const cardName = `${item.card.suit}_${item.card.value}`;
-
             return (
               <Box
                 key={index}
@@ -76,7 +76,7 @@ const TrickChip: FC<TrickChipProps> = ({ index, trick }) => {
               >
                 <Typography variant="h6">{player?.name}</Typography>
                 <img
-                  src={`/images/cards/${cardName}.svg`}
+                  src={getCardImage(item.card)}
                   alt={`${item.card.suit}${item.card.value}`}
                   style={{ width: 50, height: 70 }}
                 />

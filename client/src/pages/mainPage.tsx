@@ -12,6 +12,7 @@ import { ShareTeamCodesDialog } from '../components/ShareTeamCodesDialog';
 import { RoundEndDialog } from '../components/roundEndDialog';
 import { GameAlert } from '../components/gameAlert';
 import { SessionEndingDialog } from '../components/sessionEndingDialog';
+import { SelectCardThemeDialog } from '../components/selectCardThemeDialog';
 
 export function MainPage() {
   const [appState, setAppState] = useAtom(appStateAtom);
@@ -37,6 +38,7 @@ export function MainPage() {
       <GameAppBar />
       <StarterDialog />
       <ShareTeamCodesDialog />
+      <SelectCardThemeDialog />
       {appState.sessionTimeout && <SessionEndingDialog />}
       <RoundEndDialog />
       <Container sx={{ my: 10 }}>

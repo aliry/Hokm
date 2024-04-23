@@ -3,8 +3,8 @@ import { GameAction } from './constants';
 /** THIS IS SHARED WITH CLIENT. DO NOT IMPORT ANYTHING OTHER THAN CONSTANTS */
 
 export interface Card {
-  suit: string;
-  value: string;
+  suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
+  value: '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A';
 }
 
 export interface IPlayer {

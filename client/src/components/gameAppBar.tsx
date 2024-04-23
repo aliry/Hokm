@@ -46,11 +46,17 @@ export const GameAppBar = () => {
     {
       text: 'Team Codes',
       onClick: () => {
-        setMobileOpen(false);
         setAppState((prev) => ({ ...prev, showTeamCodeDialog: true }));
+      }
+    },
+    {
+      text: 'Cards Theme',
+      onClick: () => {
+        setAppState((prev) => ({ ...prev, showCardThemeDialog: true }));
       }
     }
   ];
+
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       {appLogo}

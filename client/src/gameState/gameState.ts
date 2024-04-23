@@ -2,25 +2,30 @@ import { atom } from 'jotai';
 import { Card, GameSessionState, PlayerState } from '../sharedTypes';
 import { Socket } from 'socket.io-client';
 import { CardValues } from '../constants';
+import { DefaultCardTheme } from '../gameConfigs';
 
-interface InitialState {
+interface AppState {
   playerName: string;
   socketId: string;
   teamCodes: string[];
   teamCode: string;
   showTeamCodeDialog: boolean;
+  showCardThemeDialog: boolean;
   sessionTimeout: boolean;
+  cardThemeName: string;
 }
 
 export const socketAtom = atom<Socket | null>(null);
 
-export const appStateAtom = atom<InitialState>({
+export const appStateAtom = atom<AppState>({
   playerName: '',
   socketId: '',
   teamCodes: [],
   teamCode: '',
   showTeamCodeDialog: false,
+  showCardThemeDialog: false,
   sessionTimeout: false,
+  cardThemeName: DefaultCardTheme
 });
 
 export const errorAtom = atom<string>('');
