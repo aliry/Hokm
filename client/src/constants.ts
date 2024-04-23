@@ -28,7 +28,7 @@ export enum GameAction {
   GameState = 'game-state',
 }
 
-export const Suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+export const SuitNames = ['hearts', 'diamonds', 'clubs', 'spades'];
 export const CardValues = [
   '2',
   '3',

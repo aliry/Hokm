@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { GameSession } from './gameSession';
-import { CardValues, Suits } from './constants';
+import { CardValues, SuitNames } from './constants';
 import { Card, RoundBase } from './sharedTypes';
 import { GameConfigs } from './gameConfigs';
 
@@ -140,7 +140,7 @@ export class GameEngine {
     }
 
     trumpSuit = trumpSuit.toLowerCase();
-    if (!Suits.includes(trumpSuit)) {
+    if (!SuitNames.includes(trumpSuit)) {
       throw new Error('Invalid trump suit');
     }
 
