@@ -4,7 +4,7 @@ import { GameEngine } from './gameEngine';
 import { GameAction, GameEvent, SocketEvents } from './constants';
 import { ClientActionPayload, ServerEventPayload } from './sharedTypes';
 import { GameSession } from './gameSession';
-import { defaultClient as aiClient } from 'applicationinsights';
+import { aiClient } from './appInsight';
 
 export class SocketHandler {
   private gameEngine: GameEngine;
@@ -91,7 +91,7 @@ export class SocketHandler {
         this._io.to(player.id).emit(SocketEvents.ServerEvent, payLoad);
       }
     });
-    aiClient.trackEvent({
+    aiClient?.trackEvent({
       name: 'GameState',
       properties: session.GetState()
     });

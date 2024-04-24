@@ -1,11 +1,11 @@
 import * as appInsights from 'applicationinsights';
 
-
 let aiClient: appInsights.TelemetryClient | undefined;
 
 if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
   const isDevMode = process.env.NODE_ENV === 'development';
-  appInsights.setup()
+  appInsights
+    .setup()
     .setAutoCollectRequests(true)
     .setAutoCollectExceptions(true)
     .setAutoCollectPerformance(false, false)
@@ -24,4 +24,6 @@ process.on('uncaughtException', (error: Error) => {
 
 process.on('unhandledRejection', (reason: any) => {
   aiClient?.trackException({ exception: reason });
-});  
+});
+
+export { aiClient };
