@@ -40,6 +40,11 @@ export const useSocket = () => {
           ...prev,
           socketId
         }));
+
+        // write the server version to console
+        axios
+          .post(`${serverURL}/version`)
+          .then((response) => console.log(response));
       });
 
       _socket.on('connect_error', (err: { message: any }) => {

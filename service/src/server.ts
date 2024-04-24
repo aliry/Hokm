@@ -10,6 +10,9 @@ import './appInsight';
 import { version } from '../package.json';
 import { ExtendedError } from 'socket.io/dist/namespace';
 
+// load environment variables
+require('dotenv').config();
+
 const PORT = process.env.PORT || 3001;
 
 const app = express();
@@ -17,10 +20,9 @@ app.use(helmet());
 app.use(express.json({ limit: '10kb' }));
 
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'https://wonderful-field-00250340f.5.azurestaticapps.net'
-  ],
+  origin: process.env.ALLOWED_ORIGINS?.split(',').map((origin) =>
+    origin.trim()
+  ),
   methods: ['GET', 'POST']
 };
 app.use(cors(corsOptions));

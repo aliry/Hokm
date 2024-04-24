@@ -1,9 +1,6 @@
 import * as crypto from 'crypto';
 import { GameState } from './sharedTypes';
 
-// load environment variables
-require('dotenv').config();
-
 const algorithm = 'aes-256-ctr';
 
 // Retrieve the salt from an environment variable
