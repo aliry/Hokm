@@ -40,11 +40,6 @@ export const useSocket = () => {
           ...prev,
           socketId
         }));
-
-        // write the server version to console
-        axios
-          .post(`${serverURL}/version`)
-          .then((response) => console.log(response));
       });
 
       _socket.on('connect_error', (err: { message: any }) => {
@@ -137,6 +132,19 @@ export const useCreateGame = () => {
 
   return handleCreateGame;
 };
+
+export const useServerVersion = () => {
+  useEffect(() => {
+    axios
+      .get(`${serverURL}/version`)
+      .then((response) => {
+        console.log('Server version:', response.data.version);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
+}
 
 export const useLoadGame = () => {
   const [appState, setAppState] = useAtom(appStateAtom);

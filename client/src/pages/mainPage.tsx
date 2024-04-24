@@ -1,7 +1,7 @@
 import PlayingTable from '../components/PlayingTable';
 import CardHand from '../components/CardHand';
 import { useAtom } from 'jotai';
-import { useSocket } from '../gameState/gameHooks';
+import { useServerVersion, useSocket } from '../gameState/gameHooks';
 import { appStateAtom } from '../gameState/gameState';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -29,6 +29,7 @@ export function MainPage() {
   }
 
   useSocket();
+  useServerVersion();
 
   if (!appState.socketId) return <div>Connecting...</div>;
 

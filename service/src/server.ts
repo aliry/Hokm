@@ -7,8 +7,10 @@ import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { SocketHandler } from './socketHandler';
 import './appInsight';
-import { version } from '../package.json';
 import { ExtendedError } from 'socket.io/dist/namespace';
+
+// import version from '../package.json';
+const { version } = require('../package.json');
 
 // load environment variables
 require('dotenv').config();
