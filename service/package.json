@@ -1,6 +1,6 @@
 {
   "name": "hokm-service",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Hokm game server",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
