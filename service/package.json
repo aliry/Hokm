@@ -28,7 +28,7 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
-    "applicationinsights": "^3.0.0",
+    "applicationinsights": "^2.9.5",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "debounce": "^2.0.0",

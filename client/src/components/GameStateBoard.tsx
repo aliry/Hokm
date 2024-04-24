@@ -111,8 +111,8 @@ const ScoreContainer: FC<ScoreContainerProps> = ({
       <Chip sx={{ mt: 1, ml: 1 }} label={teamName} />
       <Box sx={{ m: 1 }}>Game score: {gameScore}</Box>
       <Box className="this-trick-container">
-        <Box>Round Tricks:</Box>
-        <Box>{previousTricks}</Box>
+        <Box sx={{ alignContent: 'center' }}>Round Tricks:</Box>
+        <Box sx={{ minHeight: 32 }}>{previousTricks}</Box>
       </Box>
     </Paper>
   );
