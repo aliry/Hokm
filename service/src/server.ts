@@ -6,6 +6,7 @@ import { GameSessionManager } from './gameSessionManager';
 import { SocketHandler } from './socketHandler';
 import { defaultClient as aiClient } from 'applicationinsights';
 import './appInsight';
+import { version } from '../package.json';
 
 const PORT = process.env.PORT || 3001;
 
@@ -99,7 +100,7 @@ app.get('/health', (req, res) => {
 
 // get version
 app.get('/version', (req, res) => {
-  res.status(200).send('0.0.1');
+  res.status(200).json({ version });
 });
 
 io.on('connection', (socket: Socket) => {

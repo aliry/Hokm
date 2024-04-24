@@ -1,13 +1,13 @@
 {
   "name": "hokm-service",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Hokm game server",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "start": "node build/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "test": "jest",
-    "docker:build": "docker build -t hokm-app-service:v2 .",
+    "docker:build": "npm version patch && docker build -t hokm-app-service:v2 .",
     "docker:run": "docker run -p 3001:3001 hokm-app-service:v2",
     "docker:push": "az acr login --name alidocker && docker push alidocker.azurecr.io/hokm-app-service:v2"
   },
