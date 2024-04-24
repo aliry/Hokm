@@ -7,7 +7,7 @@
     "start": "node build/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "test": "jest",
-    "version-patch": "npm version patch && git push && git push --tags",
+    "version-patch": "git add package-lock.json && git commit -m 'chore: commit package-lock.json' && npm version patch && git push && git push --tags",
     "docker:build": "npm version patch && git commit -m 'new container build' && docker build -t hokm-app-service:v2 .",
     "docker:run": "docker run -p 3001:3001 hokm-app-service:v2",
     "docker:push": "az acr login --name alidocker && docker push alidocker.azurecr.io/hokm-app-service:v2",
