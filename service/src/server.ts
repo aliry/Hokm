@@ -9,10 +9,8 @@ import { SocketHandler } from './socketHandler';
 import './appInsight';
 import { ExtendedError } from 'socket.io/dist/namespace';
 
-const isDevMode = process.env.NODE_ENV === 'development';
-const { version } = isDevMode
-  ? require('../package.json')
-  : require('./package.json');
+const path = require('path');
+const { version } = require(path.join(__dirname, '..', 'package.json'));
 
 // load environment variables
 require('dotenv').config();
