@@ -6,8 +6,8 @@ import { createServer } from 'http';
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { SocketHandler } from './socketHandler';
-import './appInsight';
 import { ExtendedError } from 'socket.io/dist/namespace';
+import './appInsight';
 
 const path = require('path');
 const { version } = require(path.join(__dirname, '..', 'package.json'));
