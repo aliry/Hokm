@@ -1,31 +1,39 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { Socket, Server as SocketIOServer } from 'socket.io';
 import { GameSessionManager } from './gameSessionManager';
 import { SocketHandler } from './socketHandler';
-import { defaultClient as aiClient } from 'applicationinsights';
 import './appInsight';
 import { version } from '../package.json';
+import { ExtendedError } from 'socket.io/dist/namespace';
 
 const PORT = process.env.PORT || 3001;
 
 const app = express();
-app.use(express.json());
-app.use(cors());
+app.use(helmet());
+app.use(express.json({ limit: '10kb' }));
 
-// Track requests with Application Insights
-app.use((req, res, next) => {
-  aiClient.trackNodeHttpRequest({ request: req, response: res });
-  next();
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'https://wonderful-field-00250340f.5.azurestaticapps.net'
+  ],
+  methods: ['GET', 'POST']
+};
+app.use(cors(corsOptions));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
 });
+app.use(limiter);
 
 const httpServer = createServer(app);
 const io = new SocketIOServer(httpServer, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
+  cors: corsOptions
 });
 
 const gameSessions = new GameSessionManager();
@@ -49,7 +57,7 @@ app.post('/create-game', (req, res) => {
     });
   } catch (error: any) {
     console.error('Error creating game session:', error);
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 
@@ -69,7 +77,7 @@ app.get('/game-state', (req, res) => {
     );
     res.json(encryptedGameState);
   } catch (error: any) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 
@@ -102,6 +110,49 @@ app.get('/health', (req, res) => {
 app.get('/version', (req, res) => {
   res.status(200).json({ version });
 });
+
+const messageLimiter = (timeFrame: number, maxMessages: number) => {
+  const users = new Map();
+
+  return (socket: Socket, next: (err?: ExtendedError) => void) => {
+    const now = Date.now();
+    const record = users.get(socket.id) || { count: 0, lastMessageTime: now };
+
+    if (now - record.lastMessageTime > timeFrame) {
+      // Reset the count if the time frame has passed
+      record.count = 1;
+      record.lastMessageTime = now;
+      users.set(socket.id, record);
+      next();
+    } else {
+      // Increment the message count
+      record.count += 1;
+      if (record.count <= maxMessages) {
+        // Allow the message through if within limits
+        users.set(socket.id, record);
+        next();
+      } else {
+        // Disconnect the client if the limit is exceeded
+        socket.emit('rate_limit', {
+          message:
+            'You have exceeded the message limit. You will be disconnected.'
+        });
+        // Use a short timeout to ensure the client receives the rate limit message before disconnecting
+        setTimeout(() => {
+          socket.disconnect(true);
+        }, 1000);
+      }
+    }
+
+    // Optionally clean up the users map for disconnected sockets
+    socket.on('disconnect', () => {
+      users.delete(socket.id);
+    });
+  };
+};
+
+// Apply the message rate limiting middleware. 30 messages per minute per socket
+io.use(messageLimiter(60000, 30));
 
 io.on('connection', (socket: Socket) => {
   socketHandler.handleConnection(socket);
