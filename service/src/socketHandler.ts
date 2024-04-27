@@ -5,6 +5,7 @@ import { GameAction, GameEvent, SocketEvents } from './constants';
 import { ClientActionPayload, ServerEventPayload } from './sharedTypes';
 import { GameSession } from './gameSession';
 import { aiClient } from './appInsight';
+import { response } from 'express';
 
 export class SocketHandler {
   private gameEngine: GameEngine;
@@ -56,6 +57,14 @@ export class SocketHandler {
           }
         }
         this.emitGameState(session);
+
+        aiClient?.trackEvent({
+          name: 'GameState',
+          properties: {
+            clientPayload: payload,
+            responseState: session.GetState()
+          }
+        });
       } catch (error: any) {
         this.emitError(socket, error.message);
         console.error('Error handling client action:', error);
@@ -67,8 +76,16 @@ export class SocketHandler {
         const session = this.gameEngine.GetSession(socket);
         this.gameEngine.Disconnect(session, socket.id);
         this.emitGameState(session);
+        aiClient?.trackEvent({
+          name: 'ClientDisconnected',
+          properties: {
+            sessionId: session.SessionId,
+            socketId: socket.id
+          }
+        });
       } catch (error: any) {
         this.emitError(socket, error.message);
+        console.error('Error handling client disconnect:', error);
       }
     });
   }
@@ -90,10 +107,6 @@ export class SocketHandler {
         };
         this._io.to(player.id).emit(SocketEvents.ServerEvent, payLoad);
       }
-    });
-    aiClient?.trackEvent({
-      name: 'GameState',
-      properties: session.GetState()
     });
   }
 
